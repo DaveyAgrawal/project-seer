@@ -59,6 +59,10 @@ def crawl(
         try:
             config.validate()
             
+            # Import crawler here to avoid circular imports
+            from src.dcm.crawler import DataCenterMapCrawler
+            from src.dcm.exporter import FacilityExporter
+            
             if dry_run:
                 if state:
                     console.print(f"[DRY RUN] Would crawl state: {state}")
@@ -66,13 +70,34 @@ def crawl(
                     console.print("[DRY RUN] Would crawl all U.S. states")
                 return
             
-            # TODO: Implement actual crawling logic
+            # Initialize crawler
+            crawler = DataCenterMapCrawler()
+            
+            # Execute crawl
             if state:
-                logger.info(f"Starting crawl for state: {state}")
-                console.print(f"🚧 Crawling {state} - implementation coming soon!")
+                logger.info(f"🚀 Starting crawl for state: {state}")
+                facilities = await crawler.crawl_state(state)
             else:
-                logger.info("Starting crawl for all U.S. states")
-                console.print("🚧 Crawling all states - implementation coming soon!")
+                logger.info("🚀 Starting crawl for all U.S. states")
+                facilities = await crawler.crawl_all_states()
+            
+            if not facilities:
+                console.print("⚠️  No facilities found", style="yellow")
+                return
+            
+            # Export to CSV if requested
+            if out:
+                success = FacilityExporter.export_to_csv(facilities, out)
+                if success:
+                    console.print(f"✅ Exported {len(facilities)} facilities to {out}", style="green")
+                else:
+                    console.print("❌ Export failed", style="red")
+                    raise typer.Exit(1)
+            
+            # Generate summary
+            FacilityExporter.export_summary(facilities)
+            
+            console.print(f"🎉 Crawl completed successfully! Found {len(facilities)} facilities", style="green")
                 
         except Exception as e:
             logger.error(f"❌ Crawl failed: {e}")
@@ -86,15 +111,45 @@ def export(
     out: Path = typer.Option(..., "--out", help="Output CSV file path"),
     limit: Optional[int] = typer.Option(None, "--limit", help="Limit number of records")
 ):
-    """Export facility data to CSV."""
+    """Export facility data from database to CSV."""
     
     async def _export():
         try:
             config.validate()
-            logger.info(f"Exporting data to {out}")
             
-            # TODO: Implement actual export logic
-            console.print(f"🚧 Export to {out} - implementation coming soon!")
+            # Import here to avoid circular imports
+            from src.dcm.exporter import FacilityExporter
+            from src.core.models import DataCenterFacility
+            from sqlalchemy import select
+            
+            logger.info(f"📤 Exporting data to {out}")
+            
+            # Query database for facilities
+            async with db_manager.session() as session:
+                query = select(DataCenterFacility)
+                if limit:
+                    query = query.limit(limit)
+                
+                result = await session.execute(query)
+                facilities_db = result.scalars().all()
+            
+            if not facilities_db:
+                console.print("⚠️  No facilities found in database", style="yellow")
+                return
+            
+            # Convert to dictionaries
+            facilities = [facility.to_dict() for facility in facilities_db]
+            
+            # Export to CSV
+            success = FacilityExporter.export_to_csv(facilities, out)
+            if success:
+                console.print(f"✅ Exported {len(facilities)} facilities to {out}", style="green")
+                
+                # Generate summary
+                FacilityExporter.export_summary(facilities)
+            else:
+                console.print("❌ Export failed", style="red")
+                raise typer.Exit(1)
             
         except Exception as e:
             logger.error(f"❌ Export failed: {e}")
