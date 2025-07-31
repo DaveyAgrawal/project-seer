@@ -73,13 +73,15 @@ def crawl(
             # Initialize crawler
             crawler = DataCenterMapCrawler()
             
-            # Execute crawl
+            # Execute crawl (always save to DB unless CSV-only export is requested)
+            save_to_db = True  # Always save to database for persistence
+            
             if state:
                 logger.info(f"🚀 Starting crawl for state: {state}")
-                facilities = await crawler.crawl_state(state)
+                facilities = await crawler.crawl_state(state, save_to_db=save_to_db)
             else:
                 logger.info("🚀 Starting crawl for all U.S. states")
-                facilities = await crawler.crawl_all_states()
+                facilities = await crawler.crawl_all_states(save_to_db=save_to_db)
             
             if not facilities:
                 console.print("⚠️  No facilities found", style="yellow")

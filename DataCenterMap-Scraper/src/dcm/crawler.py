@@ -10,7 +10,9 @@ from rich.console import Console
 from rich.progress import Progress, TaskID, track
 
 from src.core.config import config
+from src.core.database import db_manager
 from src.core.logging import logger
+from src.core.repository import FacilityRepository
 from src.dcm.http_client import DataCenterMapClient
 from src.dcm.parsers import DataCenterMapParser
 
@@ -37,7 +39,7 @@ class DataCenterMapCrawler:
         # Track processed URLs to avoid duplicates
         self.processed_urls: Set[str] = set()
     
-    async def crawl_all_states(self) -> List[Dict]:
+    async def crawl_all_states(self, save_to_db: bool = True) -> List[Dict]:
         """Crawl all U.S. states for data center facilities."""
         logger.info("🚀 Starting full USA crawl")
         self.stats["start_time"] = datetime.utcnow()
@@ -58,7 +60,7 @@ class DataCenterMapCrawler:
             # Step 2: Process each state
             for state in track(states, description="Processing states..."):
                 try:
-                    state_facilities = await self._crawl_state(state)
+                    state_facilities = await self._crawl_state(state, save_to_db=save_to_db)
                     all_facilities.extend(state_facilities)
                     self.stats["states_processed"] += 1
                     
@@ -70,7 +72,7 @@ class DataCenterMapCrawler:
         self._log_final_stats()
         return all_facilities
     
-    async def crawl_state(self, state_name: str) -> List[Dict]:
+    async def crawl_state(self, state_name: str, save_to_db: bool = True) -> List[Dict]:
         """Crawl a specific state for data center facilities."""
         logger.info(f"🚀 Starting crawl for state: {state_name}")
         self.stats["start_time"] = datetime.utcnow()
@@ -92,7 +94,7 @@ class DataCenterMapCrawler:
                 return []
             
             # Crawl the specific state
-            facilities = await self._crawl_state(target_state)
+            facilities = await self._crawl_state(target_state, save_to_db=save_to_db)
             self.stats["states_processed"] = 1
         
         self._log_final_stats()
@@ -113,7 +115,7 @@ class DataCenterMapCrawler:
             logger.error(f"❌ Failed to fetch states: {e}")
             return []
     
-    async def _crawl_state(self, state: Dict[str, str]) -> List[Dict]:
+    async def _crawl_state(self, state: Dict[str, str], save_to_db: bool = True) -> List[Dict]:
         """Crawl all cities in a specific state."""
         state_name = state["name"]
         state_url = state["url"]
@@ -142,7 +144,7 @@ class DataCenterMapCrawler:
             
             for city in cities:
                 try:
-                    city_facilities = await self._crawl_city(city)
+                    city_facilities = await self._crawl_city(city, save_to_db=save_to_db)
                     state_facilities.extend(city_facilities)
                     self.stats["cities_processed"] += 1
                     
@@ -154,10 +156,14 @@ class DataCenterMapCrawler:
                     progress.update(task, advance=1)
                     continue
         
+        # Save state facilities to database if requested
+        if save_to_db and state_facilities:
+            await self._save_facilities_to_db(state_facilities)
+        
         logger.info(f"✅ Completed {state_name}: {len(state_facilities)} facilities")
         return state_facilities
     
-    async def _crawl_city(self, city: Dict[str, str]) -> List[Dict]:
+    async def _crawl_city(self, city: Dict[str, str], save_to_db: bool = True) -> List[Dict]:
         """Crawl all facilities in a specific city."""
         city_name = city["name"]
         city_url = city["url"]
@@ -245,6 +251,21 @@ class DataCenterMapCrawler:
         
         logger.debug(f"✅ Processed facility: {detailed_facility['name']}")
         return detailed_facility
+    
+    async def _save_facilities_to_db(self, facilities: List[Dict]) -> None:
+        """Save facilities to database using upsert logic."""
+        if not facilities:
+            return
+        
+        try:
+            async with db_manager.session() as session:
+                repository = FacilityRepository(session)
+                await repository.upsert_facilities_batch(facilities)
+                logger.info(f"💾 Saved {len(facilities)} facilities to database")
+                
+        except Exception as e:
+            logger.error(f"❌ Failed to save facilities to database: {e}")
+            # Don't raise - we still want to return the data even if DB save fails
     
     def _log_final_stats(self):
         """Log final crawl statistics."""
