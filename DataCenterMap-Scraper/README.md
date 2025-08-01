@@ -31,13 +31,13 @@ vim .env
 docker-compose up -d postgres
 
 # Initialize database tables
-python -m src.app init-db
+python3 -m src.app init-db
 ```
 
 ### 3. Install Dependencies
 
 ```bash
-pip install -e .
+pip3 install -e .
 ```
 
 ### 4. Run Crawler
@@ -71,16 +71,52 @@ Key environment variables (see `.env.example`):
 
 ## Development
 
+### Python Version Requirements
+
+This project requires Python 3.9 or higher. If you have an older system Python, you may need to use specific commands:
+
+**macOS/Linux with system Python 3.9:**
+- Use `python3` instead of `python`
+- Use `pip3` instead of `pip`
+- Use `python3 -m pytest` instead of `pytest`
+
+### Setup Development Environment
+
 ```bash
 # Install development dependencies
-pip install -e ".[dev]"
+pip3 install -e ".[dev]"
 
-# Run tests
-pytest -v
+# Initialize database
+python3 -m src.app init-db
+```
 
+### Running Tests
+
+```bash
+# Run unit tests (fast, using mocked data)
+python3 -m pytest -v -m "not integration"
+
+# Run all tests including integration tests (hits real website)
+python3 -m pytest -v
+
+# Run only integration tests (hits datacentermap.com)
+python3 -m pytest -v -m integration
+
+# Run tests with quiet output
+python3 -m pytest -q
+```
+
+### Code Quality
+
+```bash
 # Format code
-black src/ tests/
-ruff check src/ tests/
+python3 -m black src/ tests/
+
+# Check code style
+python3 -m ruff check src/ tests/
+
+# Type checking
+python3 -m mypy src/
 ```
 
 ## Architecture
