@@ -13,7 +13,7 @@ from src.core.config import config
 from src.core.database import db_manager
 from src.core.logging import logger
 from src.core.repository import FacilityRepository
-from src.dcm.http_client import DataCenterMapClient
+from src.dcm.playwright_client import PlaywrightDataCenterMapClient
 from src.dcm.parsers import DataCenterMapParser
 
 
@@ -21,7 +21,7 @@ class DataCenterMapCrawler:
     """Main crawler that orchestrates the scraping process."""
     
     def __init__(self):
-        self.client = DataCenterMapClient()
+        self.client = PlaywrightDataCenterMapClient()
         self.parser = DataCenterMapParser()
         self.console = Console()
         
