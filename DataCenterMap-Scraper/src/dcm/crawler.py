@@ -103,6 +103,16 @@ class DataCenterMapCrawler:
     async def _get_states(self) -> List[Dict[str, str]]:
         """Fetch and parse all U.S. states."""
         try:
+            # Step 1: Visit homepage first to establish session (simulate "Explore Map" click)
+            logger.info("🏠 Visiting homepage to establish session...")
+            homepage_html = await self.client.get(config.BASE_URL)
+            if not homepage_html:
+                logger.warning("⚠️  Could not load homepage, proceeding anyway...")
+            else:
+                logger.info("✅ Homepage loaded successfully")
+            
+            # Step 2: Now fetch USA states page
+            logger.info("🗺️  Fetching USA states page...")
             html = await self.client.get(config.USA_URL)
             if not html:
                 return []
