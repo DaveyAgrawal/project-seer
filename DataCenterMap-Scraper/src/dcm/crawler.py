@@ -47,9 +47,9 @@ class DataCenterMapCrawler:
         all_facilities = []
         
         async with self.client:
-            # Step 1: Get all states
-            logger.info("📍 Fetching USA states...")
-            states = await self._get_states()
+            # Step 1: Get all states from hardcoded list
+            logger.info("📍 Getting USA states...")
+            states = self._get_usa_states()
             
             if not states:
                 logger.error("❌ No states found - aborting crawl")
@@ -80,8 +80,8 @@ class DataCenterMapCrawler:
         facilities = []
         
         async with self.client:
-            # Find the state info
-            states = await self._get_states()
+            # Find the state info from hardcoded list
+            states = self._get_usa_states()
             target_state = None
             
             for state in states:
@@ -100,170 +100,71 @@ class DataCenterMapCrawler:
         self._log_final_stats()
         return facilities
     
-    async def _get_states(self) -> List[Dict[str, str]]:
-        """Fetch states using interactive map approach with robust error handling."""
-        max_retries = 3
+    def _get_usa_states(self) -> List[Dict[str, str]]:
+        """Return hardcoded list of all US states and DC for reliable crawling."""
+        states = [
+            {"name": "Alabama", "slug": "alabama", "url": f"{config.BASE_URL}/usa/alabama/"},
+            {"name": "Alaska", "slug": "alaska", "url": f"{config.BASE_URL}/usa/alaska/"},
+            {"name": "Arizona", "slug": "arizona", "url": f"{config.BASE_URL}/usa/arizona/"},
+            {"name": "Arkansas", "slug": "arkansas", "url": f"{config.BASE_URL}/usa/arkansas/"},
+            {"name": "California", "slug": "california", "url": f"{config.BASE_URL}/usa/california/"},
+            {"name": "Colorado", "slug": "colorado", "url": f"{config.BASE_URL}/usa/colorado/"},
+            {"name": "Connecticut", "slug": "connecticut", "url": f"{config.BASE_URL}/usa/connecticut/"},
+            {"name": "Delaware", "slug": "delaware", "url": f"{config.BASE_URL}/usa/delaware/"},
+            {"name": "Florida", "slug": "florida", "url": f"{config.BASE_URL}/usa/florida/"},
+            {"name": "Georgia", "slug": "georgia", "url": f"{config.BASE_URL}/usa/georgia/"},
+            {"name": "Hawaii", "slug": "hawaii", "url": f"{config.BASE_URL}/usa/hawaii/"},
+            {"name": "Idaho", "slug": "idaho", "url": f"{config.BASE_URL}/usa/idaho/"},
+            {"name": "Illinois", "slug": "illinois", "url": f"{config.BASE_URL}/usa/illinois/"},
+            {"name": "Indiana", "slug": "indiana", "url": f"{config.BASE_URL}/usa/indiana/"},
+            {"name": "Iowa", "slug": "iowa", "url": f"{config.BASE_URL}/usa/iowa/"},
+            {"name": "Kansas", "slug": "kansas", "url": f"{config.BASE_URL}/usa/kansas/"},
+            {"name": "Kentucky", "slug": "kentucky", "url": f"{config.BASE_URL}/usa/kentucky/"},
+            {"name": "Louisiana", "slug": "louisiana", "url": f"{config.BASE_URL}/usa/louisiana/"},
+            {"name": "Maine", "slug": "maine", "url": f"{config.BASE_URL}/usa/maine/"},
+            {"name": "Maryland", "slug": "maryland", "url": f"{config.BASE_URL}/usa/maryland/"},
+            {"name": "Massachusetts", "slug": "massachusetts", "url": f"{config.BASE_URL}/usa/massachusetts/"},
+            {"name": "Michigan", "slug": "michigan", "url": f"{config.BASE_URL}/usa/michigan/"},
+            {"name": "Minnesota", "slug": "minnesota", "url": f"{config.BASE_URL}/usa/minnesota/"},
+            {"name": "Mississippi", "slug": "mississippi", "url": f"{config.BASE_URL}/usa/mississippi/"},
+            {"name": "Missouri", "slug": "missouri", "url": f"{config.BASE_URL}/usa/missouri/"},
+            {"name": "Montana", "slug": "montana", "url": f"{config.BASE_URL}/usa/montana/"},
+            {"name": "Nebraska", "slug": "nebraska", "url": f"{config.BASE_URL}/usa/nebraska/"},
+            {"name": "Nevada", "slug": "nevada", "url": f"{config.BASE_URL}/usa/nevada/"},
+            {"name": "New Hampshire", "slug": "new-hampshire", "url": f"{config.BASE_URL}/usa/new-hampshire/"},
+            {"name": "New Jersey", "slug": "new-jersey", "url": f"{config.BASE_URL}/usa/new-jersey/"},
+            {"name": "New Mexico", "slug": "new-mexico", "url": f"{config.BASE_URL}/usa/new-mexico/"},
+            {"name": "New York", "slug": "new-york", "url": f"{config.BASE_URL}/usa/new-york/"},
+            {"name": "North Carolina", "slug": "north-carolina", "url": f"{config.BASE_URL}/usa/north-carolina/"},
+            {"name": "North Dakota", "slug": "north-dakota", "url": f"{config.BASE_URL}/usa/north-dakota/"},
+            {"name": "Ohio", "slug": "ohio", "url": f"{config.BASE_URL}/usa/ohio/"},
+            {"name": "Oklahoma", "slug": "oklahoma", "url": f"{config.BASE_URL}/usa/oklahoma/"},
+            {"name": "Oregon", "slug": "oregon", "url": f"{config.BASE_URL}/usa/oregon/"},
+            {"name": "Pennsylvania", "slug": "pennsylvania", "url": f"{config.BASE_URL}/usa/pennsylvania/"},
+            {"name": "Rhode Island", "slug": "rhode-island", "url": f"{config.BASE_URL}/usa/rhode-island/"},
+            {"name": "South Carolina", "slug": "south-carolina", "url": f"{config.BASE_URL}/usa/south-carolina/"},
+            {"name": "South Dakota", "slug": "south-dakota", "url": f"{config.BASE_URL}/usa/south-dakota/"},
+            {"name": "Tennessee", "slug": "tennessee", "url": f"{config.BASE_URL}/usa/tennessee/"},
+            {"name": "Texas", "slug": "texas", "url": f"{config.BASE_URL}/usa/texas/"},
+            {"name": "Utah", "slug": "utah", "url": f"{config.BASE_URL}/usa/utah/"},
+            {"name": "Vermont", "slug": "vermont", "url": f"{config.BASE_URL}/usa/vermont/"},
+            {"name": "Virginia", "slug": "virginia", "url": f"{config.BASE_URL}/usa/virginia/"},
+            {"name": "Washington", "slug": "washington", "url": f"{config.BASE_URL}/usa/washington/"},
+            {"name": "West Virginia", "slug": "west-virginia", "url": f"{config.BASE_URL}/usa/west-virginia/"},
+            {"name": "Wisconsin", "slug": "wisconsin", "url": f"{config.BASE_URL}/usa/wisconsin/"},
+            {"name": "Wyoming", "slug": "wyoming", "url": f"{config.BASE_URL}/usa/wyoming/"},
+            {"name": "District of Columbia", "slug": "district-of-columbia", "url": f"{config.BASE_URL}/usa/district-of-columbia/"},
+        ]
         
-        for attempt in range(max_retries):
-            try:
-                # Step 1: Visit homepage first to establish session (simulate "Explore Map" click)
-                logger.info(f"🏠 Visiting homepage to establish session... (attempt {attempt + 1}/{max_retries})")
-                
-                try:
-                    homepage_html = await self.client.get(config.BASE_URL)
-                    if homepage_html and len(homepage_html) > 1000:
-                        logger.info("✅ Homepage loaded successfully")
-                    else:
-                        logger.warning("⚠️  Homepage content seems incomplete, but proceeding...")
-                except Exception as e:
-                    logger.warning(f"⚠️  Could not load homepage (attempt {attempt + 1}): {e}")
-                    if attempt == max_retries - 1:
-                        logger.warning("Proceeding to states page despite homepage issues...")
-                    else:
-                        await asyncio.sleep(5 * (attempt + 1))  # Progressive delay
-                        continue
-                
-                # Step 2: Load interactive USA map page
-                logger.info(f"🗺️  Loading interactive USA map... (attempt {attempt + 1}/{max_retries})")
-                html = await self.client.get(config.USA_URL)
-                
-                if not html:
-                    raise Exception("Empty response from USA states page")
-                
-                if len(html) < 1000:
-                    raise Exception(f"USA states page content too short ({len(html)} chars)")
-                
-                # Step 3: Find clickable state elements on the interactive map
-                logger.info("🔍 Searching for interactive state elements...")
-                state_elements = await self.client._find_state_clickable_elements()
-                
-                if not state_elements:
-                    # Fallback to traditional parsing if no interactive elements found
-                    logger.warning("⚠️  No interactive elements found, trying traditional parsing...")
-                    states = self.parser.parse_usa_states(html)
-                    
-                    if not states:
-                        raise Exception("No states found in parsed content")
-                    
-                    logger.info(f"✅ Found {len(states)} states (traditional parsing)")
-                    return states
-                
-                # Step 4: Convert interactive elements to state info for processing
-                states = []
-                for i, element_info in enumerate(state_elements[:51]):  # Limit to reasonable number
-                    # Try to extract state name from element attributes or nearby text
-                    attrs = element_info.get('attributes', {})
-                    
-                    # Look for state identifier in attributes
-                    state_name = None
-                    for key, value in attrs.items():
-                        if 'state' in key.lower() and value:
-                            state_name = value
-                            break
-                    
-                    if not state_name:
-                        state_name = f"state_{i+1}"  # Generic name if can't determine
-                    
-                    states.append({
-                        'name': state_name,
-                        'slug': state_name.lower().replace(' ', '_'),
-                        'url': config.USA_URL,  # Will use clicking instead of URL navigation
-                        'element_info': element_info,  # Store element info for clicking
-                        'interactive': True
-                    })
-                
-                logger.info(f"✅ Found {len(states)} interactive state elements")
-                return states
-                
-            except Exception as e:
-                error_msg = f"Failed to fetch states (attempt {attempt + 1}/{max_retries}): {e}"
-                
-                if attempt == max_retries - 1:
-                    logger.error(f"❌ {error_msg} - giving up after {max_retries} attempts")
-                    self.stats["errors"] += 1
-                    return []
-                else:
-                    logger.warning(f"⚠️  {error_msg} - retrying...")
-                    await asyncio.sleep(10 * (attempt + 1))  # Progressive delay
-                    continue
-        
-        return []
+        logger.info(f"📍 Using hardcoded list of {len(states)} US states and DC")
+        return states
     
     async def _crawl_state(self, state: Dict[str, str], save_to_db: bool = True) -> List[Dict]:
-        """Crawl all cities in a specific state (handles both interactive and traditional)."""
-        state_name = state["name"]
-        
-        logger.info(f"🏛️  Processing state: {state_name}")
-        
-        # Check if this is an interactive state (has element_info)
-        if state.get('interactive') and state.get('element_info'):
-            return await self._crawl_interactive_state(state, save_to_db)
-        else:
-            return await self._crawl_traditional_state(state, save_to_db)
-    
-    async def _crawl_interactive_state(self, state: Dict[str, str], save_to_db: bool = True) -> List[Dict]:
-        """Crawl a state by clicking on its interactive map element."""
-        state_name = state["name"]
-        element_info = state["element_info"]
-        
-        logger.info(f"🖱️  Clicking interactive element for state: {state_name}")
-        
-        # Click on the state element
-        click_success = await self.client.click_state_element(element_info, state_name)
-        if not click_success:
-            logger.error(f"❌ Failed to click state element for {state_name}")
-            return []
-        
-        # Extract data from the resulting page/content
-        state_data = await self.client.extract_state_data_from_current_page()
-        if not state_data:
-            logger.warning(f"⚠️  No data extracted after clicking {state_name}")
-            return []
-        
-        cities = state_data.get('cities', [])
-        logger.info(f"🏙️  Found {len(cities)} cities in {state_name} (interactive)")
-        
-        # Process each city found
-        state_facilities = []
-        
-        if cities:
-            with Progress() as progress:
-                task = progress.add_task(f"Cities in {state_name}", total=len(cities))
-                
-                for city in cities:
-                    try:
-                        # Convert city data to expected format
-                        city_dict = {
-                            'name': city['name'],
-                            'url': city['url'],
-                            'state': state_name
-                        }
-                        
-                        city_facilities = await self._crawl_city(city_dict, save_to_db=False)
-                        state_facilities.extend(city_facilities)
-                        self.stats["cities_processed"] += 1
-                        
-                        progress.update(task, advance=1)
-                        
-                    except Exception as e:
-                        logger.error(f"❌ Error processing city {city['name']} in {state_name}: {e}")
-                        self.stats["errors"] += 1
-                        progress.update(task, advance=1)
-                        continue
-        
-        # Save state facilities to database if requested
-        if save_to_db and state_facilities:
-            await self._save_facilities_to_db(state_facilities)
-        
-        logger.info(f"✅ Completed {state_name}: {len(state_facilities)} facilities (interactive)")
-        return state_facilities
-    
-    async def _crawl_traditional_state(self, state: Dict[str, str], save_to_db: bool = True) -> List[Dict]:
-        """Crawl a state using traditional URL-based navigation."""
+        """Crawl all cities in a specific state using traditional parsing."""
         state_name = state["name"]
         state_url = state["url"]
         
-        logger.info(f"🔗 Processing state traditionally: {state_name}")
+        logger.info(f"🏛️  Processing state: {state_name}")
         
         # Get state page
         html = await self.client.get(state_url)
@@ -277,7 +178,7 @@ class DataCenterMapCrawler:
             logger.warning(f"⚠️  No cities found in {state_name}")
             return []
         
-        logger.info(f"🏙️  Found {len(cities)} cities in {state_name} (traditional)")
+        logger.info(f"🏙️  Found {len(cities)} cities in {state_name}")
         
         # Process each city
         state_facilities = []
@@ -304,8 +205,9 @@ class DataCenterMapCrawler:
         if save_to_db and state_facilities:
             await self._save_facilities_to_db(state_facilities)
         
-        logger.info(f"✅ Completed {state_name}: {len(state_facilities)} facilities (traditional)")
+        logger.info(f"✅ Completed {state_name}: {len(state_facilities)} facilities")
         return state_facilities
+    
     
     async def _crawl_city(self, city: Dict[str, str], save_to_db: bool = True) -> List[Dict]:
         """Crawl all facilities in a specific city."""
