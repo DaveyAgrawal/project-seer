@@ -101,7 +101,7 @@ class DataCenterMapCrawler:
         return facilities
     
     async def _get_states(self) -> List[Dict[str, str]]:
-        """Fetch and parse all U.S. states with robust error handling."""
+        """Fetch states using interactive map approach with robust error handling."""
         max_retries = 3
         
         for attempt in range(max_retries):
@@ -123,8 +123,8 @@ class DataCenterMapCrawler:
                         await asyncio.sleep(5 * (attempt + 1))  # Progressive delay
                         continue
                 
-                # Step 2: Now fetch USA states page
-                logger.info(f"🗺️  Fetching USA states page... (attempt {attempt + 1}/{max_retries})")
+                # Step 2: Load interactive USA map page
+                logger.info(f"🗺️  Loading interactive USA map... (attempt {attempt + 1}/{max_retries})")
                 html = await self.client.get(config.USA_URL)
                 
                 if not html:
@@ -133,15 +133,46 @@ class DataCenterMapCrawler:
                 if len(html) < 1000:
                     raise Exception(f"USA states page content too short ({len(html)} chars)")
                 
-                states = self.parser.parse_usa_states(html)
+                # Step 3: Find clickable state elements on the interactive map
+                logger.info("🔍 Searching for interactive state elements...")
+                state_elements = await self.client._find_state_clickable_elements()
                 
-                if not states:
-                    raise Exception("No states found in parsed content")
+                if not state_elements:
+                    # Fallback to traditional parsing if no interactive elements found
+                    logger.warning("⚠️  No interactive elements found, trying traditional parsing...")
+                    states = self.parser.parse_usa_states(html)
+                    
+                    if not states:
+                        raise Exception("No states found in parsed content")
+                    
+                    logger.info(f"✅ Found {len(states)} states (traditional parsing)")
+                    return states
                 
-                if len(states) < 10:  # Expect at least 10 states
-                    logger.warning(f"⚠️  Only found {len(states)} states, expected more")
+                # Step 4: Convert interactive elements to state info for processing
+                states = []
+                for i, element_info in enumerate(state_elements[:51]):  # Limit to reasonable number
+                    # Try to extract state name from element attributes or nearby text
+                    attrs = element_info.get('attributes', {})
+                    
+                    # Look for state identifier in attributes
+                    state_name = None
+                    for key, value in attrs.items():
+                        if 'state' in key.lower() and value:
+                            state_name = value
+                            break
+                    
+                    if not state_name:
+                        state_name = f"state_{i+1}"  # Generic name if can't determine
+                    
+                    states.append({
+                        'name': state_name,
+                        'slug': state_name.lower().replace(' ', '_'),
+                        'url': config.USA_URL,  # Will use clicking instead of URL navigation
+                        'element_info': element_info,  # Store element info for clicking
+                        'interactive': True
+                    })
                 
-                logger.info(f"✅ Found {len(states)} states")
+                logger.info(f"✅ Found {len(states)} interactive state elements")
                 return states
                 
             except Exception as e:
@@ -159,11 +190,80 @@ class DataCenterMapCrawler:
         return []
     
     async def _crawl_state(self, state: Dict[str, str], save_to_db: bool = True) -> List[Dict]:
-        """Crawl all cities in a specific state."""
+        """Crawl all cities in a specific state (handles both interactive and traditional)."""
+        state_name = state["name"]
+        
+        logger.info(f"🏛️  Processing state: {state_name}")
+        
+        # Check if this is an interactive state (has element_info)
+        if state.get('interactive') and state.get('element_info'):
+            return await self._crawl_interactive_state(state, save_to_db)
+        else:
+            return await self._crawl_traditional_state(state, save_to_db)
+    
+    async def _crawl_interactive_state(self, state: Dict[str, str], save_to_db: bool = True) -> List[Dict]:
+        """Crawl a state by clicking on its interactive map element."""
+        state_name = state["name"]
+        element_info = state["element_info"]
+        
+        logger.info(f"🖱️  Clicking interactive element for state: {state_name}")
+        
+        # Click on the state element
+        click_success = await self.client.click_state_element(element_info, state_name)
+        if not click_success:
+            logger.error(f"❌ Failed to click state element for {state_name}")
+            return []
+        
+        # Extract data from the resulting page/content
+        state_data = await self.client.extract_state_data_from_current_page()
+        if not state_data:
+            logger.warning(f"⚠️  No data extracted after clicking {state_name}")
+            return []
+        
+        cities = state_data.get('cities', [])
+        logger.info(f"🏙️  Found {len(cities)} cities in {state_name} (interactive)")
+        
+        # Process each city found
+        state_facilities = []
+        
+        if cities:
+            with Progress() as progress:
+                task = progress.add_task(f"Cities in {state_name}", total=len(cities))
+                
+                for city in cities:
+                    try:
+                        # Convert city data to expected format
+                        city_dict = {
+                            'name': city['name'],
+                            'url': city['url'],
+                            'state': state_name
+                        }
+                        
+                        city_facilities = await self._crawl_city(city_dict, save_to_db=False)
+                        state_facilities.extend(city_facilities)
+                        self.stats["cities_processed"] += 1
+                        
+                        progress.update(task, advance=1)
+                        
+                    except Exception as e:
+                        logger.error(f"❌ Error processing city {city['name']} in {state_name}: {e}")
+                        self.stats["errors"] += 1
+                        progress.update(task, advance=1)
+                        continue
+        
+        # Save state facilities to database if requested
+        if save_to_db and state_facilities:
+            await self._save_facilities_to_db(state_facilities)
+        
+        logger.info(f"✅ Completed {state_name}: {len(state_facilities)} facilities (interactive)")
+        return state_facilities
+    
+    async def _crawl_traditional_state(self, state: Dict[str, str], save_to_db: bool = True) -> List[Dict]:
+        """Crawl a state using traditional URL-based navigation."""
         state_name = state["name"]
         state_url = state["url"]
         
-        logger.info(f"🏛️  Processing state: {state_name}")
+        logger.info(f"🔗 Processing state traditionally: {state_name}")
         
         # Get state page
         html = await self.client.get(state_url)
@@ -177,7 +277,7 @@ class DataCenterMapCrawler:
             logger.warning(f"⚠️  No cities found in {state_name}")
             return []
         
-        logger.info(f"🏙️  Found {len(cities)} cities in {state_name}")
+        logger.info(f"🏙️  Found {len(cities)} cities in {state_name} (traditional)")
         
         # Process each city
         state_facilities = []
@@ -187,7 +287,7 @@ class DataCenterMapCrawler:
             
             for city in cities:
                 try:
-                    city_facilities = await self._crawl_city(city, save_to_db=save_to_db)
+                    city_facilities = await self._crawl_city(city, save_to_db=False)
                     state_facilities.extend(city_facilities)
                     self.stats["cities_processed"] += 1
                     
@@ -204,7 +304,7 @@ class DataCenterMapCrawler:
         if save_to_db and state_facilities:
             await self._save_facilities_to_db(state_facilities)
         
-        logger.info(f"✅ Completed {state_name}: {len(state_facilities)} facilities")
+        logger.info(f"✅ Completed {state_name}: {len(state_facilities)} facilities (traditional)")
         return state_facilities
     
     async def _crawl_city(self, city: Dict[str, str], save_to_db: bool = True) -> List[Dict]:
