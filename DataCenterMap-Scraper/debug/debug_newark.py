@@ -37,10 +37,11 @@ async def debug_newark():
         
         print(f"✅ Fetched HTML content ({len(html)} characters)")
         
-        # Save HTML to file for inspection
-        with open("newark_de_city.html", "w", encoding="utf-8") as f:
+        # Save HTML to file for inspection (in debug folder)
+        debug_file = os.path.join(os.path.dirname(__file__), "newark_de_city.html")
+        with open(debug_file, "w", encoding="utf-8") as f:
             f.write(html)
-        print("💾 Saved HTML to newark_de_city.html")
+        print("💾 Saved HTML to debug/newark_de_city.html")
         
         # Parse facilities
         print(f"\n🏢 Parsing facilities in Newark DE...")

@@ -37,10 +37,11 @@ async def debug_delaware():
         
         print(f"✅ Fetched HTML content ({len(html)} characters)")
         
-        # Save HTML to file for inspection
-        with open("delaware_state.html", "w", encoding="utf-8") as f:
+        # Save HTML to file for inspection (in debug folder)
+        debug_file = os.path.join(os.path.dirname(__file__), "delaware_state.html")
+        with open(debug_file, "w", encoding="utf-8") as f:
             f.write(html)
-        print("💾 Saved HTML to delaware_state.html")
+        print("💾 Saved HTML to debug/delaware_state.html")
         
         # Parse cities
         print("\n🏙️ Parsing cities...")
@@ -84,11 +85,12 @@ async def debug_delaware():
             
             print(f"✅ Fetched city HTML content ({len(city_html)} characters)")
             
-            # Save city HTML
+            # Save city HTML (in debug folder)
             city_filename = f"{city['name'].lower().replace(' ', '_')}_city.html"
-            with open(city_filename, "w", encoding="utf-8") as f:
+            debug_city_file = os.path.join(os.path.dirname(__file__), city_filename)
+            with open(debug_city_file, "w", encoding="utf-8") as f:
                 f.write(city_html)
-            print(f"💾 Saved city HTML to {city_filename}")
+            print(f"💾 Saved city HTML to debug/{city_filename}")
             
             # Parse facilities
             print(f"\n🏢 Parsing facilities in {city['name']}...")
