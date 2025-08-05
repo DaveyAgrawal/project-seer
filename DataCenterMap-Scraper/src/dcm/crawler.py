@@ -101,29 +101,62 @@ class DataCenterMapCrawler:
         return facilities
     
     async def _get_states(self) -> List[Dict[str, str]]:
-        """Fetch and parse all U.S. states."""
-        try:
-            # Step 1: Visit homepage first to establish session (simulate "Explore Map" click)
-            logger.info("🏠 Visiting homepage to establish session...")
-            homepage_html = await self.client.get(config.BASE_URL)
-            if not homepage_html:
-                logger.warning("⚠️  Could not load homepage, proceeding anyway...")
-            else:
-                logger.info("✅ Homepage loaded successfully")
-            
-            # Step 2: Now fetch USA states page
-            logger.info("🗺️  Fetching USA states page...")
-            html = await self.client.get(config.USA_URL)
-            if not html:
-                return []
-            
-            states = self.parser.parse_usa_states(html)
-            logger.info(f"✅ Found {len(states)} states")
-            return states
-            
-        except Exception as e:
-            logger.error(f"❌ Failed to fetch states: {e}")
-            return []
+        """Fetch and parse all U.S. states with robust error handling."""
+        max_retries = 3
+        
+        for attempt in range(max_retries):
+            try:
+                # Step 1: Visit homepage first to establish session (simulate "Explore Map" click)
+                logger.info(f"🏠 Visiting homepage to establish session... (attempt {attempt + 1}/{max_retries})")
+                
+                try:
+                    homepage_html = await self.client.get(config.BASE_URL)
+                    if homepage_html and len(homepage_html) > 1000:
+                        logger.info("✅ Homepage loaded successfully")
+                    else:
+                        logger.warning("⚠️  Homepage content seems incomplete, but proceeding...")
+                except Exception as e:
+                    logger.warning(f"⚠️  Could not load homepage (attempt {attempt + 1}): {e}")
+                    if attempt == max_retries - 1:
+                        logger.warning("Proceeding to states page despite homepage issues...")
+                    else:
+                        await asyncio.sleep(5 * (attempt + 1))  # Progressive delay
+                        continue
+                
+                # Step 2: Now fetch USA states page
+                logger.info(f"🗺️  Fetching USA states page... (attempt {attempt + 1}/{max_retries})")
+                html = await self.client.get(config.USA_URL)
+                
+                if not html:
+                    raise Exception("Empty response from USA states page")
+                
+                if len(html) < 1000:
+                    raise Exception(f"USA states page content too short ({len(html)} chars)")
+                
+                states = self.parser.parse_usa_states(html)
+                
+                if not states:
+                    raise Exception("No states found in parsed content")
+                
+                if len(states) < 10:  # Expect at least 10 states
+                    logger.warning(f"⚠️  Only found {len(states)} states, expected more")
+                
+                logger.info(f"✅ Found {len(states)} states")
+                return states
+                
+            except Exception as e:
+                error_msg = f"Failed to fetch states (attempt {attempt + 1}/{max_retries}): {e}"
+                
+                if attempt == max_retries - 1:
+                    logger.error(f"❌ {error_msg} - giving up after {max_retries} attempts")
+                    self.stats["errors"] += 1
+                    return []
+                else:
+                    logger.warning(f"⚠️  {error_msg} - retrying...")
+                    await asyncio.sleep(10 * (attempt + 1))  # Progressive delay
+                    continue
+        
+        return []
     
     async def _crawl_state(self, state: Dict[str, str], save_to_db: bool = True) -> List[Dict]:
         """Crawl all cities in a specific state."""
@@ -161,9 +194,10 @@ class DataCenterMapCrawler:
                     progress.update(task, advance=1)
                     
                 except Exception as e:
-                    logger.error(f"❌ Error processing city {city['name']}: {e}")
+                    logger.error(f"❌ Error processing city {city['name']} in {state_name}: {e}")
                     self.stats["errors"] += 1
                     progress.update(task, advance=1)
+                    # Continue with next city - don't let one failure stop the whole state
                     continue
         
         # Save state facilities to database if requested

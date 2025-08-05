@@ -46,7 +46,7 @@ class PlaywrightDataCenterMapClient:
             
             # Launch browser with stealth settings
             self.browser = await self.playwright.chromium.launch(
-                headless=True,  # Set to False for debugging
+                headless=config.PLAYWRIGHT_HEADLESS,  # Configurable via environment
                 args=[
                     '--no-sandbox',
                     '--disable-setuid-sandbox',
@@ -128,19 +128,43 @@ class PlaywrightDataCenterMapClient:
             response = await self.page.goto(robots_url, wait_until='domcontentloaded')
             
             if response and response.status == 200:
-                content = await self.page.content()
-                # Extract just the text content from HTML
-                robots_text = await self.page.inner_text('body')
+                content_type = response.headers.get("content-type", "").lower()
                 
-                self.robots_parser = RobotFileParser()
-                self.robots_parser.set_url(robots_url)
-                self.robots_parser.feed(robots_text.splitlines())
-                
-                # Check if we can fetch the main USA page
-                if not self.robots_parser.can_fetch(config.USER_AGENT, config.USA_URL):
-                    logger.warning("robots.txt disallows crawling USA pages")
+                if "text/plain" in content_type:
+                    # Plain text robots.txt
+                    robots_text = await response.text()
                 else:
-                    logger.info("robots.txt allows crawling")
+                    # HTML page - extract text content from body
+                    try:
+                        robots_text = await self.page.inner_text('body')
+                    except Exception:
+                        # Fallback to full page content if inner_text fails
+                        robots_text = await response.text()
+                        # Strip HTML tags if needed
+                        import re
+                        robots_text = re.sub(r'<[^>]+>', '', robots_text)
+                
+                if robots_text and robots_text.strip():
+                    self.robots_parser = RobotFileParser()
+                    self.robots_parser.set_url(robots_url)
+                    
+                    # Split by lines and filter out empty lines
+                    lines = [line.strip() for line in robots_text.splitlines() if line.strip()]
+                    
+                    # Only process if we have actual robots.txt content
+                    if any(line.lower().startswith(('user-agent:', 'disallow:', 'allow:')) for line in lines):
+                        for line in lines:
+                            self.robots_parser.feed(line)
+                        
+                        # Check if we can fetch the main USA page
+                        if not self.robots_parser.can_fetch(config.USER_AGENT, config.USA_URL):
+                            logger.warning("robots.txt disallows crawling USA pages")
+                        else:
+                            logger.info("robots.txt allows crawling")
+                    else:
+                        logger.info("No valid robots.txt content found, proceeding with crawl")
+                else:
+                    logger.info("Empty robots.txt response, proceeding with crawl")
             else:
                 logger.info("No robots.txt found, proceeding with crawl")
                 
@@ -151,9 +175,10 @@ class PlaywrightDataCenterMapClient:
     
     def _can_fetch(self, url: str) -> bool:
         """Check if we're allowed to fetch a specific URL."""
-        # For now, always allow fetching since we're having robots.txt parsing issues
-        # TODO: Fix robots.txt parsing properly
-        return True
+        if not self.robots_parser:
+            return True
+        
+        return self.robots_parser.can_fetch(config.USER_AGENT, url)
     
     async def _rate_limit(self):
         """Enforce rate limiting between requests."""
@@ -167,33 +192,138 @@ class PlaywrightDataCenterMapClient:
         
         self.last_request_time = asyncio.get_event_loop().time()
     
-    async def _wait_for_page_load(self, url: str, timeout: int = 30000) -> bool:
+    async def _wait_for_page_load(self, url: str, timeout: int = None) -> bool:
         """Wait for page to fully load and pass any security challenges."""
         if not self.page:
             return False
         
+        if timeout is None:
+            timeout = config.PLAYWRIGHT_TIMEOUT
+        
         try:
-            # Wait for network to be idle (no requests for 500ms)
-            await self.page.wait_for_load_state('networkidle', timeout=timeout)
+            # First wait for basic page load
+            await self.page.wait_for_load_state('domcontentloaded', timeout=timeout // 3)
             
             # Check if we're on a Vercel security checkpoint
-            if 'vercel' in await self.page.title().lower():
-                logger.info("Detected Vercel security checkpoint, waiting...")
+            page_title = await self.page.title()
+            page_content = await self.page.content()
+            
+            if ('vercel' in page_title.lower() or 
+                'security checkpoint' in page_content.lower() or
+                'verifying your browser' in page_content.lower()):
                 
-                # Wait for security challenge to complete (up to 30 seconds)
+                logger.info("🛡️  Detected Vercel security checkpoint, waiting for challenge completion...")
+                
+                # Wait for security challenge to complete
                 try:
+                    # Method 1: Wait for title to change away from Vercel
                     await self.page.wait_for_function(
-                        "!document.title.toLowerCase().includes('vercel')",
-                        timeout=30000
+                        """() => {
+                            const title = document.title.toLowerCase();
+                            const body = document.body.innerText.toLowerCase();
+                            return !title.includes('vercel') && 
+                                   !body.includes('verifying your browser') &&
+                                   !body.includes('security checkpoint');
+                        }""",
+                        timeout=config.VERCEL_CHALLENGE_TIMEOUT
                     )
-                    logger.info("Security checkpoint passed")
-                except Exception:
-                    logger.warning("Security checkpoint timeout, proceeding anyway")
+                    logger.info("✅ Security checkpoint passed successfully")
+                    
+                    # Additional wait for page to stabilize after challenge
+                    await asyncio.sleep(2)
+                    
+                except Exception as e:
+                    logger.warning(f"⚠️  Security checkpoint timeout ({config.VERCEL_CHALLENGE_TIMEOUT/1000}s), checking if we can proceed...")
+                    
+                    # Check if we actually got real content despite timeout
+                    final_content = await self.page.content()
+                    if len(final_content) > 1000 and 'datacentermap' in final_content.lower():
+                        logger.info("✅ Page appears to have loaded despite challenge timeout")
+                    else:
+                        logger.error("❌ Still blocked by security challenge")
+                        return False
+            
+            # Wait for network to be idle for final content
+            try:
+                await self.page.wait_for_load_state('networkidle', timeout=timeout // 3)
+            except Exception:
+                logger.debug("Network idle timeout, but proceeding anyway")
             
             return True
             
         except Exception as e:
             logger.error(f"Page load timeout for {url}: {e}")
+            return False
+    
+    async def _validate_page_content(self, url: str, expected_content_type: str = "generic") -> bool:
+        """Validate that we got real content instead of being blocked."""
+        if not self.page:
+            return False
+        
+        try:
+            content = await self.page.content()
+            page_title = await self.page.title()
+            
+            # Check for Vercel blocking
+            blocked_indicators = [
+                'vercel security checkpoint',
+                'verifying your browser', 
+                'we\'re verifying your browser',
+                'challenge',
+                'please wait while we verify'
+            ]
+            
+            content_lower = content.lower()
+            title_lower = page_title.lower()
+            
+            for indicator in blocked_indicators:
+                if indicator in content_lower or indicator in title_lower:
+                    logger.warning(f"❌ Page still shows blocking content: {indicator}")
+                    return False
+            
+            # Check for minimum content length
+            if len(content) < 500:
+                logger.warning(f"❌ Page content too short ({len(content)} chars), likely blocked")
+                return False
+            
+            # Content-specific validation
+            if expected_content_type == "states":
+                # For USA states page, expect state names and links
+                expected_elements = ['delaware', 'california', 'texas', 'new york']
+                found_states = sum(1 for state in expected_elements if state in content_lower)
+                if found_states < 2:
+                    logger.warning(f"❌ States page validation failed: only found {found_states} expected states")
+                    return False
+                logger.info(f"✅ States page validation passed: found {found_states} expected states")
+                
+            elif expected_content_type == "state":
+                # For state page, expect cities and data center related content
+                expected_terms = ['data center', 'facility', 'city', 'colocation', 'datacenter']
+                found_terms = sum(1 for term in expected_terms if term in content_lower)
+                if found_terms < 2:
+                    logger.warning(f"❌ State page validation failed: only found {found_terms} relevant terms")
+                    return False
+                logger.info(f"✅ State page validation passed: found {found_terms} relevant terms")
+                
+            elif expected_content_type == "city":
+                # For city page, expect facility listings
+                expected_terms = ['facility', 'data center', 'datacenter', 'colocation', 'address']
+                found_terms = sum(1 for term in expected_terms if term in content_lower)
+                if found_terms < 2:
+                    logger.warning(f"❌ City page validation failed: only found {found_terms} relevant terms")
+                    return False
+                logger.info(f"✅ City page validation passed: found {found_terms} relevant terms")
+            
+            # Generic validation - check for datacentermap branding
+            if 'datacentermap' not in content_lower and 'data center map' not in content_lower:
+                logger.warning("❌ Page doesn't appear to be from datacentermap.com")
+                return False
+            
+            logger.info(f"✅ Page content validation passed for {url}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error validating page content: {e}")
             return False
     
     @retry(
@@ -229,7 +359,7 @@ class PlaywrightDataCenterMapClient:
             response = await self.page.goto(
                 url, 
                 wait_until='domcontentloaded',
-                timeout=config.REQUEST_TIMEOUT * 1000
+                timeout=config.PLAYWRIGHT_TIMEOUT
             )
             
             if not response:
@@ -248,7 +378,22 @@ class PlaywrightDataCenterMapClient:
             
             # Wait for page to fully load and handle security challenges
             if not await self._wait_for_page_load(url):
-                logger.warning(f"Page load issues for {url}, proceeding anyway")
+                logger.warning(f"Page load issues for {url}, attempting to validate content anyway")
+            
+            # Determine expected content type based on URL
+            expected_content_type = "generic"
+            if "/usa/" == url.split('/')[-1] or url.endswith("/usa"):
+                expected_content_type = "states"
+            elif "/usa/" in url and url.count('/') >= 4:
+                if url.endswith('/'):
+                    expected_content_type = "state"
+                else:
+                    expected_content_type = "city"
+            
+            # Validate page content
+            if not await self._validate_page_content(url, expected_content_type):
+                logger.error(f"❌ Content validation failed for {url}")
+                raise Exception(f"Content validation failed - likely still blocked")
             
             # Add small random delay to seem more human-like
             await asyncio.sleep(0.5 + (asyncio.get_event_loop().time() % 1.0))
