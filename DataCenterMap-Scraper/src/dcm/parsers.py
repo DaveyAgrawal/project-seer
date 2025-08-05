@@ -62,17 +62,121 @@ class DataCenterMapParser:
         logger.info(f"Found {len(cities)} cities in {state_name}")
         return cities
     
+    def parse_city_facilities_from_list(self, html: str, city_name: str, state_name: str) -> List[Dict[str, str]]:
+        """Parse facility data directly from city page list view (preferred method)."""
+        selector = Selector(text=html)
+        facilities = []
+        seen_facilities = set()  # Track unique facilities by name + address
+        
+        # Look for facility cards in the list view
+        cards = selector.css('.ui.card')
+        
+        for card in cards:
+            # Extract facility name from header
+            name_elements = card.css('.header::text').getall()
+            if not name_elements:
+                continue
+                
+            facility_name = name_elements[0].strip()
+            
+            # Skip if this looks like an ad or non-facility card
+            if not facility_name or 'advertisement' in facility_name.lower():
+                continue
+            
+            # Extract all text content from the card
+            text_content = [t.strip() for t in card.css('*::text').getall() if t.strip()]
+            
+            if len(text_content) < 3:  # Need at least name, company, address
+                continue
+            
+            # Parse the structured data from the card
+            # Typical format: [Name, Company, Street Address, Postal+City, ...]
+            facility_data = {
+                "name": facility_name,
+                "city": city_name,
+                "state": state_name,
+                "country": "USA",
+                "source": "datacentermap"
+            }
+            
+            # Extract company/operator (usually second element)
+            if len(text_content) >= 2:
+                facility_data["operator"] = text_content[1]
+            
+            # Extract street address (usually third element)
+            if len(text_content) >= 3:
+                street_address = text_content[2]
+                facility_data["address_street"] = street_address
+            
+            # Extract postal code and city (usually fourth element)
+            if len(text_content) >= 4:
+                postal_city = text_content[3]
+                # Parse "19801 Wilmington" format
+                parts = postal_city.split()
+                if len(parts) >= 2:
+                    facility_data["postal_code"] = parts[0]
+                    facility_data["address_city"] = ' '.join(parts[1:])
+            
+            # Build full address
+            address_parts = []
+            if facility_data.get("address_street"):
+                address_parts.append(facility_data["address_street"])
+            if facility_data.get("address_city"):
+                address_parts.append(facility_data["address_city"])
+            if facility_data.get("state"):
+                address_parts.append(facility_data["state"])
+            if facility_data.get("postal_code"):
+                address_parts.append(facility_data["postal_code"])
+            
+            facility_data["address_full"] = ", ".join(address_parts)
+            
+            # Try to extract facility URL if available
+            facility_links = card.css('a[href*="/usa/"]::attr(href)').getall()
+            if facility_links:
+                # Filter out quote links
+                facility_url = None
+                for link in facility_links:
+                    if '/quote/' not in link and '/request-quote' not in link:
+                        facility_url = self.base_url + link if not link.startswith('http') else link
+                        break
+                
+                if facility_url:
+                    facility_data["source_url"] = facility_url
+            
+            # Create unique identifier for deduplication
+            unique_key = f"{facility_name}|{facility_data.get('address_street', '')}"
+            
+            # Only add if we haven't seen this facility before
+            if unique_key not in seen_facilities:
+                seen_facilities.add(unique_key)
+                facilities.append(facility_data)
+        
+        logger.info(f"Extracted {len(facilities)} facilities from list view in {city_name}, {state_name}")
+        return facilities
+
     def parse_city_facilities(self, html: str, city_name: str, state_name: str) -> List[Dict[str, str]]:
         """Parse city page to extract facility links and names."""
         selector = Selector(text=html)
         facilities = []
         
-        # Look for facility/datacenter links
+        # DataCenterMap.com uses city-specific URLs for facilities
+        # Pattern: /usa/{state}/{city}/{facility-slug}/
+        # We need to look for these specific patterns based on the actual HTML structure
+        
+        # Method 1: Look for card links with facility-specific URLs (primary method)
+        state_slug = state_name.lower().replace(' ', '-')
+        # Handle special city name cases
+        if city_name.lower() == "newark de":
+            city_slug = "newark-de"
+        else:
+            city_slug = city_name.lower().replace(' ', '-')
+        
+        # Use a set to track URLs we've already found
+        found_urls = set()
+        
+        # Look for facility links that follow the city pattern
         facility_selectors = [
-            'a[href*="/datacenters/"]',
-            'a[href*="/facilities/"]',
-            'a[href*="/datacenter/"]',
-            'a[href*="/facility/"]'
+            f'a[href*="/usa/{state_slug}/{city_slug}/"]',  # Primary pattern - should be sufficient for modern pages
         ]
         
         for css_selector in facility_selectors:
@@ -84,8 +188,77 @@ class DataCenterMapParser:
                     clean_name = name.strip()
                     full_url = urljoin(self.base_url, link)
                     
-                    # Avoid duplicates
-                    if not any(f["url"] == full_url for f in facilities):
+                    # Skip generic links that don't point to specific facilities
+                    if link.endswith('/datacenters/') or link.endswith('/facilities/') or link.endswith('/datacenter/') or link.endswith('/facility/'):
+                        continue
+                    
+                    # Skip if it's just a breadcrumb or navigation link back to parent pages
+                    if f'/usa/{state_slug}/' == link or f'/usa/{state_slug}/{city_slug}/' == link:
+                        continue
+                    
+                    # Skip quote pages and other non-facility pages
+                    if '/quote/' in link or '/request-quote' in link:
+                        continue
+                    
+                    # Avoid duplicates by checking URL (primary key)
+                    if full_url not in found_urls:
+                        found_urls.add(full_url)
+                        facilities.append({
+                            "name": clean_name,
+                            "url": full_url,
+                            "city": city_name,
+                            "state": state_name
+                        })
+        
+        # If we still didn't find facilities with the primary method, try legacy patterns
+        if not facilities:
+            legacy_selectors = [
+                'a[href*="/datacenters/"]',  # Legacy pattern
+                'a[href*="/facilities/"]',   # Legacy pattern
+                'a[href*="/datacenter/"]',   # Legacy pattern
+                'a[href*="/facility/"]'      # Legacy pattern
+            ]
+            
+            for css_selector in legacy_selectors:
+                links = selector.css(f'{css_selector}::attr(href)').getall()
+                names = selector.css(f'{css_selector}::text').getall()
+                
+                for link, name in zip(links, names):
+                    if link and name:
+                        clean_name = name.strip()
+                        full_url = urljoin(self.base_url, link)
+                        
+                        # Skip generic links that don't point to specific facilities
+                        if link.endswith('/datacenters/') or link.endswith('/facilities/') or link.endswith('/datacenter/') or link.endswith('/facility/'):
+                            continue
+                        
+                        # Avoid duplicates by checking URL (primary key)
+                        if full_url not in found_urls:
+                            found_urls.add(full_url)
+                            facilities.append({
+                                "name": clean_name,
+                                "url": full_url,
+                                "city": city_name,
+                                "state": state_name
+                            })
+        
+        # Method 2: If we didn't find facilities with the primary method, look for card elements with headers
+        if not facilities:
+            # Look for UI card elements which contain facility information
+            card_links = selector.css('a.ui.card::attr(href)').getall()
+            card_headers = selector.css('a.ui.card .header::text').getall()
+            
+            for link, name in zip(card_links, card_headers):
+                if link and name:
+                    clean_name = name.strip()
+                    full_url = urljoin(self.base_url, link)
+                    
+                    # Skip generic datacenter directory links
+                    if link.endswith('/datacenters/') or link.endswith('/facilities/'):
+                        continue
+                    
+                    # Only include links that appear to be facility-specific
+                    if len(link.split('/')) >= 5:  # e.g., /usa/delaware/wilmington/facility-name/
                         facilities.append({
                             "name": clean_name,
                             "url": full_url,

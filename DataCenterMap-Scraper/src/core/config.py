@@ -31,7 +31,7 @@ class Config:
     REQUEST_TIMEOUT: int = int(os.getenv("REQUEST_TIMEOUT", "30"))
     
     # Playwright-specific settings
-    PLAYWRIGHT_TIMEOUT: int = int(os.getenv("PLAYWRIGHT_TIMEOUT", "90000"))  # 90 seconds in ms
+    PLAYWRIGHT_TIMEOUT: int = int(os.getenv("PLAYWRIGHT_TIMEOUT", "120000"))  # 120 seconds in ms (increased for facility processing)
     VERCEL_CHALLENGE_TIMEOUT: int = int(os.getenv("VERCEL_CHALLENGE_TIMEOUT", "90000"))  # 90 seconds in ms
     PLAYWRIGHT_HEADLESS: bool = os.getenv("PLAYWRIGHT_HEADLESS", "false").lower() == "true"
     

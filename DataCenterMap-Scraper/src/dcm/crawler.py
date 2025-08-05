@@ -223,43 +223,29 @@ class DataCenterMapCrawler:
             logger.debug(f"⚠️  Could not fetch city page: {city_url}")
             return []
         
-        # Parse facilities
-        facilities = self.parser.parse_city_facilities(html, city_name, state_name)
+        # Parse facilities directly from list view (more efficient and comprehensive)
+        facilities = self.parser.parse_city_facilities_from_list(html, city_name, state_name)
         if not facilities:
             logger.debug(f"ℹ️  No facilities found in {city_name}")
             return []
         
         self.stats["facilities_found"] += len(facilities)
+        self.stats["facilities_processed"] += len(facilities)
         logger.info(f"🏢 Found {len(facilities)} facilities in {city_name}, {state_name}")
         
-        # Process each facility
-        detailed_facilities = []
-        
+        # Add metadata to each facility
         for facility in facilities:
-            try:
-                # Skip if already processed
-                if facility["url"] in self.processed_urls:
-                    logger.debug(f"⏭️  Skipping already processed: {facility['url']}")
-                    continue
-                
-                # Skip sponsor links
-                if self.parser.is_sponsor_link(facility["url"]):
-                    logger.debug(f"⏭️  Skipping sponsor link: {facility['url']}")
-                    continue
-                
-                detailed_facility = await self._crawl_facility(facility)
-                if detailed_facility:
-                    detailed_facilities.append(detailed_facility)
-                    self.processed_urls.add(facility["url"])
-                
-                self.stats["facilities_processed"] += 1
-                
-            except Exception as e:
-                logger.error(f"❌ Error processing facility {facility['name']}: {e}")
-                self.stats["errors"] += 1
-                continue
+            facility.update({
+                "source": "datacentermap",
+                "first_seen_at": self.stats["start_time"],
+                "last_seen_at": self.stats["start_time"],
+            })
+            
+            # Track coordinate success (if coordinates were extracted)
+            if facility.get("latitude") and facility.get("longitude"):
+                self.stats["facilities_with_coords"] += 1
         
-        return detailed_facilities
+        return facilities
     
     async def _crawl_facility(self, facility: Dict[str, str]) -> Optional[Dict]:
         """Crawl detailed information for a specific facility."""
