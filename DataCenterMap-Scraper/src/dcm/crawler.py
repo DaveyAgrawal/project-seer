@@ -32,12 +32,37 @@ class DataCenterMapCrawler:
             "facilities_found": 0,
             "facilities_processed": 0,
             "facilities_with_coords": 0,
+            "facilities_without_coords": 0,
+            "duplicate_facilities": 0,
             "errors": 0,
             "start_time": None,
+            "failed_states": [],
         }
         
         # Track processed URLs to avoid duplicates
         self.processed_urls: Set[str] = set()
+        # Track processed facility names and addresses to detect duplicates
+        self.processed_facilities: Set[str] = set()
+    
+    def _validate_facility(self, facility: Dict) -> Dict:
+        """Validate facility data and track quality issues."""
+        # Check for coordinates
+        has_coords = facility.get("latitude") and facility.get("longitude")
+        if has_coords:
+            self.stats["facilities_with_coords"] += 1
+        else:
+            self.stats["facilities_without_coords"] += 1
+            logger.warning(f"⚠️  Facility missing coordinates: {facility.get('name', 'Unknown')} in {facility.get('city', 'Unknown')}")
+        
+        # Check for duplicates using name + city + state as key
+        facility_key = f"{facility.get('name', '').lower()}|{facility.get('city', '').lower()}|{facility.get('state', '').lower()}"
+        if facility_key in self.processed_facilities:
+            self.stats["duplicate_facilities"] += 1
+            logger.warning(f"⚠️  Potential duplicate facility: {facility.get('name')} in {facility.get('city')}")
+        else:
+            self.processed_facilities.add(facility_key)
+        
+        return facility
     
     async def crawl_all_states(self, save_to_db: bool = True) -> List[Dict]:
         """Crawl all U.S. states for data center facilities."""
@@ -58,14 +83,27 @@ class DataCenterMapCrawler:
             logger.info(f"🗺️  Found {len(states)} states to process")
             
             # Step 2: Process each state
-            for state in track(states, description="Processing states..."):
+            for i, state in enumerate(states, 1):
+                state_name = state['name']
+                logger.info(f"🏛️  Processing state {i}/{len(states)}: {state_name}")
+                
                 try:
                     state_facilities = await self._crawl_state(state, save_to_db=save_to_db)
-                    all_facilities.extend(state_facilities)
+                    
+                    # Validate each facility
+                    validated_facilities = []
+                    for facility in state_facilities:
+                        validated_facility = self._validate_facility(facility)
+                        validated_facilities.append(validated_facility)
+                    
+                    all_facilities.extend(validated_facilities)
                     self.stats["states_processed"] += 1
                     
+                    logger.info(f"✅ Completed {state_name}: {len(validated_facilities)} facilities ({i}/{len(states)} states done)")
+                    
                 except Exception as e:
-                    logger.error(f"❌ Error processing state {state['name']}: {e}")
+                    logger.error(f"❌ Error processing state {state_name}: {e}")
+                    self.stats["failed_states"].append(state_name)
                     self.stats["errors"] += 1
                     continue
         
@@ -240,10 +278,6 @@ class DataCenterMapCrawler:
                 "first_seen_at": self.stats["start_time"],
                 "last_seen_at": self.stats["start_time"],
             })
-            
-            # Track coordinate success (if coordinates were extracted)
-            if facility.get("latitude") and facility.get("longitude"):
-                self.stats["facilities_with_coords"] += 1
         
         return facilities
     
@@ -315,7 +349,12 @@ class DataCenterMapCrawler:
         self.console.print(f"🏢 Facilities found: {self.stats['facilities_found']}")
         self.console.print(f"✅ Facilities processed: {self.stats['facilities_processed']}")
         self.console.print(f"📍 Facilities with coordinates: {self.stats['facilities_with_coords']}")
+        self.console.print(f"⚠️  Facilities without coordinates: {self.stats['facilities_without_coords']}")
+        self.console.print(f"🔄 Duplicate facilities detected: {self.stats['duplicate_facilities']}")
         self.console.print(f"❌ Errors encountered: {self.stats['errors']}")
+        
+        if self.stats['failed_states']:
+            self.console.print(f"💥 Failed states: {', '.join(self.stats['failed_states'])}", style="red")
         
         if self.stats['facilities_processed'] > 0:
             coord_rate = (self.stats['facilities_with_coords'] / self.stats['facilities_processed']) * 100
