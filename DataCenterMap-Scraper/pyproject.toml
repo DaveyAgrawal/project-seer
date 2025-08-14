@@ -1,0 +1,54 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "datacentermap-scraper"
+version = "0.1.0"
+description = "Production scraper for datacentermap.com facility data"
+authors = [{name = "ProjectSEER", email = "projectseerai@gmail.com"}]
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.9"
+
+dependencies = [
+    "httpx>=0.25.0",
+    "parsel>=1.8.1",
+    "sqlalchemy[asyncio]>=2.0.0",
+    "psycopg[binary]>=3.1.0",
+    "typer>=0.9.0",
+    "python-dotenv>=1.0.0",
+    "tenacity>=8.2.0",
+    "rich>=13.0.0",
+    "playwright>=1.40.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.5.0",
+]
+
+[project.scripts]
+dcm = "src.app:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+[tool.black]
+line-length = 88
+target-version = ['py39']
+
+[tool.ruff]
+target-version = "py39"
+line-length = 88
+select = ["E", "F", "W", "C", "I", "N", "UP"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
