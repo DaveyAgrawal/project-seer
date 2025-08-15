@@ -9,7 +9,7 @@ services:
       POSTGRES_USER: geouser
       POSTGRES_PASSWORD: geopass
     ports:
-      - "5432:5432"
+      - "5434:5432"
     volumes:
       - postgis_data:/var/lib/postgresql/data
       - ./initdb:/docker-entrypoint-initdb.d
@@ -20,7 +20,7 @@ services:
       retries: 5
 
   pg_tileserv:
-    image: crunchydata/pg_tileserv:latest
+    image: pramsey/pg_tileserv:latest
     container_name: geospatial_tileserv
     depends_on:
       postgis:

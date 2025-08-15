@@ -24,9 +24,16 @@ class GeospatialApp {
 
     async init() {
         try {
-            // Load configuration and datasets
+            // Load configuration (with fallbacks)
             await this.loadConfig();
-            await this.loadDatasets();
+            
+            // Try to load datasets, but continue even if it fails
+            try {
+                await this.loadDatasets();
+            } catch (error) {
+                console.warn('Failed to load datasets:', error);
+                this.datasets = []; // Continue with empty datasets
+            }
             
             // Initialize map
             this.initMap();
@@ -44,11 +51,60 @@ class GeospatialApp {
     }
 
     async loadConfig() {
-        const response = await fetch('/api/config');
-        if (!response.ok) {
-            throw new Error('Failed to load configuration');
+        try {
+            const response = await fetch('/api/config');
+            if (!response.ok) {
+                throw new Error('Failed to load configuration from server');
+            }
+            this.config = await response.json();
+        } catch (error) {
+            console.warn('Failed to load config from server, using defaults:', error);
+            // Use default configuration if server is not available
+            this.config = {
+                tileserver: {
+                    url: 'http://localhost:7800',
+                    endpoints: {
+                        metadata: '/index.json',
+                        tiles: '/{table}/{z}/{x}/{y}.mvt'
+                    }
+                },
+                map: {
+                    center: [-98.5795, 39.8282], // Geographic center of US
+                    zoom: 4,
+                    maxBounds: [
+                        [-170, 15],  // Southwest coordinates
+                        [-60, 72]    // Northeast coordinates (covers all US territories)
+                    ],
+                    style: 'https://demotiles.maplibre.org/style.json'
+                },
+                layers: {
+                    transmission_lines: {
+                        minzoom: 3,
+                        maxzoom: 14,
+                        voltageClasses: {
+                            unknown: { color: '#999999', width: 1 },
+                            low: { color: '#4CAF50', width: 1 },
+                            medium_low: { color: '#FF9800', width: 2 },
+                            medium: { color: '#2196F3', width: 3 },
+                            high: { color: '#9C27B0', width: 4 },
+                            extra_high: { color: '#F44336', width: 5 },
+                            ultra_high: { color: '#000000', width: 6 }
+                        }
+                    },
+                    geothermal_points: {
+                        minzoom: 3,
+                        maxzoom: 14,
+                        temperatureScale: {
+                            cold: { color: '#2196F3', temp: 100 },
+                            warm: { color: '#4CAF50', temp: 150 },
+                            hot: { color: '#FF9800', temp: 200 },
+                            very_hot: { color: '#F44336', temp: 250 },
+                            extreme: { color: '#9C27B0', temp: 300 }
+                        }
+                    }
+                }
+            };
         }
-        this.config = await response.json();
     }
 
     async loadDatasets() {
@@ -115,7 +171,11 @@ class GeospatialApp {
         const transmissionDataset = this.datasets.find(d => d.geometry_type === 'MULTILINESTRING');
         const geothermalDataset = this.datasets.find(d => d.geometry_type === 'POINT');
         
-        // Add transmission lines source with zoom-banded views
+        console.log('Available datasets:', this.datasets.length);
+        console.log('Transmission dataset:', transmissionDataset ? 'Found' : 'Not found');
+        console.log('Geothermal dataset:', geothermalDataset ? 'Found' : 'Not found');
+        
+        // Add transmission lines source with zoom-banded views (only if dataset exists)
         if (transmissionDataset) {
             this.map.addSource('transmission-lines', {
                 type: 'vector',
@@ -127,9 +187,10 @@ class GeospatialApp {
                 minzoom: 3,
                 maxzoom: 14
             });
+            console.log('Added transmission lines source');
         }
         
-        // Add geothermal sources
+        // Add geothermal sources (only if dataset exists)
         if (geothermalDataset) {
             // Aggregated view for low zooms
             this.map.addSource('geothermal-aggregated', {
@@ -146,7 +207,11 @@ class GeospatialApp {
                 minzoom: 10,
                 maxzoom: 14
             });
+            console.log('Added geothermal sources');
         }
+        
+        // Update UI to show dataset status
+        this.updateDatasetStatus(transmissionDataset, geothermalDataset);
     }
 
     addDataLayers() {
@@ -554,6 +619,43 @@ class GeospatialApp {
         if (kv < 345) return 'High Voltage Transmission';
         if (kv < 500) return 'Extra High Voltage';
         return 'Ultra High Voltage';
+    }
+
+    updateDatasetStatus(transmissionDataset, geothermalDataset) {
+        // Update UI to show which datasets are available
+        const transmissionToggle = document.getElementById('transmission-toggle');
+        const geothermalToggle = document.getElementById('geothermal-toggle');
+        
+        if (transmissionToggle) {
+            transmissionToggle.disabled = !transmissionDataset;
+            transmissionToggle.checked = !!transmissionDataset && this.layerState.transmissionLines;
+            
+            const transmissionLabel = transmissionToggle.closest('label');
+            if (transmissionLabel) {
+                transmissionLabel.style.opacity = transmissionDataset ? '1' : '0.5';
+                transmissionLabel.title = transmissionDataset 
+                    ? `${transmissionDataset.row_count || 0} transmission lines`
+                    : 'No transmission line data available';
+            }
+        }
+        
+        if (geothermalToggle) {
+            geothermalToggle.disabled = !geothermalDataset;
+            geothermalToggle.checked = !!geothermalDataset && this.layerState.geothermalPoints;
+            
+            const geothermalLabel = geothermalToggle.closest('label');
+            if (geothermalLabel) {
+                geothermalLabel.style.opacity = geothermalDataset ? '1' : '0.5';
+                geothermalLabel.title = geothermalDataset 
+                    ? `${geothermalDataset.row_count || 0} geothermal points`
+                    : 'No geothermal data available';
+            }
+        }
+        
+        console.log('Dataset status updated:', {
+            transmission: transmissionDataset ? 'Available' : 'Not available',
+            geothermal: geothermalDataset ? 'Available' : 'Not available'
+        });
     }
 
     showError(message) {

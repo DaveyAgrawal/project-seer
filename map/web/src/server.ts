@@ -18,7 +18,7 @@ interface DatabaseConfig {
 
 class GeospatialWebServer {
   private app: express.Application;
-  private pool: Pool;
+  private pool!: Pool;
   private port: number;
 
   constructor() {
