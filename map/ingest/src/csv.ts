@@ -86,6 +86,7 @@ export class CSVProcessor {
       await this.db.setBulkOperationSettings();
 
       // Stream and process CSV
+      const self = this;
       await pipeline(
         createReadStream(filePath),
         csvParser(),
@@ -111,18 +112,18 @@ export class CSVProcessor {
             
             // Process batch when full
             if (stagingBatch.length >= batchSize) {
-              await this.processStagingBatch(stagingBatch, `${tableName}_staging`, fieldMapping);
+              await self.processStagingBatch(stagingBatch, `${tableName}_staging`, fieldMapping);
               stagingBatch.length = 0; // Clear batch
               
               processedRows += batchSize;
               chunkNumber++;
               
               progressTracker.update(processedRows);
-              await this.resumeManager.updateProgress(filePath, tableName, processedRows, chunkNumber, totalRows);
+              await self.resumeManager.updateProgress(filePath, tableName, processedRows, chunkNumber, totalRows);
               
               // Memory management
-              this.memoryMonitor.checkMemoryUsage();
-              batchSize = this.memoryMonitor.suggestBatchSize(batchSize);
+              self.memoryMonitor.checkMemoryUsage();
+              batchSize = self.memoryMonitor.suggestBatchSize(batchSize);
             }
           }
         }
