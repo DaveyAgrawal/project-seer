@@ -15,8 +15,7 @@ class GeospatialApp {
         // Layer visibility state
         this.layerState = {
             transmissionLines: true,
-            geothermalPoints: true,
-            geothermalAggregated: true
+            geothermalPoints: true
         };
         
         this.init();
@@ -192,22 +191,15 @@ class GeospatialApp {
         
         // Add geothermal sources (only if dataset exists)
         if (geothermalDataset) {
-            // Aggregated view for low zooms
-            this.map.addSource('geothermal-aggregated', {
-                type: 'vector',
-                tiles: [`${tileserverUrl}/public.${geothermalDataset.table_name}_us_z0_9/{z}/{x}/{y}.mvt`],
-                minzoom: 3,
-                maxzoom: 9
-            });
-            
-            // Raw points for high zooms
+            // Use main geothermal view for all zoom levels
             this.map.addSource('geothermal-points', {
                 type: 'vector',
                 tiles: [`${tileserverUrl}/public.${geothermalDataset.table_name}_us/{z}/{x}/{y}.mvt`],
-                minzoom: 10,
+                minzoom: 0,
                 maxzoom: 14
             });
-            console.log('Added geothermal sources');
+            console.log('Added geothermal source with 4.2M+ points');
+            console.log('Tile URL:', `${tileserverUrl}/public.${geothermalDataset.table_name}_us/{z}/{x}/{y}.mvt`);
         }
         
         // Update UI to show dataset status
@@ -220,8 +212,7 @@ class GeospatialApp {
         this.addTransmissionLinesLayer('transmission-lines-z7-10', 'transmission-lines', 7, 10);
         this.addTransmissionLinesLayer('transmission-lines-z11-14', 'transmission-lines', 11, 14);
         
-        // Add geothermal layers
-        this.addGeothermalAggregatedLayer();
+        // Add geothermal layer
         this.addGeothermalPointsLayer();
     }
 
@@ -290,31 +281,54 @@ class GeospatialApp {
             type: 'circle',
             source: 'geothermal-aggregated',
             'source-layer': 'default',
-            minzoom: 3,
+            minzoom: 0,  // Show at all zoom levels
             maxzoom: 9,
             paint: {
                 'circle-radius': [
                     'interpolate',
                     ['linear'],
-                    ['get', 'point_count'],
-                    1, 4,
-                    10, 8,
-                    50, 12,
-                    100, 16,
-                    500, 20
+                    ['zoom'],
+                    0, [
+                        'interpolate',
+                        ['linear'],
+                        ['get', 'point_count'],
+                        1, 8,     // Larger minimum size
+                        10, 12,
+                        50, 18,
+                        100, 24,
+                        500, 32
+                    ],
+                    6, [
+                        'interpolate',
+                        ['linear'],
+                        ['get', 'point_count'],
+                        1, 12,
+                        10, 16,
+                        50, 24,
+                        100, 32,
+                        500, 40
+                    ]
                 ],
                 'circle-color': [
                     'case',
                     ['==', ['get', 'avg_temperature_f'], null], '#999999',
-                    ['<', ['get', 'avg_temperature_f'], 150], '#2196F3',    // Cool - Blue
-                    ['<', ['get', 'avg_temperature_f'], 200], '#4CAF50',    // Warm - Green  
-                    ['<', ['get', 'avg_temperature_f'], 250], '#FF9800',    // Hot - Orange
-                    ['<', ['get', 'avg_temperature_f'], 300], '#F44336',    // Very Hot - Red
-                    '#9C27B0'                                               // Extreme - Purple
+                    ['<', ['get', 'avg_temperature_f'], 20], '#00E5FF',     // Very Cool - Bright Cyan
+                    ['<', ['get', 'avg_temperature_f'], 40], '#2196F3',     // Cool - Blue
+                    ['<', ['get', 'avg_temperature_f'], 60], '#4CAF50',     // Moderate - Green
+                    ['<', ['get', 'avg_temperature_f'], 80], '#FFEB3B',     // Warm - Yellow
+                    ['<', ['get', 'avg_temperature_f'], 100], '#FF9800',    // Hot - Orange
+                    ['<', ['get', 'avg_temperature_f'], 120], '#F44336',    // Very Hot - Red
+                    '#E91E63'                                               // Extreme - Hot Pink
                 ],
-                'circle-opacity': 0.7,
-                'circle-stroke-color': '#fff',
-                'circle-stroke-width': 1
+                'circle-opacity': 0.8,   // Higher opacity
+                'circle-stroke-color': '#FFFFFF',
+                'circle-stroke-width': [
+                    'interpolate',
+                    ['linear'],
+                    ['zoom'],
+                    0, 2,
+                    6, 3
+                ]
             }
         });
     }
@@ -325,28 +339,58 @@ class GeospatialApp {
             type: 'circle',
             source: 'geothermal-points',
             'source-layer': 'default',
-            minzoom: 10,
+            minzoom: 3,  // Show at low zoom levels
             maxzoom: 14,
             paint: {
                 'circle-radius': [
                     'interpolate',
                     ['linear'],
                     ['zoom'],
-                    10, 3,
-                    14, 6
+                    3, [
+                        'case',
+                        ['==', ['get', 'temperature_f'], null], 4,
+                        ['<', ['get', 'temperature_f'], 20], 3,           // Very Cool - Small
+                        ['<', ['get', 'temperature_f'], 40], 4,           // Cool - Small-Medium
+                        ['<', ['get', 'temperature_f'], 60], 5,           // Warm - Medium
+                        ['<', ['get', 'temperature_f'], 80], 6,           // Hot - Large
+                        ['<', ['get', 'temperature_f'], 100], 7,          // Very Hot - Larger
+                        8                                                 // Extreme - Largest
+                    ],
+                    8, [
+                        'case',
+                        ['==', ['get', 'temperature_f'], null], 6,
+                        ['<', ['get', 'temperature_f'], 20], 5,
+                        ['<', ['get', 'temperature_f'], 40], 6,
+                        ['<', ['get', 'temperature_f'], 60], 8,
+                        ['<', ['get', 'temperature_f'], 80], 10,
+                        ['<', ['get', 'temperature_f'], 100], 12,
+                        14
+                    ]
                 ],
                 'circle-color': [
                     'case',
                     ['==', ['get', 'temperature_f'], null], '#999999',
-                    ['<', ['get', 'temperature_f'], 150], '#2196F3',       // Cool - Blue
-                    ['<', ['get', 'temperature_f'], 200], '#4CAF50',       // Warm - Green
-                    ['<', ['get', 'temperature_f'], 250], '#FF9800',       // Hot - Orange  
-                    ['<', ['get', 'temperature_f'], 300], '#F44336',       // Very Hot - Red
-                    '#9C27B0'                                              // Extreme - Purple
+                    ['<', ['get', 'temperature_f'], 20], '#00E5FF',       // Very Cool - Bright Cyan
+                    ['<', ['get', 'temperature_f'], 40], '#2196F3',       // Cool - Blue
+                    ['<', ['get', 'temperature_f'], 60], '#4CAF50',       // Moderate - Green
+                    ['<', ['get', 'temperature_f'], 80], '#FFEB3B',       // Warm - Yellow
+                    ['<', ['get', 'temperature_f'], 100], '#FF9800',      // Hot - Orange  
+                    ['<', ['get', 'temperature_f'], 120], '#F44336',      // Very Hot - Red
+                    '#E91E63'                                             // Extreme - Hot Pink
                 ],
-                'circle-opacity': 0.7,
-                'circle-stroke-color': '#fff',
-                'circle-stroke-width': 1
+                'circle-opacity': 0.85,  // Higher opacity for better visibility
+                'circle-stroke-color': [
+                    'case',
+                    ['<', ['get', 'temperature_f'], 60], '#FFFFFF',       // White stroke for cool colors
+                    '#000000'                                             // Black stroke for warm colors
+                ],
+                'circle-stroke-width': [
+                    'interpolate',
+                    ['linear'],
+                    ['zoom'],
+                    3, 1,
+                    8, 2
+                ]
             },
             filter: ['>=', ['get', 'temperature_f'], 0] // Will be updated by temperature filter
         });
@@ -361,7 +405,6 @@ class GeospatialApp {
         ];
         
         const geothermalLayers = [
-            'geothermal-aggregated',
             'geothermal-points'
         ];
 
@@ -537,9 +580,7 @@ class GeospatialApp {
             this.toggleGeothermalPoints(e.target.checked);
         });
 
-        document.getElementById('geothermal-aggregated').addEventListener('change', (e) => {
-            this.toggleGeothermalAggregated(e.target.checked);
-        });
+        // Removed aggregated layer toggle as it doesn't exist
 
         document.getElementById('geothermal-opacity').addEventListener('input', (e) => {
             const opacity = e.target.value / 100;
@@ -565,24 +606,14 @@ class GeospatialApp {
     }
 
     toggleGeothermalPoints(visible) {
-        const layers = ['geothermal-aggregated', 'geothermal-points'];
-        layers.forEach(layerId => {
-            this.map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
-        });
+        // Only toggle the main geothermal points layer
+        this.map.setLayoutProperty('geothermal-points', 'visibility', visible ? 'visible' : 'none');
         
         // Update legend visibility
         document.getElementById('geothermal-legend').style.display = visible ? 'block' : 'none';
     }
 
-    toggleGeothermalAggregated(useAggregated) {
-        if (useAggregated) {
-            this.map.setLayoutProperty('geothermal-aggregated', 'visibility', 'visible');
-            this.map.setLayoutProperty('geothermal-points', 'visibility', 'none');
-        } else {
-            this.map.setLayoutProperty('geothermal-aggregated', 'visibility', 'none');
-            this.map.setLayoutProperty('geothermal-points', 'visibility', 'visible');
-        }
-    }
+    // Removed toggleGeothermalAggregated function as aggregated layer doesn't exist
 
     updateTransmissionOpacity(opacity) {
         const layers = ['transmission-lines-z0-6', 'transmission-lines-z7-10', 'transmission-lines-z11-14'];
@@ -592,18 +623,13 @@ class GeospatialApp {
     }
 
     updateGeothermalOpacity(opacity) {
-        const layers = ['geothermal-aggregated', 'geothermal-points'];
-        layers.forEach(layerId => {
-            this.map.setPaintProperty(layerId, 'circle-opacity', opacity);
-        });
+        // Only update the main geothermal points layer
+        this.map.setPaintProperty('geothermal-points', 'circle-opacity', opacity);
     }
 
     updateTemperatureFilter(minTemp) {
-        // Update filter for individual points
+        // Update filter for geothermal points
         this.map.setFilter('geothermal-points', ['>=', ['get', 'temperature_f'], minTemp]);
-        
-        // Update filter for aggregated points
-        this.map.setFilter('geothermal-aggregated', ['>=', ['get', 'avg_temperature_f'], minTemp]);
     }
 
     updateStats() {

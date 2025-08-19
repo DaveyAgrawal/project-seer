@@ -303,10 +303,6 @@
                     <input type="checkbox" id="geothermal-toggle" checked>
                     <label for="geothermal-toggle">Show geothermal data</label>
                 </div>
-                <div class="checkbox-wrapper">
-                    <input type="checkbox" id="geothermal-aggregated" checked>
-                    <label for="geothermal-aggregated">Use aggregated view (better performance)</label>
-                </div>
                 <div class="slider-wrapper">
                     <label for="geothermal-opacity">Opacity: <span id="geothermal-opacity-value">70%</span></label>
                     <input type="range" id="geothermal-opacity" class="slider" min="0" max="100" value="70">
@@ -350,24 +346,32 @@
             
             <div id="geothermal-legend" style="margin-top: 10px;">
                 <div class="legend-item">
-                    <div class="legend-circle" style="background: #9C27B0;"></div>
-                    <span>Extreme (>300°F)</span>
+                    <div class="legend-circle" style="background: #E91E63;"></div>
+                    <span>Extreme (>120°F)</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-circle" style="background: #F44336;"></div>
-                    <span>Very Hot (250-300°F)</span>
+                    <span>Very Hot (100-120°F)</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-circle" style="background: #FF9800;"></div>
-                    <span>Hot (200-250°F)</span>
+                    <span>Hot (80-100°F)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-circle" style="background: #FFEB3B;"></div>
+                    <span>Warm (60-80°F)</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-circle" style="background: #4CAF50;"></div>
-                    <span>Warm (150-200°F)</span>
+                    <span>Moderate (40-60°F)</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-circle" style="background: #2196F3;"></div>
-                    <span>Cool (<150°F)</span>
+                    <span>Cool (20-40°F)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-circle" style="background: #00E5FF;"></div>
+                    <span>Very Cool (<20°F)</span>
                 </div>
             </div>
         </div>
