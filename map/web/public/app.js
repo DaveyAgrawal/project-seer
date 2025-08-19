@@ -183,23 +183,19 @@ class GeospatialApp {
             console.log('Grid dataset details:', gridDataset);
         }
         
-        // Add transmission lines source with zoom-banded views (only if dataset exists)
+        // Add transmission lines source with simple table (debugging)
         if (transmissionDataset) {
             this.map.addSource('transmission-lines', {
                 type: 'vector',
-                tiles: [
-                    `${tileserverUrl}/public.${transmissionDataset.table_name}_us_z0_6/{z}/{x}/{y}.mvt`,
-                    `${tileserverUrl}/public.${transmissionDataset.table_name}_us_z7_10/{z}/{x}/{y}.mvt`,
-                    `${tileserverUrl}/public.${transmissionDataset.table_name}_us_z11_14/{z}/{x}/{y}.mvt`
-                ],
+                tiles: [`${tileserverUrl}/public.${transmissionDataset.table_name}_us/{z}/{x}/{y}.mvt`],
                 minzoom: 3,
                 maxzoom: 14
             });
-            console.log('Added transmission lines source');
+            console.log('Added transmission lines source (simplified for debugging)');
         }
         
-        // Add geothermal sources (only if dataset exists)
-        if (geothermalDataset) {
+        // Add geothermal sources (temporarily disabled for debugging)
+        if (false && geothermalDataset) {
             const tileUrl = `${tileserverUrl}/public.${geothermalDataset.table_name}_us/{z}/{x}/{y}.mvt`;
             console.log('🌡️ Adding geothermal source...');
             console.log('Tile URL:', tileUrl);
@@ -251,10 +247,13 @@ class GeospatialApp {
         this.addTransmissionLinesLayer('transmission-lines-z7-10', 'transmission-lines', 7, 10);
         this.addTransmissionLinesLayer('transmission-lines-z11-14', 'transmission-lines', 11, 14);
         
-        // Add geothermal layer
-        this.addGeothermalPointsLayer();
+        // Set initial layer visibility based on state
+        this.toggleTransmissionLines(this.layerState.transmissionLines);
         
-        // Add grid layer
+        // Add geothermal layer (temporarily disabled for debugging)  
+        // this.addGeothermalPointsLayer();
+        
+        // Add grid layer (keep this as it uses aggregated data)
         this.addGeothermalGridLayer();
         
         // Debug: Log all map layers and check for errors
@@ -262,12 +261,26 @@ class GeospatialApp {
             console.log('Map layers after adding all layers:', this.map.getStyle().layers.map(l => l.id));
             console.log('Map sources:', Object.keys(this.map.getStyle().sources));
             
+            // Check transmission line layers specifically
+            const transmissionLayers = ['transmission-lines-z0-6', 'transmission-lines-z7-10', 'transmission-lines-z11-14'];
+            transmissionLayers.forEach(layerId => {
+                const layer = this.map.getLayer(layerId);
+                if (layer) {
+                    const visibility = this.map.getLayoutProperty(layerId, 'visibility');
+                    console.log(`🔌 Layer ${layerId}: exists, visibility = ${visibility || 'visible'}`);
+                } else {
+                    console.log(`❌ Layer ${layerId}: NOT FOUND`);
+                }
+            });
+            
             // Check if layers are visible
             const gridLayer = this.map.getLayer('geothermal-grid');
             const pointsLayer = this.map.getLayer('geothermal-points');
+            const debugLayer = this.map.getLayer('debug-test-layer');
             
             console.log('Grid layer exists:', !!gridLayer);
             console.log('Points layer exists:', !!pointsLayer);
+            console.log('Debug layer exists:', !!debugLayer);
             
             if (gridLayer) {
                 console.log('Grid layer visibility:', this.map.getLayoutProperty('geothermal-grid', 'visibility'));
@@ -278,65 +291,90 @@ class GeospatialApp {
                 console.log('Points layer visibility:', this.map.getLayoutProperty('geothermal-points', 'visibility'));
                 console.log('Points layer opacity:', this.map.getPaintProperty('geothermal-points', 'circle-opacity'));
             }
+            
+            if (debugLayer) {
+                console.log('Debug layer visibility:', this.map.getLayoutProperty('debug-test-layer', 'visibility'));
+                console.log('Debug layer opacity:', this.map.getPaintProperty('debug-test-layer', 'fill-opacity'));
+            }
+            
+            // Test specific tile URLs
+            console.log('🧪 Testing tile URLs...');
+            fetch('http://localhost:7800/public.geothermal_grid_tiles/2/1/1.mvt')
+                .then(response => {
+                    console.log('Grid tile response:', response.status, response.statusText);
+                    return response.arrayBuffer();
+                })
+                .then(buffer => {
+                    console.log('Grid tile size:', buffer.byteLength, 'bytes');
+                })
+                .catch(err => console.error('Grid tile error:', err));
+                
+            fetch('http://localhost:7800/public.geothermal_points_us/6/16/25.mvt')
+                .then(response => {
+                    console.log('Points tile response:', response.status, response.statusText);
+                    return response.arrayBuffer();
+                })
+                .then(buffer => {
+                    console.log('Points tile size:', buffer.byteLength, 'bytes');
+                })
+                .catch(err => console.error('Points tile error:', err));
+                
+            // Check current zoom and bounds
+            console.log('🔍 Map state:');
+            console.log('Current zoom:', this.map.getZoom());
+            console.log('Current center:', this.map.getCenter());
+            console.log('Current bounds:', this.map.getBounds());
+            
+            // Try to query for features at current view
+            const features = this.map.queryRenderedFeatures();
+            console.log('Features rendered at current view:', features.length);
+            
+            const gridFeatures = this.map.queryRenderedFeatures(undefined, { layers: ['geothermal-grid', 'debug-test-layer'] });
+            console.log('Grid features rendered:', gridFeatures.length);
+            
+            const pointFeatures = this.map.queryRenderedFeatures(undefined, { layers: ['geothermal-points'] });
+            console.log('Point features rendered:', pointFeatures.length);
         }, 2000);
     }
 
     addTransmissionLinesLayer(layerId, sourceId, minZoom, maxZoom) {
+        console.log(`🔌 Adding transmission layer: ${layerId} (zoom ${minZoom}-${maxZoom})`);
+        
         this.map.addLayer({
             id: layerId,
             type: 'line',
             source: sourceId,
-            'source-layer': 'default', // pg_tileserv uses 'default' as layer name
+            'source-layer': 'transmission_lines_us', // Use actual table name
             minzoom: minZoom,
             maxzoom: maxZoom,
             paint: {
-                'line-color': [
-                    'case',
-                    ['==', ['get', 'kv'], null], '#999999',           // Unknown
-                    ['<', ['get', 'kv'], 69], '#4CAF50',              // Low voltage - Green
-                    ['<', ['get', 'kv'], 138], '#FF9800',             // Med-Low - Orange
-                    ['<', ['get', 'kv'], 230], '#2196F3',             // Medium - Blue
-                    ['<', ['get', 'kv'], 345], '#9C27B0',             // High - Purple
-                    ['<', ['get', 'kv'], 500], '#F44336',             // Extra High - Red
-                    '#000000'                                         // Ultra High - Black
-                ],
-                'line-width': [
-                    'interpolate',
-                    ['linear'],
-                    ['zoom'],
-                    0, [
-                        'case',
-                        ['==', ['get', 'kv'], null], 2.5,
-                        ['<', ['get', 'kv'], 69], 2.5,
-                        ['<', ['get', 'kv'], 138], 3,
-                        ['<', ['get', 'kv'], 230], 3.5,
-                        ['<', ['get', 'kv'], 345], 4,
-                        ['<', ['get', 'kv'], 500], 4.5,
-                        5
-                    ],
-                    6, [
-                        'case',
-                        ['==', ['get', 'kv'], null], 3,
-                        ['<', ['get', 'kv'], 69], 3,
-                        ['<', ['get', 'kv'], 138], 3.5,
-                        ['<', ['get', 'kv'], 230], 4,
-                        ['<', ['get', 'kv'], 345], 4.5,
-                        ['<', ['get', 'kv'], 500], 5,
-                        5.5
-                    ],
-                    14, [
-                        'case',
-                        ['==', ['get', 'kv'], null], 4,
-                        ['<', ['get', 'kv'], 69], 4,
-                        ['<', ['get', 'kv'], 138], 5,
-                        ['<', ['get', 'kv'], 230], 6,
-                        ['<', ['get', 'kv'], 345], 7,
-                        ['<', ['get', 'kv'], 500], 8,
-                        9
-                    ]
-                ],
+                'line-color': '#FF0000', // Bright red for debugging
+                'line-width': 4,         // Fixed width for visibility
                 'line-opacity': 0.8
             }
+        });
+        
+        console.log(`✅ Successfully added transmission layer: ${layerId}`);
+        
+        // Add debug event listener to check for tile loading
+        this.map.on('data', (e) => {
+            if (e.sourceId === sourceId && e.isSourceLoaded) {
+                console.log(`📡 Transmission source ${sourceId} loaded tiles`);
+                
+                // Query features in current view to check if data exists
+                setTimeout(() => {
+                    const features = this.map.queryRenderedFeatures(undefined, { layers: [layerId] });
+                    console.log(`🔌 ${layerId} features in current view: ${features.length}`);
+                    if (features.length > 0) {
+                        console.log(`🔌 Sample feature from ${layerId}:`, features[0].properties);
+                    }
+                }, 500);
+            }
+        });
+        
+        // Add debug click listener to check for features
+        this.map.on('click', layerId, (e) => {
+            console.log(`🔌 Clicked transmission line in layer ${layerId}:`, e.features);
         });
     }
 
@@ -349,9 +387,12 @@ class GeospatialApp {
             id: 'geothermal-points',
             type: 'circle',
             source: 'geothermal-points',
-            'source-layer': 'default', // pg_tileserv uses 'default' as layer name
+            'source-layer': 'geothermal_points_us', // Use actual table name as layer
             minzoom: 3,  // Lower zoom to make data more visible
             maxzoom: 14,
+            layout: {
+                'visibility': 'visible'
+            },
             paint: {
                 // Simplified large circles for maximum visibility  
                 'circle-radius': 25,
@@ -386,9 +427,12 @@ class GeospatialApp {
                 id: 'geothermal-grid',
                 type: 'fill',
                 source: 'geothermal-grid',
-                'source-layer': 'default',
+                'source-layer': 'geothermal_grid_tiles',
                 minzoom: 0,
                 maxzoom: 8,
+                layout: {
+                    'visibility': 'visible'
+                },
                 paint: {
                     'fill-color': [
                         'case',
@@ -421,27 +465,30 @@ class GeospatialApp {
                 id: 'geothermal-grid-outline',
                 type: 'line',
                 source: 'geothermal-grid',
-                'source-layer': 'default',
+                'source-layer': 'geothermal_grid_tiles',
                 minzoom: 0,
                 maxzoom: 8,
+                layout: {
+                    'visibility': 'visible'
+                },
                 paint: {
                     'line-color': [
                         'case',
                         ['boolean', ['feature-state', 'hover'], false],
                         '#FFD700',  // Gold outline on hover
-                        '#FFFFFF'   // White outline normally
+                        '#00FFFF'   // Bright cyan outline normally
                     ],
                     'line-width': [
                         'case',
                         ['boolean', ['feature-state', 'hover'], false],
-                        2,    // Thicker line on hover
-                        0.5   // Thin line normally
+                        3,    // Thick line on hover
+                        1.5   // Medium line normally
                     ],
                     'line-opacity': [
                         'case',
                         ['boolean', ['feature-state', 'hover'], false],
                         1.0,  // Full opacity on hover
-                        0.3   // Low opacity normally
+                        0.8   // High opacity normally
                     ]
                 }
             });
@@ -456,6 +503,9 @@ class GeospatialApp {
             'source-layer': 'default',
             minzoom: 0,
             maxzoom: 22,
+            layout: {
+                'visibility': 'visible'
+            },
             paint: {
                 'fill-color': '#FF0000',  // Bright red
                 'fill-opacity': 0.8
