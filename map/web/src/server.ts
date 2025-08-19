@@ -97,6 +97,7 @@ class GeospatialWebServer {
     this.app.get('/api/datasets/:id/stats', this.getDatasetStats.bind(this));
     this.app.get('/api/config', this.getConfig.bind(this));
     this.app.get('/api/health', this.getHealth.bind(this));
+    this.app.post('/api/temperature-lookup', this.temperatureLookup.bind(this));
     
     // Serve main application
     this.app.get('/', (req, res) => {
@@ -319,6 +320,62 @@ class GeospatialWebServer {
         resolve();
       });
     });
+  }
+
+  private async temperatureLookup(req: express.Request, res: express.Response): Promise<void> {
+    try {
+      const { lat, lng, depth } = req.body;
+      
+      if (typeof lat !== 'number' || typeof lng !== 'number' || typeof depth !== 'number') {
+        res.status(400).json({ error: 'Invalid coordinates or depth' });
+        return;
+      }
+      
+      // Find the closest geothermal point within 50km
+      const result = await this.pool.query(`
+        SELECT 
+          temperature_f,
+          depth_m,
+          latitude,
+          longitude,
+          ST_Distance(
+            ST_MakePoint($2, $1)::geography,
+            geom::geography
+          ) / 1000 as distance_km
+        FROM geothermal_points 
+        WHERE ST_DWithin(
+          ST_MakePoint($2, $1)::geography,
+          geom::geography,
+          50000  -- 50km radius
+        )
+        AND depth_m BETWEEN $3 - 100 AND $3 + 100  -- Within 100m depth range
+        ORDER BY ST_Distance(
+          ST_MakePoint($2, $1)::geography,
+          geom::geography
+        )
+        LIMIT 1
+      `, [lat, lng, depth]);
+      
+      if (result.rows.length > 0) {
+        const point = result.rows[0];
+        res.json({
+          temperature: point.temperature_f,
+          distance: point.distance_km,
+          actual_depth: point.depth_m,
+          coordinates: [point.latitude, point.longitude]
+        });
+      } else {
+        res.json({
+          temperature: null,
+          distance: null,
+          message: 'No geothermal data found within 50km and ±100m depth'
+        });
+      }
+      
+    } catch (error) {
+      console.error('Temperature lookup error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
   }
 
   public async stop(): Promise<void> {

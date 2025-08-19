@@ -169,10 +169,19 @@ class GeospatialApp {
         // Find datasets by type
         const transmissionDataset = this.datasets.find(d => d.geometry_type === 'MULTILINESTRING');
         const geothermalDataset = this.datasets.find(d => d.geometry_type === 'POINT');
+        const gridDataset = this.datasets.find(d => d.geometry_type === 'POLYGON');
         
         console.log('Available datasets:', this.datasets.length);
         console.log('Transmission dataset:', transmissionDataset ? 'Found' : 'Not found');
         console.log('Geothermal dataset:', geothermalDataset ? 'Found' : 'Not found');
+        console.log('Grid dataset:', gridDataset ? 'Found' : 'Not found');
+        
+        if (geothermalDataset) {
+            console.log('Geothermal dataset details:', geothermalDataset);
+        }
+        if (gridDataset) {
+            console.log('Grid dataset details:', gridDataset);
+        }
         
         // Add transmission lines source with zoom-banded views (only if dataset exists)
         if (transmissionDataset) {
@@ -191,19 +200,49 @@ class GeospatialApp {
         
         // Add geothermal sources (only if dataset exists)
         if (geothermalDataset) {
-            // Use main geothermal view for all zoom levels
-            this.map.addSource('geothermal-points', {
-                type: 'vector',
-                tiles: [`${tileserverUrl}/public.${geothermalDataset.table_name}_us/{z}/{x}/{y}.mvt`],
-                minzoom: 0,
-                maxzoom: 14
-            });
-            console.log('Added geothermal source with 4.2M+ points');
-            console.log('Tile URL:', `${tileserverUrl}/public.${geothermalDataset.table_name}_us/{z}/{x}/{y}.mvt`);
+            const tileUrl = `${tileserverUrl}/public.${geothermalDataset.table_name}_us/{z}/{x}/{y}.mvt`;
+            console.log('🌡️ Adding geothermal source...');
+            console.log('Tile URL:', tileUrl);
+            
+            try {
+                // Use main geothermal view for all zoom levels
+                this.map.addSource('geothermal-points', {
+                    type: 'vector',
+                    tiles: [tileUrl],
+                    minzoom: 3,  // Allow lower zoom for testing
+                    maxzoom: 14
+                });
+                console.log('✅ Added geothermal source with 4.2M+ points');
+            } catch (error) {
+                console.error('❌ Error adding geothermal source:', error);
+            }
+        } else {
+            console.warn('⚠️ No geothermal dataset found');
+        }
+        
+        // Add grid sources (only if dataset exists)
+        if (gridDataset) {
+            const gridTileUrl = `${tileserverUrl}/public.${gridDataset.table_name}/{z}/{x}/{y}.mvt`;
+            console.log('🔲 Adding grid source...');
+            console.log('Grid Tile URL:', gridTileUrl);
+            
+            try {
+                this.map.addSource('geothermal-grid', {
+                    type: 'vector',
+                    tiles: [gridTileUrl],
+                    minzoom: 0,
+                    maxzoom: 8
+                });
+                console.log('✅ Added geothermal grid source with 13,696 boxes');
+            } catch (error) {
+                console.error('❌ Error adding grid source:', error);
+            }
+        } else {
+            console.warn('⚠️ No grid dataset found');
         }
         
         // Update UI to show dataset status
-        this.updateDatasetStatus(transmissionDataset, geothermalDataset);
+        this.updateDatasetStatus(transmissionDataset, geothermalDataset, gridDataset);
     }
 
     addDataLayers() {
@@ -214,6 +253,32 @@ class GeospatialApp {
         
         // Add geothermal layer
         this.addGeothermalPointsLayer();
+        
+        // Add grid layer
+        this.addGeothermalGridLayer();
+        
+        // Debug: Log all map layers and check for errors
+        setTimeout(() => {
+            console.log('Map layers after adding all layers:', this.map.getStyle().layers.map(l => l.id));
+            console.log('Map sources:', Object.keys(this.map.getStyle().sources));
+            
+            // Check if layers are visible
+            const gridLayer = this.map.getLayer('geothermal-grid');
+            const pointsLayer = this.map.getLayer('geothermal-points');
+            
+            console.log('Grid layer exists:', !!gridLayer);
+            console.log('Points layer exists:', !!pointsLayer);
+            
+            if (gridLayer) {
+                console.log('Grid layer visibility:', this.map.getLayoutProperty('geothermal-grid', 'visibility'));
+                console.log('Grid layer opacity:', this.map.getPaintProperty('geothermal-grid', 'fill-opacity'));
+            }
+            
+            if (pointsLayer) {
+                console.log('Points layer visibility:', this.map.getLayoutProperty('geothermal-points', 'visibility'));
+                console.log('Points layer opacity:', this.map.getPaintProperty('geothermal-points', 'circle-opacity'));
+            }
+        }, 2000);
     }
 
     addTransmissionLinesLayer(layerId, sourceId, minZoom, maxZoom) {
@@ -275,125 +340,132 @@ class GeospatialApp {
         });
     }
 
-    addGeothermalAggregatedLayer() {
-        this.map.addLayer({
-            id: 'geothermal-aggregated',
-            type: 'circle',
-            source: 'geothermal-aggregated',
-            'source-layer': 'default',
-            minzoom: 0,  // Show at all zoom levels
-            maxzoom: 9,
-            paint: {
-                'circle-radius': [
-                    'interpolate',
-                    ['linear'],
-                    ['zoom'],
-                    0, [
-                        'interpolate',
-                        ['linear'],
-                        ['get', 'point_count'],
-                        1, 8,     // Larger minimum size
-                        10, 12,
-                        50, 18,
-                        100, 24,
-                        500, 32
-                    ],
-                    6, [
-                        'interpolate',
-                        ['linear'],
-                        ['get', 'point_count'],
-                        1, 12,
-                        10, 16,
-                        50, 24,
-                        100, 32,
-                        500, 40
-                    ]
-                ],
-                'circle-color': [
-                    'case',
-                    ['==', ['get', 'avg_temperature_f'], null], '#999999',
-                    ['<', ['get', 'avg_temperature_f'], 20], '#00E5FF',     // Very Cool - Bright Cyan
-                    ['<', ['get', 'avg_temperature_f'], 40], '#2196F3',     // Cool - Blue
-                    ['<', ['get', 'avg_temperature_f'], 60], '#4CAF50',     // Moderate - Green
-                    ['<', ['get', 'avg_temperature_f'], 80], '#FFEB3B',     // Warm - Yellow
-                    ['<', ['get', 'avg_temperature_f'], 100], '#FF9800',    // Hot - Orange
-                    ['<', ['get', 'avg_temperature_f'], 120], '#F44336',    // Very Hot - Red
-                    '#E91E63'                                               // Extreme - Hot Pink
-                ],
-                'circle-opacity': 0.8,   // Higher opacity
-                'circle-stroke-color': '#FFFFFF',
-                'circle-stroke-width': [
-                    'interpolate',
-                    ['linear'],
-                    ['zoom'],
-                    0, 2,
-                    6, 3
-                ]
-            }
-        });
-    }
+    // Removed addGeothermalAggregatedLayer function as aggregated source doesn't exist
 
     addGeothermalPointsLayer() {
-        this.map.addLayer({
+        console.log('🔥 Adding geothermal points layer...');
+        try {
+            this.map.addLayer({
             id: 'geothermal-points',
             type: 'circle',
             source: 'geothermal-points',
-            'source-layer': 'default',
-            minzoom: 3,  // Show at low zoom levels
+            'source-layer': 'default', // pg_tileserv uses 'default' as layer name
+            minzoom: 3,  // Lower zoom to make data more visible
             maxzoom: 14,
             paint: {
-                'circle-radius': [
-                    'interpolate',
-                    ['linear'],
-                    ['zoom'],
-                    3, [
-                        'case',
-                        ['==', ['get', 'temperature_f'], null], 4,
-                        ['<', ['get', 'temperature_f'], 20], 3,           // Very Cool - Small
-                        ['<', ['get', 'temperature_f'], 40], 4,           // Cool - Small-Medium
-                        ['<', ['get', 'temperature_f'], 60], 5,           // Warm - Medium
-                        ['<', ['get', 'temperature_f'], 80], 6,           // Hot - Large
-                        ['<', ['get', 'temperature_f'], 100], 7,          // Very Hot - Larger
-                        8                                                 // Extreme - Largest
-                    ],
-                    8, [
-                        'case',
-                        ['==', ['get', 'temperature_f'], null], 6,
-                        ['<', ['get', 'temperature_f'], 20], 5,
-                        ['<', ['get', 'temperature_f'], 40], 6,
-                        ['<', ['get', 'temperature_f'], 60], 8,
-                        ['<', ['get', 'temperature_f'], 80], 10,
-                        ['<', ['get', 'temperature_f'], 100], 12,
-                        14
-                    ]
-                ],
+                // Simplified large circles for maximum visibility  
+                'circle-radius': 25,
                 'circle-color': [
                     'case',
-                    ['==', ['get', 'temperature_f'], null], '#999999',
-                    ['<', ['get', 'temperature_f'], 20], '#00E5FF',       // Very Cool - Bright Cyan
-                    ['<', ['get', 'temperature_f'], 40], '#2196F3',       // Cool - Blue
-                    ['<', ['get', 'temperature_f'], 60], '#4CAF50',       // Moderate - Green
-                    ['<', ['get', 'temperature_f'], 80], '#FFEB3B',       // Warm - Yellow
-                    ['<', ['get', 'temperature_f'], 100], '#FF9800',      // Hot - Orange  
-                    ['<', ['get', 'temperature_f'], 120], '#F44336',      // Very Hot - Red
-                    '#E91E63'                                             // Extreme - Hot Pink
+                    ['==', ['get', 'temperature_f'], null], '#999999',    // Gray for null
+                    ['<', ['get', 'temperature_f'], 40], '#999999',       // Gray for cold (ignored)
+                    ['<', ['get', 'temperature_f'], 60], '#4CAF50',       // Green - Moderate (40-60°F)
+                    ['<', ['get', 'temperature_f'], 80], '#FFEB3B',       // Yellow - Warm (60-80°F)
+                    ['<', ['get', 'temperature_f'], 100], '#FF9800',      // Orange - Hot (80-100°F)
+                    ['<', ['get', 'temperature_f'], 130], '#F44336',      // Red - Very Hot (100-130°F)
+                    ['<', ['get', 'temperature_f'], 160], '#E91E63',      // Hot Pink - Extreme (130-160°F)
+                    ['<', ['get', 'temperature_f'], 200], '#9C27B0',      // Purple - Ultra (160-200°F)
+                    '#000000'                                             // Black - Maximum (>200°F)
                 ],
-                'circle-opacity': 0.85,  // Higher opacity for better visibility
-                'circle-stroke-color': [
-                    'case',
-                    ['<', ['get', 'temperature_f'], 60], '#FFFFFF',       // White stroke for cool colors
-                    '#000000'                                             // Black stroke for warm colors
-                ],
-                'circle-stroke-width': [
-                    'interpolate',
-                    ['linear'],
-                    ['zoom'],
-                    3, 1,
-                    8, 2
-                ]
+                'circle-opacity': 1.0,  // Maximum opacity for visibility
+                'circle-stroke-color': '#FFFFFF',
+                'circle-stroke-width': 3
             },
-            filter: ['>=', ['get', 'temperature_f'], 0] // Will be updated by temperature filter
+            filter: ['>=', ['get', 'temperature_f'], 40] // Only show moderate+ temperatures
         });
+        console.log('✅ Geothermal layer added successfully');
+        } catch (error) {
+            console.error('❌ Error adding geothermal layer:', error);
+        }
+    }
+
+    addGeothermalGridLayer() {
+        console.log('🔲 Adding geothermal grid layer...');
+        try {
+            this.map.addLayer({
+                id: 'geothermal-grid',
+                type: 'fill',
+                source: 'geothermal-grid',
+                'source-layer': 'default',
+                minzoom: 0,
+                maxzoom: 8,
+                paint: {
+                    'fill-color': [
+                        'case',
+                        ['==', ['get', 'avg_temperature_f'], null], 'transparent',
+                        ['<', ['get', 'avg_temperature_f'], 60], '#4CAF50',       // Green - Moderate (40-60°F)
+                        ['<', ['get', 'avg_temperature_f'], 80], '#FFEB3B',       // Yellow - Warm (60-80°F)
+                        ['<', ['get', 'avg_temperature_f'], 100], '#FF9800',      // Orange - Hot (80-100°F)
+                        ['<', ['get', 'avg_temperature_f'], 130], '#F44336',      // Red - Very Hot (100-130°F)
+                        ['<', ['get', 'avg_temperature_f'], 160], '#E91E63',      // Hot Pink - Extreme (130-160°F)
+                        ['<', ['get', 'avg_temperature_f'], 200], '#9C27B0',      // Purple - Ultra (160-200°F)
+                        '#000000'                                                 // Black - Maximum (>200°F)
+                    ],
+                    'fill-opacity': [
+                        'case',
+                        ['boolean', ['feature-state', 'hover'], false],
+                        0.9,  // Higher opacity on hover
+                        0.6   // Normal opacity
+                    ],
+                    'fill-outline-color': [
+                        'case',
+                        ['boolean', ['feature-state', 'hover'], false],
+                        '#FFD700',  // Gold outline on hover
+                        '#FFFFFF'   // White outline normally
+                    ]
+                }
+            });
+            
+            // Add grid outline layer for better visibility
+            this.map.addLayer({
+                id: 'geothermal-grid-outline',
+                type: 'line',
+                source: 'geothermal-grid',
+                'source-layer': 'default',
+                minzoom: 0,
+                maxzoom: 8,
+                paint: {
+                    'line-color': [
+                        'case',
+                        ['boolean', ['feature-state', 'hover'], false],
+                        '#FFD700',  // Gold outline on hover
+                        '#FFFFFF'   // White outline normally
+                    ],
+                    'line-width': [
+                        'case',
+                        ['boolean', ['feature-state', 'hover'], false],
+                        2,    // Thicker line on hover
+                        0.5   // Thin line normally
+                    ],
+                    'line-opacity': [
+                        'case',
+                        ['boolean', ['feature-state', 'hover'], false],
+                        1.0,  // Full opacity on hover
+                        0.3   // Low opacity normally
+                    ]
+                }
+            });
+            
+            console.log('✅ Geothermal grid layer added successfully');
+        
+        // Add a simple debug layer to test if any layers work
+        this.map.addLayer({
+            id: 'debug-test-layer',
+            type: 'fill',
+            source: 'geothermal-grid',
+            'source-layer': 'default',
+            minzoom: 0,
+            maxzoom: 22,
+            paint: {
+                'fill-color': '#FF0000',  // Bright red
+                'fill-opacity': 0.8
+            }
+        });
+        console.log('🔴 Added debug red layer for testing');
+        
+        } catch (error) {
+            console.error('❌ Error adding grid layer:', error);
+        }
     }
 
     setupMapInteractions() {
@@ -406,6 +478,10 @@ class GeospatialApp {
         
         const geothermalLayers = [
             'geothermal-points'
+        ];
+        
+        const gridLayers = [
+            'geothermal-grid'
         ];
 
         // Transmission lines popups
@@ -436,6 +512,45 @@ class GeospatialApp {
             
             this.map.on('mouseleave', layerId, () => {
                 this.map.getCanvas().style.cursor = '';
+            });
+        });
+
+        // Grid box popups
+        gridLayers.forEach(layerId => {
+            this.map.on('click', layerId, (e) => {
+                this.showGridPopup(e);
+            });
+            
+            this.map.on('mouseenter', layerId, (e) => {
+                this.map.getCanvas().style.cursor = 'pointer';
+                
+                // Highlight the hovered grid box
+                if (e.features.length > 0) {
+                    if (this.hoveredGridId) {
+                        this.map.setFeatureState(
+                            { source: 'geothermal-grid', sourceLayer: 'default', id: this.hoveredGridId },
+                            { hover: false }
+                        );
+                    }
+                    this.hoveredGridId = e.features[0].id;
+                    this.map.setFeatureState(
+                        { source: 'geothermal-grid', sourceLayer: 'default', id: this.hoveredGridId },
+                        { hover: true }
+                    );
+                }
+            });
+            
+            this.map.on('mouseleave', layerId, () => {
+                this.map.getCanvas().style.cursor = '';
+                
+                // Remove highlight
+                if (this.hoveredGridId) {
+                    this.map.setFeatureState(
+                        { source: 'geothermal-grid', sourceLayer: 'default', id: this.hoveredGridId },
+                        { hover: false }
+                    );
+                    this.hoveredGridId = null;
+                }
             });
         });
 
@@ -547,6 +662,56 @@ class GeospatialApp {
             .addTo(this.map);
     }
 
+    showGridPopup(e) {
+        const properties = e.features[0].properties;
+        
+        const popupContent = `
+            <div class="popup-header">
+                <i class="fas fa-th"></i> Geothermal Grid Box (15-mile)
+            </div>
+            <div class="popup-row">
+                <span class="popup-label">Center Coordinates:</span> 
+                <span class="popup-value">${properties.center_lat?.toFixed(4) || 'N/A'}, ${properties.center_lng?.toFixed(4) || 'N/A'}</span>
+            </div>
+            <div class="popup-row">
+                <span class="popup-label">Average Temperature:</span> 
+                <span class="popup-value" style="font-weight: bold; color: ${this.getTemperatureColor(properties.avg_temperature_f)}">${properties.avg_temperature_f ? properties.avg_temperature_f + '°F' : 'No data'}</span>
+            </div>
+            <div class="popup-row">
+                <span class="popup-label">Average Depth:</span> 
+                <span class="popup-value">${properties.avg_depth_m ? properties.avg_depth_m + ' meters' : 'Unknown'}</span>
+            </div>
+            <div class="popup-row">
+                <span class="popup-label">Temperature Range:</span> 
+                <span class="popup-value">${properties.min_temperature_f || 'N/A'} - ${properties.max_temperature_f || 'N/A'}°F</span>
+            </div>
+            <div class="popup-row">
+                <span class="popup-label">Data Points:</span> 
+                <span class="popup-value">${properties.point_count || 0} measurements</span>
+            </div>
+        `;
+
+        if (this.activePopup) {
+            this.activePopup.remove();
+        }
+
+        this.activePopup = new maplibregl.Popup()
+            .setLngLat([properties.center_lng, properties.center_lat])
+            .setHTML(popupContent)
+            .addTo(this.map);
+    }
+
+    getTemperatureColor(temp) {
+        if (!temp) return '#999999';
+        if (temp < 60) return '#4CAF50';   // Green
+        if (temp < 80) return '#FFEB3B';   // Yellow  
+        if (temp < 100) return '#FF9800';  // Orange
+        if (temp < 130) return '#F44336';  // Red
+        if (temp < 160) return '#E91E63';  // Hot Pink
+        if (temp < 200) return '#9C27B0';  // Purple
+        return '#000000';                  // Black
+    }
+
     setupControls() {
         // Toggle controls visibility
         document.getElementById('toggleControls').addEventListener('click', () => {
@@ -593,6 +758,22 @@ class GeospatialApp {
             document.getElementById('temperature-filter-value').textContent = minTemp + '°F';
             this.updateTemperatureFilter(minTemp);
         });
+        
+        // Grid controls
+        document.getElementById('grid-toggle').addEventListener('change', (e) => {
+            this.toggleGrid(e.target.checked);
+        });
+
+        document.getElementById('grid-opacity').addEventListener('input', (e) => {
+            const opacity = e.target.value / 100;
+            document.getElementById('grid-opacity-value').textContent = e.target.value + '%';
+            this.updateGridOpacity(opacity);
+        });
+        
+        // Temperature lookup functionality
+        document.getElementById('lookup-temp').addEventListener('click', () => {
+            this.performTemperatureLookup();
+        });
     }
 
     toggleTransmissionLines(visible) {
@@ -630,6 +811,64 @@ class GeospatialApp {
     updateTemperatureFilter(minTemp) {
         // Update filter for geothermal points
         this.map.setFilter('geothermal-points', ['>=', ['get', 'temperature_f'], minTemp]);
+    }
+
+    toggleGrid(visible) {
+        const layers = ['geothermal-grid', 'geothermal-grid-outline'];
+        layers.forEach(layerId => {
+            this.map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
+        });
+    }
+
+    updateGridOpacity(opacity) {
+        this.map.setPaintProperty('geothermal-grid', 'fill-opacity', opacity);
+    }
+    
+    async performTemperatureLookup() {
+        const lat = parseFloat(document.getElementById('lookup-lat').value);
+        const lng = parseFloat(document.getElementById('lookup-lng').value);
+        const depth = parseFloat(document.getElementById('lookup-depth').value);
+        
+        const resultDiv = document.getElementById('lookup-result');
+        
+        if (isNaN(lat) || isNaN(lng) || isNaN(depth)) {
+            resultDiv.innerHTML = '⚠️ Please enter valid coordinates and depth';
+            return;
+        }
+        
+        if (lat < 24 || lat > 50 || lng < -125 || lng > -66) {
+            resultDiv.innerHTML = '⚠️ Coordinates outside US bounds';
+            return;
+        }
+        
+        resultDiv.innerHTML = '🔍 Searching for temperature data...';
+        
+        try {
+            // Query the database for nearby temperature readings
+            const response = await fetch('/api/temperature-lookup', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ lat, lng, depth })
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to fetch temperature data');
+            }
+            
+            const data = await response.json();
+            
+            if (data.temperature !== null) {
+                resultDiv.innerHTML = `🌡️ <strong>${data.temperature.toFixed(1)}°F</strong> at ${data.distance.toFixed(1)}km distance`;
+            } else {
+                resultDiv.innerHTML = '❌ No temperature data found nearby';
+            }
+            
+        } catch (error) {
+            console.error('Temperature lookup error:', error);
+            resultDiv.innerHTML = '❌ Error fetching temperature data';
+        }
     }
 
     updateStats() {
