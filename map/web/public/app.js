@@ -344,13 +344,57 @@ class GeospatialApp {
             id: layerId,
             type: 'line',
             source: sourceId,
-            'source-layer': 'transmission_lines_us', // Use actual table name
+            'source-layer': 'public.transmission_lines_us', // WORKING source-layer name!
             minzoom: minZoom,
             maxzoom: maxZoom,
             paint: {
-                'line-color': '#FF0000', // Bright red for debugging
-                'line-width': 4,         // Fixed width for visibility
-                'line-opacity': 0.8
+                'line-color': [
+                    'case',
+                    ['==', ['get', 'kv'], null], '#999999',                    // Unknown - Gray
+                    ['<', ['to-number', ['get', 'kv']], 69], '#4CAF50',       // Low voltage - Green  
+                    ['<', ['to-number', ['get', 'kv']], 138], '#FF9800',      // Med-Low - Orange
+                    ['<', ['to-number', ['get', 'kv']], 230], '#2196F3',      // Medium - Blue
+                    ['<', ['to-number', ['get', 'kv']], 345], '#9C27B0',      // High - Purple
+                    ['<', ['to-number', ['get', 'kv']], 500], '#F44336',      // Extra High - Red
+                    '#000000'                                                  // Ultra High - Black
+                ],
+                'line-width': [
+                    'interpolate',
+                    ['linear'],
+                    ['zoom'],
+                    3, [
+                        'case',
+                        ['==', ['get', 'kv'], null], 0.5,
+                        ['<', ['to-number', ['get', 'kv']], 69], 0.5,        // Distribution lines - very thin
+                        ['<', ['to-number', ['get', 'kv']], 138], 0.8,       // Sub-transmission - thin
+                        ['<', ['to-number', ['get', 'kv']], 230], 1.0,       // Regional - medium-thin
+                        ['<', ['to-number', ['get', 'kv']], 345], 1.2,       // High voltage - medium
+                        ['<', ['to-number', ['get', 'kv']], 500], 1.5,       // Extra high - thicker
+                        2.0                                                   // Ultra high - thickest
+                    ],
+                    8, [
+                        'case',
+                        ['==', ['get', 'kv'], null], 1.0,
+                        ['<', ['to-number', ['get', 'kv']], 69], 1.0,
+                        ['<', ['to-number', ['get', 'kv']], 138], 1.5,
+                        ['<', ['to-number', ['get', 'kv']], 230], 2.0,
+                        ['<', ['to-number', ['get', 'kv']], 345], 2.5,
+                        ['<', ['to-number', ['get', 'kv']], 500], 3.0,
+                        3.5
+                    ],
+                    14, [
+                        'case',
+                        ['==', ['get', 'kv'], null], 1.5,
+                        ['<', ['to-number', ['get', 'kv']], 69], 1.5,
+                        ['<', ['to-number', ['get', 'kv']], 138], 2.0,
+                        ['<', ['to-number', ['get', 'kv']], 230], 2.5,
+                        ['<', ['to-number', ['get', 'kv']], 345], 3.0,
+                        ['<', ['to-number', ['get', 'kv']], 500], 3.5,
+                        4.0
+                    ]
+                ],
+                'line-opacity': 0.8,
+                'line-dasharray': [3, 2] // Dotted lines to distinguish from roads
             }
         });
         
@@ -361,20 +405,28 @@ class GeospatialApp {
             if (e.sourceId === sourceId && e.isSourceLoaded) {
                 console.log(`📡 Transmission source ${sourceId} loaded tiles`);
                 
-                // Query features in current view to check if data exists
+                // Query features to verify data loading
                 setTimeout(() => {
-                    const features = this.map.queryRenderedFeatures(undefined, { layers: [layerId] });
-                    console.log(`🔌 ${layerId} features in current view: ${features.length}`);
-                    if (features.length > 0) {
-                        console.log(`🔌 Sample feature from ${layerId}:`, features[0].properties);
+                    try {
+                        const features = this.map.queryRenderedFeatures(undefined, { layers: [layerId] });
+                        console.log(`🔌 ${layerId} features in current view: ${features.length}`);
+                        if (features.length > 0) {
+                            const sample = features[0].properties;
+                            console.log(`🔌 Sample transmission line properties:`, sample);
+                            
+                            // Debug voltage data specifically
+                            const voltages = features.slice(0, 10).map(f => ({
+                                kv: f.properties.kv,
+                                volt_class: f.properties.volt_class,
+                                owner: f.properties.owner
+                            }));
+                            console.log(`⚡ Voltage sample (first 10):`, voltages);
+                        }
+                    } catch (error) {
+                        console.log(`❌ Error querying ${layerId}:`, error.message);
                     }
                 }, 500);
             }
-        });
-        
-        // Add debug click listener to check for features
-        this.map.on('click', layerId, (e) => {
-            console.log(`🔌 Clicked transmission line in layer ${layerId}:`, e.features);
         });
     }
 
@@ -829,7 +881,11 @@ class GeospatialApp {
     toggleTransmissionLines(visible) {
         const layers = ['transmission-lines-z0-6', 'transmission-lines-z7-10', 'transmission-lines-z11-14'];
         layers.forEach(layerId => {
-            this.map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
+            try {
+                this.map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
+            } catch (error) {
+                // Layer might not exist, ignore
+            }
         });
         
         // Update legend visibility
