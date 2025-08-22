@@ -23,7 +23,7 @@ class GeospatialApp {
         this.meshConfig = {
             size: 20,        // miles
             opacity: 0.7,
-            hoveredHexId: null
+            selectedHexId: null
         };
         
         this.init();
@@ -433,6 +433,9 @@ class GeospatialApp {
             
             // Aggregate temperature data for each hexagon
             hexGrid.features.forEach((hex, index) => {
+                // Set the feature ID for hover state management
+                hex.id = index;
+                
                 const hexCenter = turf.center(hex);
                 const hexBounds = turf.bbox(hex);
                 
@@ -480,6 +483,7 @@ class GeospatialApp {
             console.error('❌ Error aggregating geothermal data:', error);
             // Return grid with no data
             hexGrid.features.forEach((hex, index) => {
+                hex.id = index;  // Set feature ID
                 hex.properties = {
                     avg_temperature_f: null,
                     point_count: 0,
@@ -530,8 +534,8 @@ class GeospatialApp {
                     ],
                     'fill-opacity': [
                         'case',
-                        ['boolean', ['feature-state', 'hover'], false],
-                        0.9,  // Higher opacity on hover
+                        ['boolean', ['feature-state', 'selected'], false],
+                        0.9,  // Higher opacity when selected
                         this.meshConfig.opacity   // Normal opacity
                     ]
                 }
@@ -550,20 +554,20 @@ class GeospatialApp {
                 paint: {
                     'line-color': [
                         'case',
-                        ['boolean', ['feature-state', 'hover'], false],
-                        '#FFD700',  // Gold outline on hover
+                        ['boolean', ['feature-state', 'selected'], false],
+                        '#000000',  // Black outline when selected
                         '#FFFFFF'   // White outline normally
                     ],
                     'line-width': [
                         'case',
-                        ['boolean', ['feature-state', 'hover'], false],
-                        3,    // Bold line on hover
+                        ['boolean', ['feature-state', 'selected'], false],
+                        4,    // Bold line when selected
                         1     // Normal line thickness
                     ],
                     'line-opacity': [
                         'case',
-                        ['boolean', ['feature-state', 'hover'], false],
-                        1.0,  // Full opacity on hover
+                        ['boolean', ['feature-state', 'selected'], false],
+                        1.0,  // Full opacity when selected
                         0.6   // Semi-transparent normally
                     ]
                 }
@@ -666,44 +670,43 @@ class GeospatialApp {
             });
         });
 
-        // Hexagon mesh popups and hover
+        // Hexagon mesh click selection
         meshLayers.forEach(layerId => {
             this.map.on('click', layerId, (e) => {
-                this.showMeshPopup(e);
+                if (e.features.length > 0) {
+                    const feature = e.features[0];
+                    console.log('🔷 Clicked hexagon:', feature.id, feature.properties);
+                    
+                    // Clear previous selection
+                    if (this.meshConfig.selectedHexId !== null) {
+                        this.map.setFeatureState(
+                            { source: 'hexagon-mesh', id: this.meshConfig.selectedHexId },
+                            { selected: false }
+                        );
+                    }
+                    
+                    // Set new selection
+                    this.meshConfig.selectedHexId = feature.id;
+                    if (this.meshConfig.selectedHexId !== null && this.meshConfig.selectedHexId !== undefined) {
+                        this.map.setFeatureState(
+                            { source: 'hexagon-mesh', id: this.meshConfig.selectedHexId },
+                            { selected: true }
+                        );
+                        console.log('✅ Selected hexagon ID:', this.meshConfig.selectedHexId);
+                    }
+                    
+                    // Show popup
+                    this.showMeshPopup(e);
+                }
             });
             
-            this.map.on('mouseenter', layerId, (e) => {
+            // Show pointer cursor on mesh
+            this.map.on('mouseenter', layerId, () => {
                 this.map.getCanvas().style.cursor = 'pointer';
-                
-                // Highlight the hovered hexagon
-                if (e.features.length > 0) {
-                    if (this.meshConfig.hoveredHexId) {
-                        this.map.setFeatureState(
-                            { source: 'hexagon-mesh', id: this.meshConfig.hoveredHexId },
-                            { hover: false }
-                        );
-                    }
-                    this.meshConfig.hoveredHexId = e.features[0].properties?.hex_id;
-                    if (this.meshConfig.hoveredHexId) {
-                        this.map.setFeatureState(
-                            { source: 'hexagon-mesh', id: this.meshConfig.hoveredHexId },
-                            { hover: true }
-                        );
-                    }
-                }
             });
             
             this.map.on('mouseleave', layerId, () => {
                 this.map.getCanvas().style.cursor = '';
-                
-                // Remove highlight
-                if (this.meshConfig.hoveredHexId) {
-                    this.map.setFeatureState(
-                        { source: 'hexagon-mesh', id: this.meshConfig.hoveredHexId },
-                        { hover: false }
-                    );
-                    this.meshConfig.hoveredHexId = null;
-                }
             });
         });
 
@@ -1046,8 +1049,8 @@ class GeospatialApp {
             this.meshConfig.opacity = opacity;
             this.map.setPaintProperty('hexagon-mesh-fill', 'fill-opacity', [
                 'case',
-                ['boolean', ['feature-state', 'hover'], false],
-                0.9,  // Higher opacity on hover
+                ['boolean', ['feature-state', 'selected'], false],
+                0.9,  // Higher opacity when selected
                 opacity   // Normal opacity
             ]);
         } catch (error) {
