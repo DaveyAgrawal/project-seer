@@ -15,7 +15,15 @@ class GeospatialApp {
         // Layer visibility state
         this.layerState = {
             transmissionLines: true,
-            geothermalPoints: true
+            geothermalPoints: true,
+            hexagonMesh: true
+        };
+        
+        // Mesh configuration
+        this.meshConfig = {
+            size: 20,        // miles
+            opacity: 0.7,
+            hoveredHexId: null
         };
         
         this.init();
@@ -227,6 +235,9 @@ class GeospatialApp {
         // Add geothermal layer (temporarily disabled for debugging)  
         // this.addGeothermalPointsLayer();
         
+        // Add hexagon mesh layer (default ON)
+        this.addHexagonMeshLayer();
+        
         // Debug: Log all map layers and check for errors
         setTimeout(() => {
             console.log('Map layers after adding all layers:', this.map.getStyle().layers.map(l => l.id));
@@ -376,6 +387,195 @@ class GeospatialApp {
         });
     }
 
+    generateHexagonGrid(cellSize = 20) {
+        console.log(`🔷 Generating hexagon grid with ${cellSize} mile cells...`);
+        
+        // Define continental US bounding box
+        const usBounds = [
+            -125.0,  // West (longitude)
+            24.0,    // South (latitude) 
+            -66.5,   // East (longitude)
+            49.0     // North (latitude)
+        ];
+        
+        // Create hexagon grid using Turf.js
+        const hexGrid = turf.hexGrid(usBounds, cellSize, {
+            units: 'miles',
+            triangles: false  // We want hexagons, not triangles
+        });
+        
+        console.log(`✅ Generated ${hexGrid.features.length} hexagons`);
+        return hexGrid;
+    }
+
+    async aggregateGeothermalDataToHex(hexGrid) {
+        console.log(`🔥 Aggregating geothermal data to ${hexGrid.features.length} hexagons...`);
+        
+        try {
+            // Query geothermal points from the tile server
+            const response = await fetch('http://localhost:7800/public.geothermal_points_us.json');
+            const metadata = await response.json();
+            
+            console.log(`📊 Geothermal data metadata:`, metadata);
+            
+            // For now, we'll aggregate data on the client side by querying rendered features
+            // In a production system, we'd do this server-side for better performance
+            const currentZoom = this.map.getZoom();
+            const currentBounds = this.map.getBounds();
+            
+            // Get all currently loaded geothermal features
+            // Note: This is a simplified approach - in production we'd query the tile server directly
+            const geothermalFeatures = this.map.queryRenderedFeatures(undefined, { 
+                layers: ['geothermal-points'] 
+            }) || [];
+            
+            console.log(`Found ${geothermalFeatures.length} loaded geothermal points`);
+            
+            // Aggregate temperature data for each hexagon
+            hexGrid.features.forEach((hex, index) => {
+                const hexCenter = turf.center(hex);
+                const hexBounds = turf.bbox(hex);
+                
+                // Find geothermal points within this hexagon
+                const pointsInHex = geothermalFeatures.filter(point => {
+                    if (!point.geometry || !point.geometry.coordinates) return false;
+                    const pt = turf.point(point.geometry.coordinates);
+                    return turf.booleanPointInPolygon(pt, hex);
+                });
+                
+                if (pointsInHex.length > 0) {
+                    // Calculate average temperature
+                    const temperatures = pointsInHex
+                        .map(p => p.properties?.temperature_f)
+                        .filter(temp => temp != null && !isNaN(temp));
+                    
+                    if (temperatures.length > 0) {
+                        const avgTemp = temperatures.reduce((sum, temp) => sum + temp, 0) / temperatures.length;
+                        hex.properties = {
+                            ...hex.properties,
+                            avg_temperature_f: Math.round(avgTemp * 10) / 10,
+                            point_count: pointsInHex.length,
+                            hex_id: `hex_${index}`
+                        };
+                    }
+                }
+                
+                // Set default properties for hexes with no data
+                if (!hex.properties?.avg_temperature_f) {
+                    hex.properties = {
+                        ...hex.properties,
+                        avg_temperature_f: null,
+                        point_count: 0,
+                        hex_id: `hex_${index}`
+                    };
+                }
+            });
+            
+            const hexesWithData = hexGrid.features.filter(hex => hex.properties.avg_temperature_f != null);
+            console.log(`✅ Aggregated data to ${hexesWithData.length} hexagons with geothermal data`);
+            
+            return hexGrid;
+            
+        } catch (error) {
+            console.error('❌ Error aggregating geothermal data:', error);
+            // Return grid with no data
+            hexGrid.features.forEach((hex, index) => {
+                hex.properties = {
+                    avg_temperature_f: null,
+                    point_count: 0,
+                    hex_id: `hex_${index}`
+                };
+            });
+            return hexGrid;
+        }
+    }
+
+    async addHexagonMeshLayer() {
+        console.log('🔷 Adding hexagon mesh layer...');
+        
+        try {
+            // Generate hexagon grid
+            const hexGrid = this.generateHexagonGrid(this.meshConfig.size);
+            
+            // Aggregate geothermal data to hexagons
+            const hexGridWithData = await this.aggregateGeothermalDataToHex(hexGrid);
+            
+            // Add hexagon source
+            this.map.addSource('hexagon-mesh', {
+                type: 'geojson',
+                data: hexGridWithData
+            });
+            
+            // Add hexagon fill layer
+            this.map.addLayer({
+                id: 'hexagon-mesh-fill',
+                type: 'fill',
+                source: 'hexagon-mesh',
+                minzoom: 3,
+                maxzoom: 14,
+                layout: {
+                    'visibility': 'visible'
+                },
+                paint: {
+                    'fill-color': [
+                        'case',
+                        ['==', ['get', 'avg_temperature_f'], null], 'transparent',  // No data - transparent
+                        ['<', ['get', 'avg_temperature_f'], 60], '#4CAF50',         // Green - Moderate (40-60°F)
+                        ['<', ['get', 'avg_temperature_f'], 80], '#FFEB3B',         // Yellow - Warm (60-80°F) 
+                        ['<', ['get', 'avg_temperature_f'], 100], '#FF9800',        // Orange - Hot (80-100°F)
+                        ['<', ['get', 'avg_temperature_f'], 130], '#F44336',        // Red - Very Hot (100-130°F)
+                        ['<', ['get', 'avg_temperature_f'], 160], '#E91E63',        // Hot Pink - Extreme (130-160°F)
+                        ['<', ['get', 'avg_temperature_f'], 200], '#9C27B0',        // Purple - Ultra (160-200°F)
+                        '#000000'                                                   // Black - Maximum (>200°F)
+                    ],
+                    'fill-opacity': [
+                        'case',
+                        ['boolean', ['feature-state', 'hover'], false],
+                        0.9,  // Higher opacity on hover
+                        this.meshConfig.opacity   // Normal opacity
+                    ]
+                }
+            });
+            
+            // Add hexagon outline layer
+            this.map.addLayer({
+                id: 'hexagon-mesh-outline',
+                type: 'line',
+                source: 'hexagon-mesh',
+                minzoom: 3,
+                maxzoom: 14,
+                layout: {
+                    'visibility': 'visible'
+                },
+                paint: {
+                    'line-color': [
+                        'case',
+                        ['boolean', ['feature-state', 'hover'], false],
+                        '#FFD700',  // Gold outline on hover
+                        '#FFFFFF'   // White outline normally
+                    ],
+                    'line-width': [
+                        'case',
+                        ['boolean', ['feature-state', 'hover'], false],
+                        3,    // Bold line on hover
+                        1     // Normal line thickness
+                    ],
+                    'line-opacity': [
+                        'case',
+                        ['boolean', ['feature-state', 'hover'], false],
+                        1.0,  // Full opacity on hover
+                        0.6   // Semi-transparent normally
+                    ]
+                }
+            });
+            
+            console.log('✅ Hexagon mesh layer added successfully');
+            
+        } catch (error) {
+            console.error('❌ Error adding hexagon mesh layer:', error);
+        }
+    }
+
     // Removed addGeothermalAggregatedLayer function as aggregated source doesn't exist
 
     addGeothermalPointsLayer() {
@@ -431,8 +631,8 @@ class GeospatialApp {
             'geothermal-points'
         ];
         
-        const gridLayers = [
-            'geothermal-grid'
+        const meshLayers = [
+            'hexagon-mesh-fill'
         ];
 
         // Transmission lines popups
@@ -466,28 +666,30 @@ class GeospatialApp {
             });
         });
 
-        // Grid box popups
-        gridLayers.forEach(layerId => {
+        // Hexagon mesh popups and hover
+        meshLayers.forEach(layerId => {
             this.map.on('click', layerId, (e) => {
-                this.showGridPopup(e);
+                this.showMeshPopup(e);
             });
             
             this.map.on('mouseenter', layerId, (e) => {
                 this.map.getCanvas().style.cursor = 'pointer';
                 
-                // Highlight the hovered grid box
+                // Highlight the hovered hexagon
                 if (e.features.length > 0) {
-                    if (this.hoveredGridId) {
+                    if (this.meshConfig.hoveredHexId) {
                         this.map.setFeatureState(
-                            { source: 'geothermal-grid', sourceLayer: 'default', id: this.hoveredGridId },
+                            { source: 'hexagon-mesh', id: this.meshConfig.hoveredHexId },
                             { hover: false }
                         );
                     }
-                    this.hoveredGridId = e.features[0].id;
-                    this.map.setFeatureState(
-                        { source: 'geothermal-grid', sourceLayer: 'default', id: this.hoveredGridId },
-                        { hover: true }
-                    );
+                    this.meshConfig.hoveredHexId = e.features[0].properties?.hex_id;
+                    if (this.meshConfig.hoveredHexId) {
+                        this.map.setFeatureState(
+                            { source: 'hexagon-mesh', id: this.meshConfig.hoveredHexId },
+                            { hover: true }
+                        );
+                    }
                 }
             });
             
@@ -495,12 +697,12 @@ class GeospatialApp {
                 this.map.getCanvas().style.cursor = '';
                 
                 // Remove highlight
-                if (this.hoveredGridId) {
+                if (this.meshConfig.hoveredHexId) {
                     this.map.setFeatureState(
-                        { source: 'geothermal-grid', sourceLayer: 'default', id: this.hoveredGridId },
+                        { source: 'hexagon-mesh', id: this.meshConfig.hoveredHexId },
                         { hover: false }
                     );
-                    this.hoveredGridId = null;
+                    this.meshConfig.hoveredHexId = null;
                 }
             });
         });
@@ -710,15 +912,21 @@ class GeospatialApp {
             this.updateTemperatureFilter(minTemp);
         });
         
-        // Grid controls
-        document.getElementById('grid-toggle').addEventListener('change', (e) => {
-            this.toggleGrid(e.target.checked);
+        // Mesh controls
+        document.getElementById('mesh-toggle').addEventListener('change', (e) => {
+            this.toggleMesh(e.target.checked);
         });
 
-        document.getElementById('grid-opacity').addEventListener('input', (e) => {
+        document.getElementById('mesh-size').addEventListener('input', (e) => {
+            const size = parseInt(e.target.value);
+            document.getElementById('mesh-size-value').textContent = size + ' miles';
+            this.updateMeshSize(size);
+        });
+
+        document.getElementById('mesh-opacity').addEventListener('input', (e) => {
             const opacity = e.target.value / 100;
-            document.getElementById('grid-opacity-value').textContent = e.target.value + '%';
-            this.updateGridOpacity(opacity);
+            document.getElementById('mesh-opacity-value').textContent = e.target.value + '%';
+            this.updateMeshOpacity(opacity);
         });
         
         // Temperature lookup functionality
@@ -768,15 +976,102 @@ class GeospatialApp {
         this.map.setFilter('geothermal-points', ['>=', ['get', 'temperature_f'], minTemp]);
     }
 
-    toggleGrid(visible) {
-        const layers = ['geothermal-grid', 'geothermal-grid-outline'];
-        layers.forEach(layerId => {
-            this.map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
-        });
+    showMeshPopup(e) {
+        if (!e.features || e.features.length === 0) return;
+        
+        const feature = e.features[0];
+        const props = feature.properties;
+        
+        // Create popup content
+        let content = `
+            <div class="popup-header">
+                <i class="fas fa-border-all"></i> Hexagon Cell
+            </div>
+        `;
+        
+        if (props.avg_temperature_f != null) {
+            content += `
+                <div class="popup-row">
+                    <span class="popup-label">Avg Temperature:</span>
+                    <span class="popup-value">${props.avg_temperature_f}°F</span>
+                </div>
+                <div class="popup-row">
+                    <span class="popup-label">Data Points:</span>
+                    <span class="popup-value">${props.point_count}</span>
+                </div>
+                <div class="popup-row">
+                    <span class="popup-label">Cell Size:</span>
+                    <span class="popup-value">${this.meshConfig.size} miles</span>
+                </div>
+            `;
+        } else {
+            content += `
+                <div class="popup-row">
+                    <span class="popup-label">Status:</span>
+                    <span class="popup-value">No geothermal data</span>
+                </div>
+                <div class="popup-row">
+                    <span class="popup-label">Cell Size:</span>
+                    <span class="popup-value">${this.meshConfig.size} miles</span>
+                </div>
+            `;
+        }
+        
+        // Remove existing popup
+        if (this.activePopup) {
+            this.activePopup.remove();
+        }
+        
+        // Create new popup
+        this.activePopup = new maplibregl.Popup({ closeOnClick: true })
+            .setLngLat(e.lngLat)
+            .setHTML(content)
+            .addTo(this.map);
     }
 
-    updateGridOpacity(opacity) {
-        this.map.setPaintProperty('geothermal-grid', 'fill-opacity', opacity);
+    toggleMesh(visible) {
+        const layers = ['hexagon-mesh-fill', 'hexagon-mesh-outline'];
+        layers.forEach(layerId => {
+            try {
+                this.map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
+            } catch (error) {
+                // Layer might not exist yet
+            }
+        });
+        this.layerState.hexagonMesh = visible;
+    }
+
+    updateMeshOpacity(opacity) {
+        try {
+            this.meshConfig.opacity = opacity;
+            this.map.setPaintProperty('hexagon-mesh-fill', 'fill-opacity', [
+                'case',
+                ['boolean', ['feature-state', 'hover'], false],
+                0.9,  // Higher opacity on hover
+                opacity   // Normal opacity
+            ]);
+        } catch (error) {
+            // Layer might not exist yet
+        }
+    }
+
+    async updateMeshSize(newSize) {
+        console.log(`🔷 Updating mesh size to ${newSize} miles...`);
+        
+        this.meshConfig.size = newSize;
+        
+        // Regenerate the mesh with new size
+        try {
+            const hexGrid = this.generateHexagonGrid(newSize);
+            const hexGridWithData = await this.aggregateGeothermalDataToHex(hexGrid);
+            
+            // Update the source data
+            this.map.getSource('hexagon-mesh').setData(hexGridWithData);
+            
+            console.log(`✅ Mesh updated to ${newSize} miles`);
+        } catch (error) {
+            console.error('❌ Error updating mesh size:', error);
+        }
     }
     
     async performTemperatureLookup() {
