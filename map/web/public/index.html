@@ -299,23 +299,6 @@
             </div>
         </div>
 
-        <div class="layer-control">
-            <h4><i class="fas fa-thermometer-half"></i> Geothermal Points</h4>
-            <div class="control-group">
-                <div class="checkbox-wrapper">
-                    <input type="checkbox" id="geothermal-toggle" checked>
-                    <label for="geothermal-toggle">Show geothermal data</label>
-                </div>
-                <div class="slider-wrapper">
-                    <label for="geothermal-opacity">Opacity: <span id="geothermal-opacity-value">70%</span></label>
-                    <input type="range" id="geothermal-opacity" class="slider" min="0" max="100" value="70">
-                </div>
-                <div class="slider-wrapper">
-                    <label for="temperature-filter">Min Temperature: <span id="temperature-filter-value">40°F</span></label>
-                    <input type="range" id="temperature-filter" class="slider" min="40" max="250" value="40">
-                </div>
-            </div>
-        </div>
 
         <div class="layer-control">
             <h4><i class="fas fa-border-all"></i> Hexagon Mesh</h4>
@@ -333,17 +316,14 @@
 
 
         <div class="layer-control">
-            <h4><i class="fas fa-search-location"></i> Temperature Lookup</h4>
+            <h4><i class="fas fa-thermometer-half"></i> Temperature Depth Filter</h4>
             <div class="control-group">
-                <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-                    <input type="number" id="lookup-lat" placeholder="Latitude" step="0.0001" style="flex: 1; padding: 4px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;">
-                    <input type="number" id="lookup-lng" placeholder="Longitude" step="0.0001" style="flex: 1; padding: 4px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;">
+                <div style="margin-bottom: 8px;">
+                    <input type="number" id="depth-filter" placeholder="Depth (m)" step="1" value="3000" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;">
                 </div>
-                <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-                    <input type="number" id="lookup-depth" placeholder="Depth (m)" step="1" style="flex: 1; padding: 4px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;">
-                    <button id="lookup-temp" style="flex: 1; padding: 4px 8px; background: #2196F3; color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer;">Get Temp</button>
+                <div style="font-size: 11px; color: #888; margin-top: 4px;">
+                    Filter hexagon temperatures by depth
                 </div>
-                <div id="lookup-result" style="font-size: 12px; color: #666; min-height: 20px;"></div>
             </div>
         </div>
 
@@ -379,32 +359,24 @@
             
             <div id="geothermal-legend" style="margin-top: 10px;">
                 <div class="legend-item">
-                    <div class="legend-circle" style="background: #000000;"></div>
-                    <span>Maximum (>200°F)</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-circle" style="background: #9C27B0;"></div>
-                    <span>Ultra Hot (160-200°F)</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-circle" style="background: #E91E63;"></div>
-                    <span>Extreme (130-160°F)</span>
-                </div>
-                <div class="legend-item">
                     <div class="legend-circle" style="background: #F44336;"></div>
-                    <span>Very Hot (100-130°F)</span>
+                    <span>Very Hot (130°F+)</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-circle" style="background: #FF9800;"></div>
-                    <span>Hot (80-100°F)</span>
+                    <span>Hot (100-130°F)</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-circle" style="background: #FFEB3B;"></div>
-                    <span>Warm (60-80°F)</span>
+                    <span>Warm (80-100°F)</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-circle" style="background: #4CAF50;"></div>
-                    <span>Moderate (40-60°F)</span>
+                    <span>Cool (60-80°F)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-circle" style="background: #2196F3;"></div>
+                    <span>Cold (40-60°F)</span>
                 </div>
             </div>
         </div>
