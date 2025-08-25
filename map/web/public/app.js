@@ -151,7 +151,9 @@ class GeospatialApp {
             },
             center: this.config.map.center,
             zoom: this.config.map.zoom,
-            maxBounds: this.config.map.maxBounds
+            maxBounds: this.config.map.maxBounds,
+            minZoom: 4,
+            maxZoom: 12
         });
 
         // Wait for map to load, then add data layers
@@ -191,8 +193,8 @@ class GeospatialApp {
             this.map.addSource('transmission-lines', {
                 type: 'vector',
                 tiles: [`${tileserverUrl}/public.${transmissionDataset.table_name}_us/{z}/{x}/{y}.mvt`],
-                minzoom: 3,
-                maxzoom: 14
+                minzoom: 4,
+                maxzoom: 13
             });
             console.log('Added transmission lines source (simplified for debugging)');
         }
@@ -224,10 +226,8 @@ class GeospatialApp {
     }
 
     addDataLayers() {
-        // Add transmission lines layers (zoom-banded)
-        this.addTransmissionLinesLayer('transmission-lines-z0-6', 'transmission-lines', 0, 6);
-        this.addTransmissionLinesLayer('transmission-lines-z7-10', 'transmission-lines', 7, 10);
-        this.addTransmissionLinesLayer('transmission-lines-z11-14', 'transmission-lines', 11, 14);
+        // Add transmission lines layers (single layer for all zoom levels 4-12)
+        this.addTransmissionLinesLayer('transmission-lines-all', 'transmission-lines', 4, 13);
         
         // Set initial layer visibility based on state
         this.toggleTransmissionLines(this.layerState.transmissionLines);
@@ -244,7 +244,7 @@ class GeospatialApp {
             console.log('Map sources:', Object.keys(this.map.getStyle().sources));
             
             // Check transmission line layers specifically
-            const transmissionLayers = ['transmission-lines-z0-6', 'transmission-lines-z7-10', 'transmission-lines-z11-14'];
+            const transmissionLayers = ['transmission-lines-all'];
             transmissionLayers.forEach(layerId => {
                 const layer = this.map.getLayer(layerId);
                 if (layer) {
@@ -516,8 +516,8 @@ class GeospatialApp {
                 id: 'hexagon-mesh-fill',
                 type: 'fill',
                 source: 'hexagon-mesh',
-                minzoom: 3,
-                maxzoom: 14,
+                minzoom: 4,
+                maxzoom: 13,
                 layout: {
                     'visibility': 'visible'
                 },
@@ -547,8 +547,8 @@ class GeospatialApp {
                 id: 'hexagon-mesh-outline',
                 type: 'line',
                 source: 'hexagon-mesh',
-                minzoom: 3,
-                maxzoom: 14,
+                minzoom: 4,
+                maxzoom: 13,
                 layout: {
                     'visibility': 'visible'
                 },
@@ -597,8 +597,8 @@ class GeospatialApp {
             type: 'circle',
             source: 'geothermal-points',
             'source-layer': 'geothermal_points_us', // Use actual table name as layer
-            minzoom: 3,  // Lower zoom to make data more visible
-            maxzoom: 14,
+            minzoom: 4,  // Match map zoom bounds
+            maxzoom: 13,
             layout: {
                 'visibility': 'visible'
             },
@@ -633,9 +633,7 @@ class GeospatialApp {
     setupMapInteractions() {
         // Click handlers for popups
         const transmissionLayers = [
-            'transmission-lines-z0-6',
-            'transmission-lines-z7-10', 
-            'transmission-lines-z11-14'
+            'transmission-lines-all'
         ];
         
         const geothermalLayers = [
@@ -940,7 +938,7 @@ class GeospatialApp {
     }
 
     toggleTransmissionLines(visible) {
-        const layers = ['transmission-lines-z0-6', 'transmission-lines-z7-10', 'transmission-lines-z11-14'];
+        const layers = ['transmission-lines-all'];
         layers.forEach(layerId => {
             try {
                 this.map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
@@ -964,7 +962,7 @@ class GeospatialApp {
     // Removed toggleGeothermalAggregated function as aggregated layer doesn't exist
 
     updateTransmissionOpacity(opacity) {
-        const layers = ['transmission-lines-z0-6', 'transmission-lines-z7-10', 'transmission-lines-z11-14'];
+        const layers = ['transmission-lines-all'];
         layers.forEach(layerId => {
             this.map.setPaintProperty(layerId, 'line-opacity', opacity);
         });
