@@ -19,9 +19,9 @@ class GeospatialApp {
             hexagonMesh: true
         };
         
-        // Mesh configuration
+        // Mesh configuration (fixed 2 square miles per hexagon)
         this.meshConfig = {
-            size: 20,        // miles
+            size: 5,     // miles radius - let's try larger first to debug
             opacity: 0.7,
             selectedHexId: null
         };
@@ -405,6 +405,7 @@ class GeospatialApp {
         });
         
         console.log(`✅ Generated ${hexGrid.features.length} hexagons`);
+        console.log(`📏 Cell size: ${cellSize} miles, estimated area per hex: ${Math.round((3 * Math.sqrt(3) / 2) * cellSize * cellSize)} square miles`);
         return hexGrid;
     }
 
@@ -562,13 +563,19 @@ class GeospatialApp {
                         'case',
                         ['boolean', ['feature-state', 'selected'], false],
                         4,    // Bold line when selected
-                        1     // Normal line thickness
+                        0.5   // Thinner normal line to reduce overlap
+                    ],
+                    'line-gap-width': [
+                        'case',
+                        ['boolean', ['feature-state', 'selected'], false],
+                        0,    // No gap when selected (solid border)
+                        0.5   // Small gap for normal hexagons to prevent overlap
                     ],
                     'line-opacity': [
                         'case',
                         ['boolean', ['feature-state', 'selected'], false],
                         1.0,  // Full opacity when selected
-                        0.6   // Semi-transparent normally
+                        0.4   // Reduced opacity to minimize visual interference
                     ]
                 }
             });
@@ -920,12 +927,6 @@ class GeospatialApp {
             this.toggleMesh(e.target.checked);
         });
 
-        document.getElementById('mesh-size').addEventListener('input', (e) => {
-            const size = parseInt(e.target.value);
-            document.getElementById('mesh-size-value').textContent = size + ' miles';
-            this.updateMeshSize(size);
-        });
-
         document.getElementById('mesh-opacity').addEventListener('input', (e) => {
             const opacity = e.target.value / 100;
             document.getElementById('mesh-opacity-value').textContent = e.target.value + '%';
@@ -1003,8 +1004,8 @@ class GeospatialApp {
                     <span class="popup-value">${props.point_count}</span>
                 </div>
                 <div class="popup-row">
-                    <span class="popup-label">Cell Size:</span>
-                    <span class="popup-value">${this.meshConfig.size} miles</span>
+                    <span class="popup-label">Cell Area:</span>
+                    <span class="popup-value">2 square miles</span>
                 </div>
             `;
         } else {
@@ -1014,8 +1015,8 @@ class GeospatialApp {
                     <span class="popup-value">No geothermal data</span>
                 </div>
                 <div class="popup-row">
-                    <span class="popup-label">Cell Size:</span>
-                    <span class="popup-value">${this.meshConfig.size} miles</span>
+                    <span class="popup-label">Cell Area:</span>
+                    <span class="popup-value">2 square miles</span>
                 </div>
             `;
         }
@@ -1058,24 +1059,6 @@ class GeospatialApp {
         }
     }
 
-    async updateMeshSize(newSize) {
-        console.log(`🔷 Updating mesh size to ${newSize} miles...`);
-        
-        this.meshConfig.size = newSize;
-        
-        // Regenerate the mesh with new size
-        try {
-            const hexGrid = this.generateHexagonGrid(newSize);
-            const hexGridWithData = await this.aggregateGeothermalDataToHex(hexGrid);
-            
-            // Update the source data
-            this.map.getSource('hexagon-mesh').setData(hexGridWithData);
-            
-            console.log(`✅ Mesh updated to ${newSize} miles`);
-        } catch (error) {
-            console.error('❌ Error updating mesh size:', error);
-        }
-    }
     
     async performTemperatureLookup() {
         const lat = parseFloat(document.getElementById('lookup-lat').value);
