@@ -701,11 +701,11 @@ class GeospatialApp {
                     'fill-color': [
                         'case',
                         ['==', ['get', 'avg_temperature_f'], null], 'transparent',  // No data - transparent
-                        ['<', ['get', 'avg_temperature_f'], 60], '#2196F3',         // Blue - Cold (40-60°F)
-                        ['<', ['get', 'avg_temperature_f'], 80], '#4CAF50',         // Green - Cool (60-80°F) 
-                        ['<', ['get', 'avg_temperature_f'], 100], '#FFEB3B',        // Yellow - Warm (80-100°F)
-                        ['<', ['get', 'avg_temperature_f'], 130], '#FF9800',        // Orange - Hot (100-130°F)
-                        '#F44336'                                                   // Red - Very Hot (130°F+)
+                        ['<', ['get', 'avg_temperature_f'], 180], '#2196F3',        // Blue - Cool (150-180°F)
+                        ['<', ['get', 'avg_temperature_f'], 220], '#4CAF50',        // Green - Moderate (180-220°F) 
+                        ['<', ['get', 'avg_temperature_f'], 260], '#FFEB3B',        // Yellow - Warm (220-260°F)
+                        ['<', ['get', 'avg_temperature_f'], 300], '#FF9800',        // Orange - Hot (260-300°F)
+                        '#F44336'                                                   // Red - Very Hot (300°F+)
                     ],
                     'fill-opacity': [
                         'case',
@@ -792,11 +792,11 @@ class GeospatialApp {
                     'fill-color': [
                         'case',
                         ['==', ['get', 'avg_temperature_f'], null], 'transparent',  // No data - transparent
-                        ['<', ['get', 'avg_temperature_f'], 60], '#2196F3',         // Blue - Cold (40-60°F)
-                        ['<', ['get', 'avg_temperature_f'], 80], '#4CAF50',         // Green - Cool (60-80°F) 
-                        ['<', ['get', 'avg_temperature_f'], 100], '#FFEB3B',        // Yellow - Warm (80-100°F)
-                        ['<', ['get', 'avg_temperature_f'], 130], '#FF9800',        // Orange - Hot (100-130°F)
-                        '#F44336'                                                   // Red - Very Hot (130°F+)
+                        ['<', ['get', 'avg_temperature_f'], 180], '#2196F3',        // Blue - Cool (150-180°F)
+                        ['<', ['get', 'avg_temperature_f'], 220], '#4CAF50',        // Green - Moderate (180-220°F) 
+                        ['<', ['get', 'avg_temperature_f'], 260], '#FFEB3B',        // Yellow - Warm (220-260°F)
+                        ['<', ['get', 'avg_temperature_f'], 300], '#FF9800',        // Orange - Hot (260-300°F)
+                        '#F44336'                                                   // Red - Very Hot (300°F+)
                     ],
                     'fill-opacity': [
                         'case',
