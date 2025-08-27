@@ -402,7 +402,7 @@ class GeospatialWebServer {
           ST_Y(geom) as lat
         FROM geothermal_points 
         WHERE geom && ST_MakeEnvelope($1, $2, $3, $4, 4326)
-          AND depth_m BETWEEN $5 - $6 AND $5 + $6
+          AND depth_m BETWEEN ($5::numeric - $6::numeric) AND ($5::numeric + $6::numeric)
         ORDER BY gid
         LIMIT 1000
       `, [west, south, east, north, depth, depthTolerance]);
