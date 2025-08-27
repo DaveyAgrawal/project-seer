@@ -98,6 +98,7 @@ class GeospatialWebServer {
     this.app.get('/api/config', this.getConfig.bind(this));
     this.app.get('/api/health', this.getHealth.bind(this));
     this.app.post('/api/temperature-lookup', this.temperatureLookup.bind(this));
+    this.app.post('/api/geothermal-tile-data', this.getGeothermalTileData.bind(this));
     
     // Serve main application
     this.app.get('/', (req, res) => {
@@ -374,6 +375,58 @@ class GeospatialWebServer {
       
     } catch (error) {
       console.error('Temperature lookup error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+
+  private async getGeothermalTileData(req: express.Request, res: express.Response): Promise<void> {
+    try {
+      const { bounds, depth, depthTolerance } = req.body;
+      
+      if (!bounds || typeof depth !== 'number' || typeof depthTolerance !== 'number') {
+        res.status(400).json({ error: 'Invalid request parameters' });
+        return;
+      }
+      
+      const { west, east, south, north } = bounds;
+      
+      // Query geothermal points within the tile bounds and depth range
+      const result = await this.pool.query(`
+        SELECT 
+          gid,
+          latitude,
+          longitude, 
+          temperature_f,
+          depth_m,
+          ST_X(geom) as lng,
+          ST_Y(geom) as lat
+        FROM geothermal_points 
+        WHERE geom && ST_MakeEnvelope($1, $2, $3, $4, 4326)
+          AND depth_m BETWEEN $5 - $6 AND $5 + $6
+        ORDER BY gid
+        LIMIT 1000
+      `, [west, south, east, north, depth, depthTolerance]);
+      
+      const points = result.rows.map(row => ({
+        coordinates: [row.lng, row.lat],
+        temperature_f: row.temperature_f,
+        depth_m: row.depth_m,
+        latitude: row.lat,
+        longitude: row.lng,
+        gid: row.gid
+      }));
+      
+      console.log(`🌡️ API: Found ${points.length} geothermal points in bounds [${west}, ${south}, ${east}, ${north}] at depth ${depth}±${depthTolerance}m`);
+      
+      res.json({
+        points,
+        bounds,
+        depth,
+        count: points.length
+      });
+      
+    } catch (error) {
+      console.error('Geothermal tile data error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   }
