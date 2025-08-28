@@ -64,7 +64,7 @@ class GeospatialWebServer {
 
     return {
       host: process.env.POSTGRES_HOST || 'localhost',
-      port: parseInt(process.env.POSTGRES_PORT || '5432'),
+      port: parseInt(process.env.POSTGRES_PORT || '5434'),
       database: process.env.POSTGRES_DB || 'geospatial',
       user: process.env.POSTGRES_USER || 'geouser',
       password: process.env.POSTGRES_PASSWORD || 'geopass'
