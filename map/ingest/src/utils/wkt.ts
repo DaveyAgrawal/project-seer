@@ -29,7 +29,7 @@ export class WKTProcessor {
 
       return {
         type: geometry.type,
-        coordinates: geometry.coordinates,
+        coordinates: (geometry as any).coordinates,
         srid
       };
     } catch (error) {

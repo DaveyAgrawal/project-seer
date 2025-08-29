@@ -70,17 +70,31 @@ export class GeoJSONProcessor {
       // Set bulk operation settings
       await this.db.setBulkOperationSettings();
 
+      // Helper function to extract features from different GeoJSON structures
+      const extractFeatures = (feature: any): any[] => {
+        if (feature.type === 'FeatureCollection') {
+          return feature.features || [];
+        } else if (feature.type === 'Feature') {
+          return [feature];
+        } else {
+          return [feature];
+        }
+      };
+
+      const memoryMonitor = this.memoryMonitor;
+      const resumeManager = this.resumeManager;
+
       // Stream and process GeoJSON
       await pipeline(
         createReadStream(filePath),
         parser(),
         StreamValues.withParser(),
-        async function* (source) {
+        async function* (source: any) {
           for await (const data of source) {
             const feature = data.value;
             
             // Handle different GeoJSON structures
-            const features = this.extractFeatures(feature);
+            const features = extractFeatures(feature);
             
             for (const f of features) {
               currentFeatureIndex++;
@@ -103,19 +117,22 @@ export class GeoJSONProcessor {
               }
 
               // Add to batch
-              await batchManager.add(validationResult.data!);
+              await batchManager.add({
+                ...validationResult.data!,
+                properties: f.properties || {}
+              });
               
               processedFeatures++;
               
               if (processedFeatures % 1000 === 0) {
                 progressTracker.update(processedFeatures);
-                this.memoryMonitor.checkMemoryUsage();
+                memoryMonitor.checkMemoryUsage();
               }
 
               // Update resume progress periodically
               if (processedFeatures % batchSize === 0) {
                 chunkNumber++;
-                await this.resumeManager.updateProgress(
+                await resumeManager.updateProgress(
                   filePath, 
                   tableName, 
                   processedFeatures, 
@@ -124,7 +141,7 @@ export class GeoJSONProcessor {
               }
             }
           }
-        }.bind(this)
+        }
       );
 
       // Process final batch
@@ -263,8 +280,13 @@ export class GeoJSONProcessor {
   }
 }
 
-class BatchProcessor implements import('./utils/batching').BatchProcessor<TransmissionLineFeature> {
-  constructor(private db: DatabaseManager, private tableName: string) {}
+class BatchProcessor {
+  private db: DatabaseManager;
+  private tableName: string;
+  constructor(db: DatabaseManager, tableName: string) {
+    this.db = db;
+    this.tableName = tableName;
+  }
 
   async processBatch(batch: TransmissionLineFeature[]): Promise<void> {
     await this.db.transaction(async (client: PoolClient) => {
@@ -324,7 +346,7 @@ class BatchProcessor implements import('./utils/batching').BatchProcessor<Transm
       // Check if geometry intersects with any US bounds
       const intersectsUS = usBounds.some(bound => {
         try {
-          return turf.booleanIntersects(feature, bound);
+          return (turf as any).booleanIntersects(feature, bound);
         } catch (e) {
           return false;
         }

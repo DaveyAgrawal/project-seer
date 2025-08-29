@@ -158,7 +158,7 @@ export class TransmissionLineValidator {
       owner: this.cleanString(props.owner || props.operator),
       status: this.cleanString(props.status),
       volt_class: this.cleanString(props.volt_class || props.voltage_class),
-      kv: kv,
+      kv: kv || undefined,
       geometry: normalizedGeometry
     };
 
