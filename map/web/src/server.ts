@@ -404,7 +404,6 @@ class GeospatialWebServer {
         WHERE geom && ST_MakeEnvelope($1, $2, $3, $4, 4326)
           AND depth_m BETWEEN ($5::numeric - $6::numeric) AND ($5::numeric + $6::numeric)
         ORDER BY gid
-        LIMIT 1000
       `, [west, south, east, north, depth, depthTolerance]);
       
       const points = result.rows.map(row => ({

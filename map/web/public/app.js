@@ -21,7 +21,7 @@ class GeospatialApp {
         
         // Mesh configuration (fixed 2 square miles per hexagon)
         this.meshConfig = {
-            size: 5,     // miles radius - let's try larger first to debug
+            size: 5,     // miles radius - back to working size
             opacity: 0.7,
             selectedHexId: null
         };
@@ -535,41 +535,42 @@ class GeospatialApp {
     }
     
     async queryGeothermalDataForSection(section, depthFilter) {
-        // Query the tile server for geothermal data within section bounds
+        // Query the working database API for geothermal data within section bounds
         try {
-            // For now, we'll use a simplified approach by querying at a specific zoom level
-            // In a full implementation, we'd query multiple tile levels
-            const zoom = 8; // Good balance of coverage vs performance
             const bounds = section.bounds; // [west, south, east, north]
+            const depthTolerance = 50;
             
-            // Calculate tile coordinates for the section bounds
-            const tiles = this.getTilesForBounds(bounds, zoom);
-            console.log(`🗺️ Querying ${tiles.length} tiles for ${section.name} at zoom ${zoom}`);
+            console.log(`🗺️ Querying database API for ${section.name} bounds: [${bounds.join(', ')}]`);
             
-            const allPoints = [];
+            // Use our working database API endpoint
+            const response = await fetch('/api/geothermal-tile-data', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    bounds: {
+                        west: bounds[0],
+                        south: bounds[1], 
+                        east: bounds[2],
+                        north: bounds[3]
+                    },
+                    depth: depthFilter,
+                    depthTolerance: depthTolerance
+                })
+            });
             
-            // Query each tile
-            for (const tile of tiles) {
-                try {
-                    const tileUrl = `http://localhost:7800/public.geothermal_points/${tile.z}/${tile.x}/${tile.y}.mvt`;
-                    
-                    // Parse real MVT tile data from your geothermal database
-                    const tileData = await this.parseRealMVTTile(tile, section, depthFilter);
-                    allPoints.push(...tileData);
-                    
-                    // Small delay to prevent overwhelming the server
-                    await new Promise(resolve => setTimeout(resolve, 10));
-                    
-                } catch (tileError) {
-                    console.warn(`⚠️ Error querying tile ${tile.z}/${tile.x}/${tile.y}:`, tileError);
-                }
+            if (!response.ok) {
+                throw new Error(`API request failed: ${response.status}`);
             }
             
-            console.log(`📊 Retrieved ${allPoints.length} points from ${tiles.length} tiles`);
-            return allPoints;
+            const data = await response.json();
+            console.log(`📊 Retrieved ${data.points.length} points from database for ${section.name}`);
+            
+            return data.points;
             
         } catch (error) {
-            console.error('❌ Error querying section geothermal data:', error);
+            console.error(`❌ Error querying section geothermal data for ${section.name}:`, error);
             return [];
         }
     }
