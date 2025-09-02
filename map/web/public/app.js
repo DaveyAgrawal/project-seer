@@ -15,8 +15,8 @@ class GeospatialApp {
         // Layer visibility state
         this.layerState = {
             transmissionLines: true,
-            geothermalPoints: true,
-            hexagonMesh: true
+            geothermalPoints: false,
+            hexagonMesh: false
         };
         
         // Mesh configuration (fixed 2 square miles per hexagon)
