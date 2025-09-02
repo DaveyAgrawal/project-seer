@@ -19,7 +19,7 @@ class GeospatialApp {
             hexagonMesh: false
         };
         
-        // Mesh configuration (fixed 2 square miles per hexagon)
+        // Mesh configuration (65 square miles per hexagon)
         this.meshConfig = {
             size: 5,     // miles radius - back to working size
             opacity: 0.7,
@@ -1416,7 +1416,7 @@ class GeospatialApp {
                 </div>
                 <div class="popup-row">
                     <span class="popup-label">Cell Area:</span>
-                    <span class="popup-value">2 square miles</span>
+                    <span class="popup-value">65 square miles</span>
                 </div>
             `;
         } else {
@@ -1427,7 +1427,7 @@ class GeospatialApp {
                 </div>
                 <div class="popup-row">
                     <span class="popup-label">Cell Area:</span>
-                    <span class="popup-value">2 square miles</span>
+                    <span class="popup-value">65 square miles</span>
                 </div>
             `;
         }
