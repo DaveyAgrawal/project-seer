@@ -33,3 +33,6 @@ logs/
 
 # TypeScript
 *.tsbuildinfo
+
+# Cache files (generated data, too large for git)
+web/public/cache/

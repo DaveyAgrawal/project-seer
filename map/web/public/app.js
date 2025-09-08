@@ -29,11 +29,27 @@ class GeospatialApp {
         // Cache for parsed tile data to improve performance
         this.tileCache = new Map();
         
+        // Universal data cache system
+        this.dataCache = {
+            metadata: null,
+            geothermal: null,
+            transmission: null
+        };
+        
+        // Track data source types for proper layer styling
+        this.dataSourceTypes = {
+            transmission: 'vector', // 'vector' or 'geojson'
+            geothermal: 'api'       // 'api' or 'geojson'
+        };
+        
         this.init();
     }
 
     async init() {
         try {
+            // Load cache metadata first
+            await this.loadCacheMetadata();
+            
             // Load configuration (with fallbacks)
             await this.loadConfig();
             
@@ -57,6 +73,97 @@ class GeospatialApp {
         } catch (error) {
             console.error('Failed to initialize app:', error);
             this.showError('Failed to initialize application: ' + error.message);
+        }
+    }
+
+    // Universal Data Cache Management System
+    async loadCacheMetadata() {
+        try {
+            const response = await fetch('/cache/metadata.json');
+            if (response.ok) {
+                this.dataCache.metadata = await response.json();
+                console.log('📋 Cache metadata loaded:', this.dataCache.metadata);
+                return this.dataCache.metadata;
+            }
+        } catch (error) {
+            console.warn('⚠️ Could not load cache metadata:', error);
+        }
+        return null;
+    }
+
+    async checkDataCacheValidity(dataSource) {
+        const metadata = this.dataCache.metadata;
+        if (!metadata || !metadata.sources[dataSource]) return false;
+        
+        const sourceInfo = metadata.sources[dataSource];
+        return sourceInfo.cached && sourceInfo.dataVersion;
+    }
+
+    async loadCachedData(dataSource, subType = null) {
+        try {
+            let cachePath;
+            if (dataSource === 'geothermal') {
+                const depth = subType || this.dataCache.metadata?.sources?.geothermal?.defaultDepth || 3000;
+                cachePath = `/cache/geothermal/mesh-${depth}m.json`;
+            } else if (dataSource === 'transmission') {
+                cachePath = '/cache/transmission/lines.json';
+            } else {
+                throw new Error(`Unknown data source: ${dataSource}`);
+            }
+
+            console.log(`📦 Loading cached ${dataSource} data from ${cachePath}...`);
+            const response = await fetch(cachePath);
+            
+            if (response.ok) {
+                const cachedData = await response.json();
+                this.dataCache[dataSource] = cachedData;
+                console.log(`✅ Loaded cached ${dataSource} data:`, cachedData.metadata || 'no metadata');
+                return cachedData;
+            } else {
+                console.warn(`⚠️ Cache file not found: ${cachePath}`);
+                return null;
+            }
+        } catch (error) {
+            console.error(`❌ Error loading cached ${dataSource} data:`, error);
+            return null;
+        }
+    }
+
+    async saveCachedData(dataSource, data, subType = null) {
+        try {
+            console.log(`💾 Saving ${dataSource} data to cache...`, {
+                features: data.features?.length || 'N/A',
+                size: JSON.stringify(data).length + ' bytes',
+                subType: subType
+            });
+            
+            const response = await fetch(`/api/save-cache/${dataSource}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    data: data,
+                    subType: subType
+                })
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                console.log(`✅ Successfully saved ${dataSource} cache:`, result);
+                
+                // Reload metadata to reflect the new cache
+                await this.loadCacheMetadata();
+                
+                return data;
+            } else {
+                console.error(`❌ Failed to save ${dataSource} cache:`, response.statusText);
+                return data;
+            }
+            
+        } catch (error) {
+            console.error(`❌ Error saving ${dataSource} cache:`, error);
+            return data;
         }
     }
 
@@ -160,8 +267,8 @@ class GeospatialApp {
         });
 
         // Wait for map to load, then add data layers
-        this.map.on('load', () => {
-            this.addDataSources();
+        this.map.on('load', async () => {
+            await this.addDataSources();
             this.addDataLayers();
             this.setupMapInteractions();
         });
@@ -176,7 +283,7 @@ class GeospatialApp {
         this.map.addControl(new maplibregl.FullscreenControl(), 'top-right');
     }
 
-    addDataSources() {
+    async addDataSources() {
         const tileserverUrl = this.config.tileserver.url;
         
         // Find datasets by type
@@ -191,21 +298,43 @@ class GeospatialApp {
             console.log('Geothermal dataset details:', geothermalDataset);
         }
         
-        // Add transmission lines source with simple table (debugging)
-        if (transmissionDataset) {
-            this.map.addSource('transmission-lines', {
-                type: 'vector',
-                tiles: [`${tileserverUrl}/public.${transmissionDataset.table_name}_us/{z}/{x}/{y}.mvt`],
-                minzoom: 4,
-                maxzoom: 13
-            });
-            console.log('Added transmission lines source (simplified for debugging)');
+        // Try to load cached transmission lines first
+        if (transmissionDataset && await this.checkDataCacheValidity('transmission')) {
+            console.log('💨 Loading cached transmission lines...');
+            const cachedTransmission = await this.loadCachedData('transmission');
+            
+            if (cachedTransmission) {
+                this.map.addSource('transmission-lines', {
+                    type: 'geojson',
+                    data: cachedTransmission
+                });
+                this.dataSourceTypes.transmission = 'geojson';
+                console.log('⚡ Successfully loaded transmission lines from cache!');
+            } else {
+                console.warn('⚠️ Cache load failed, falling back to vector tiles');
+                this.addTransmissionVectorSource(transmissionDataset, tileserverUrl);
+                this.dataSourceTypes.transmission = 'vector';
+            }
+        } else if (transmissionDataset) {
+            console.log('🔧 No cache available, using vector tiles for transmission lines');
+            this.addTransmissionVectorSource(transmissionDataset, tileserverUrl);
+            this.dataSourceTypes.transmission = 'vector';
         }
         
         // Geothermal data now processed via sectioned aggregation (no source needed)
         
         // Update UI to show dataset status
         this.updateDatasetStatus(transmissionDataset, geothermalDataset);
+    }
+
+    addTransmissionVectorSource(transmissionDataset, tileserverUrl) {
+        this.map.addSource('transmission-lines', {
+            type: 'vector',
+            tiles: [`${tileserverUrl}/public.${transmissionDataset.table_name}_us/{z}/{x}/{y}.mvt`],
+            minzoom: 4,
+            maxzoom: 13
+        });
+        console.log('Added transmission lines vector source (fallback)');
     }
 
     addDataLayers() {
@@ -278,11 +407,11 @@ class GeospatialApp {
     addTransmissionLinesLayer(layerId, sourceId, minZoom, maxZoom) {
         console.log(`🔌 Adding transmission layer: ${layerId} (zoom ${minZoom}-${maxZoom})`);
         
-        this.map.addLayer({
+        // Create layer configuration based on source type
+        const layerConfig = {
             id: layerId,
             type: 'line',
             source: sourceId,
-            'source-layer': 'public.transmission_lines_us', // WORKING source-layer name!
             minzoom: minZoom,
             maxzoom: maxZoom,
             paint: {
@@ -334,7 +463,14 @@ class GeospatialApp {
                 'line-opacity': 0.8,
                 'line-dasharray': [3, 2] // Dotted lines to distinguish from roads
             }
-        });
+        };
+        
+        // Only add source-layer for vector tiles (not for GeoJSON)
+        if (this.dataSourceTypes.transmission === 'vector') {
+            layerConfig['source-layer'] = 'public.transmission_lines_us';
+        }
+        
+        this.map.addLayer(layerConfig);
         
         console.log(`✅ Successfully added transmission layer: ${layerId}`);
         
@@ -387,6 +523,7 @@ class GeospatialApp {
         
         console.log(`✅ Generated ${hexGrid.features.length} hexagons`);
         console.log(`📏 Cell size: ${cellSize} miles, estimated area per hex: ${Math.round((3 * Math.sqrt(3) / 2) * cellSize * cellSize)} square miles`);
+        
         return hexGrid;
     }
 
@@ -453,7 +590,10 @@ class GeospatialApp {
             const hexesWithData = hexGrid.features.filter(hex => hex.properties.avg_temperature_f != null);
             console.log(`✅ Completed sectioned aggregation: ${hexesWithData.length} hexagons with geothermal data`);
             
-            return hexGrid;
+            // Filter empty hexagons using real US boundary data
+            const filteredGrid = await this.filterHexagonsToUSBoundary(hexGrid, hexesWithData.length);
+            
+            return filteredGrid;
             
         } catch (error) {
             console.error('❌ Error aggregating geothermal data:', error);
@@ -468,6 +608,103 @@ class GeospatialApp {
             });
             return hexGrid;
         }
+    }
+    
+    async filterHexagonsToUSBoundary(hexGrid, dataHexagonCount) {
+        try {
+            console.log(`🗺️ Loading US boundary data for precise trimming...`);
+            
+            // Load US boundary as GeoJSON (simpler approach)
+            const response = await fetch('https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson');
+            if (!response.ok) {
+                console.warn('⚠️ Could not load boundary data, using simplified filtering');
+                return this.filterHexagonsSimplified(hexGrid, dataHexagonCount);
+            }
+            
+            const worldData = await response.json();
+            
+            // Extract USA from world data (or use a direct USA-only source)
+            const usaFeature = worldData.features.find(feature => 
+                feature.properties && (
+                    feature.properties.name === 'United States of America' || 
+                    feature.properties.NAME === 'United States of America' ||
+                    feature.properties.name === 'USA' ||
+                    feature.properties.NAME === 'USA'
+                )
+            );
+            
+            if (!usaFeature) {
+                console.warn('⚠️ Could not find USA in boundary data, using simplified filtering');
+                return this.filterHexagonsSimplified(hexGrid, dataHexagonCount);
+            }
+            
+            const usBoundary = usaFeature;
+            
+            console.log(`🔍 Filtering ${hexGrid.features.length} hexagons using precise US boundaries...`);
+            
+            // Filter hexagons: keep all with data + empty ones within US boundaries
+            const filteredFeatures = hexGrid.features.filter(hex => {
+                // Always keep hexagons with geothermal data
+                if (hex.properties && hex.properties.avg_temperature_f != null) {
+                    return true;
+                }
+                
+                // For empty hexagons, check if they intersect with US boundary
+                try {
+                    return turf.booleanIntersects(hex, usBoundary) || turf.booleanWithin(hex, usBoundary);
+                } catch (error) {
+                    // If intersection fails, keep the hexagon to be safe
+                    return true;
+                }
+            });
+            
+            // Update grid with filtered features
+            const originalCount = hexGrid.features.length;
+            hexGrid.features = filteredFeatures;
+            const removedCount = originalCount - filteredFeatures.length;
+            
+            console.log(`🇺🇸 Trimmed to US boundaries: kept ${filteredFeatures.length} hexagons, removed ${removedCount} ocean/border hexagons`);
+            console.log(`📊 Preserved all ${dataHexagonCount} hexagons with geothermal data`);
+            
+            return hexGrid;
+            
+        } catch (error) {
+            console.error('❌ Error filtering hexagons to US boundary:', error);
+            console.warn('⚠️ Falling back to original grid without boundary filtering');
+            return hexGrid;
+        }
+    }
+    
+    async filterHexagonsSimplified(hexGrid, dataHexagonCount) {
+        // Simplified fallback filtering (similar to our earlier approach but more conservative)
+        console.log(`🔍 Using simplified boundary filtering...`);
+        
+        const filteredFeatures = hexGrid.features.filter(hex => {
+            // Always keep hexagons with geothermal data
+            if (hex.properties && hex.properties.avg_temperature_f != null) {
+                return true;
+            }
+            
+            // For empty hexagons, use conservative coordinate checks
+            const center = turf.centroid(hex);
+            const [lng, lat] = center.geometry.coordinates;
+            
+            // Very conservative exclusion of obvious ocean areas only
+            const isObviouslyOcean = (
+                (lng > -66.0 && lat > 25.0 && lat < 45.0) ||  // Atlantic
+                (lng < -125.0 && lat > 32.0 && lat < 48.0) ||  // Pacific  
+                (lng > -95.0 && lng < -80.0 && lat < 25.0)     // Deep Gulf
+            );
+            
+            return !isObviouslyOcean;
+        });
+        
+        const originalCount = hexGrid.features.length;
+        hexGrid.features = filteredFeatures;
+        const removedCount = originalCount - filteredFeatures.length;
+        
+        console.log(`🌊 Simplified filtering: kept ${filteredFeatures.length} hexagons, removed ${removedCount} obvious ocean hexagons`);
+        return hexGrid;
     }
     
     async processSectionGeothermalData(hexagons, section) {
@@ -939,11 +1176,30 @@ class GeospatialApp {
         console.log('🔷 Adding hexagon mesh layer...');
         
         try {
-            // Generate hexagon grid
-            const hexGrid = this.generateHexagonGrid(this.meshConfig.size);
+            // Try to load from cache first
+            const currentDepth = parseFloat(document.getElementById('depth-filter')?.value) || 3000;
+            let hexGridWithData = null;
             
-            // Aggregate geothermal data to hexagons
-            const hexGridWithData = await this.aggregateGeothermalDataToHex(hexGrid);
+            if (await this.checkDataCacheValidity('geothermal')) {
+                console.log('💨 Attempting to load cached geothermal mesh...');
+                hexGridWithData = await this.loadCachedData('geothermal', currentDepth);
+            }
+            
+            // Fallback to generation if no cache or cache invalid
+            if (!hexGridWithData) {
+                console.log('🔧 Cache not available, generating fresh geothermal mesh...');
+                
+                // Generate hexagon grid
+                const hexGrid = this.generateHexagonGrid(this.meshConfig.size);
+                
+                // Aggregate geothermal data to hexagons  
+                hexGridWithData = await this.aggregateGeothermalDataToHex(hexGrid);
+                
+                // Save for future use (this will log the data for manual caching)
+                await this.saveCachedData('geothermal', hexGridWithData, currentDepth);
+            } else {
+                console.log('⚡ Successfully loaded geothermal mesh from cache!');
+            }
             
             // Add hexagon source
             this.map.addSource('hexagon-mesh', {

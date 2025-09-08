@@ -78,8 +78,8 @@ class GeospatialWebServer {
     // Enable gzip compression
     this.app.use(compression());
     
-    // Parse JSON bodies
-    this.app.use(express.json());
+    // Parse JSON bodies with increased limit for cache data
+    this.app.use(express.json({ limit: '50mb' }));
     
     // Serve static files from public directory
     this.app.use(express.static(path.join(__dirname, '../public')));
@@ -99,6 +99,8 @@ class GeospatialWebServer {
     this.app.get('/api/health', this.getHealth.bind(this));
     this.app.post('/api/temperature-lookup', this.temperatureLookup.bind(this));
     this.app.post('/api/geothermal-tile-data', this.getGeothermalTileData.bind(this));
+    this.app.get('/api/generate-cache/:dataSource', this.generateCacheData.bind(this));
+    this.app.post('/api/save-cache/:dataSource', this.saveCacheData.bind(this));
     
     // Serve main application
     this.app.get('/', (req, res) => {
@@ -427,6 +429,161 @@ class GeospatialWebServer {
     } catch (error) {
       console.error('Geothermal tile data error:', error);
       res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+
+  private async generateCacheData(req: express.Request, res: express.Response): Promise<void> {
+    try {
+      const { dataSource } = req.params;
+      
+      if (dataSource === 'transmission') {
+        console.log('🏭 Generating transmission lines cache...');
+        
+        // Query all transmission lines as GeoJSON
+        const result = await this.pool.query(`
+          SELECT 
+            gid,
+            kv,
+            owner,
+            status,
+            volt_class,
+            props,
+            ST_AsGeoJSON(geom) as geometry
+          FROM transmission_lines
+          WHERE geom IS NOT NULL
+          ORDER BY gid
+        `);
+        
+        // Convert to GeoJSON FeatureCollection
+        const features = result.rows.map(row => ({
+          type: 'Feature',
+          id: row.gid,
+          properties: {
+            gid: row.gid,
+            kv: row.kv,
+            owner: row.owner,
+            status: row.status,
+            volt_class: row.volt_class,
+            props: row.props
+          },
+          geometry: JSON.parse(row.geometry)
+        }));
+        
+        const geojson = {
+          type: 'FeatureCollection',
+          features,
+          metadata: {
+            generated: new Date().toISOString(),
+            count: features.length,
+            dataSource: 'transmission_lines',
+            version: '1.0.0'
+          }
+        };
+        
+        console.log(`📊 Generated transmission cache: ${features.length} features`);
+        res.json(geojson);
+        
+      } else if (dataSource === 'geothermal') {
+        // For geothermal, we'd need to generate the full mesh
+        // This would be a heavy operation, so for now return instruction
+        res.json({
+          message: 'Geothermal cache generation should be done client-side and saved manually',
+          instruction: 'Enable hexagon mesh, wait for processing, then save the generated data'
+        });
+        
+      } else {
+        res.status(400).json({ error: `Unknown data source: ${dataSource}` });
+      }
+      
+    } catch (error) {
+      console.error('Cache generation error:', error);
+      res.status(500).json({ error: 'Failed to generate cache data' });
+    }
+  }
+
+  private async saveCacheData(req: express.Request, res: express.Response): Promise<void> {
+    try {
+      const { dataSource } = req.params;
+      const { data, subType } = req.body;
+      
+      if (!data) {
+        res.status(400).json({ error: 'No data provided' });
+        return;
+      }
+      
+      const fs = require('fs').promises;
+      const path = require('path');
+      
+      let cacheDir: string;
+      let fileName: string;
+      
+      if (dataSource === 'geothermal') {
+        const depth = subType || '3000';
+        cacheDir = path.join(__dirname, '../public/cache/geothermal');
+        fileName = `mesh-${depth}m.json`;
+      } else if (dataSource === 'transmission') {
+        cacheDir = path.join(__dirname, '../public/cache/transmission');
+        fileName = 'lines.json';
+      } else {
+        res.status(400).json({ error: `Unknown data source: ${dataSource}` });
+        return;
+      }
+      
+      // Ensure directory exists
+      await fs.mkdir(cacheDir, { recursive: true });
+      
+      const filePath = path.join(cacheDir, fileName);
+      
+      // Write the cache file
+      await fs.writeFile(filePath, JSON.stringify(data));
+      
+      // Update metadata
+      const metadataPath = path.join(__dirname, '../public/cache/metadata.json');
+      let metadata: any = {};
+      
+      try {
+        const metadataContent = await fs.readFile(metadataPath, 'utf8');
+        metadata = JSON.parse(metadataContent);
+      } catch (error) {
+        // Create new metadata if file doesn't exist
+        metadata = {
+          version: '1.0.0',
+          lastUpdated: new Date().toISOString(),
+          sources: {}
+        };
+      }
+      
+      // Update source metadata
+      if (!metadata.sources[dataSource]) {
+        metadata.sources[dataSource] = {};
+      }
+      
+      metadata.sources[dataSource] = {
+        ...metadata.sources[dataSource],
+        cached: true,
+        lastIngestion: new Date().toISOString(),
+        dataVersion: new Date().toISOString().split('T')[0].replace(/-/g, ''),
+        ...(dataSource === 'geothermal' && { defaultDepth: parseInt(subType || '3000') }),
+        ...(data.features && { featureCount: data.features.length })
+      };
+      
+      metadata.lastUpdated = new Date().toISOString();
+      
+      // Save updated metadata
+      await fs.writeFile(metadataPath, JSON.stringify(metadata, null, 2));
+      
+      console.log(`💾 Saved ${dataSource} cache: ${fileName} (${data.features?.length || 'N/A'} features)`);
+      
+      res.json({
+        success: true,
+        message: `${dataSource} cache saved successfully`,
+        filePath: fileName,
+        featureCount: data.features?.length || 0
+      });
+      
+    } catch (error) {
+      console.error('Cache save error:', error);
+      res.status(500).json({ error: 'Failed to save cache data' });
     }
   }
 
