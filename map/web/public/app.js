@@ -93,10 +93,18 @@ class GeospatialApp {
 
     async checkDataCacheValidity(dataSource) {
         const metadata = this.dataCache.metadata;
+        console.log(`🔍 Cache validation for ${dataSource}:`, {
+            hasMetadata: !!metadata,
+            hasSource: !!(metadata && metadata.sources && metadata.sources[dataSource]),
+            sourceInfo: metadata?.sources?.[dataSource]
+        });
+        
         if (!metadata || !metadata.sources[dataSource]) return false;
         
         const sourceInfo = metadata.sources[dataSource];
-        return sourceInfo.cached && sourceInfo.dataVersion;
+        const isValid = sourceInfo.cached && sourceInfo.dataVersion;
+        console.log(`✅ Cache validation result for ${dataSource}: ${isValid}`);
+        return isValid;
     }
 
     async loadCachedData(dataSource, subType = null) {
