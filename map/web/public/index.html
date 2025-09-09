@@ -331,10 +331,17 @@
             <h4><i class="fas fa-thermometer-half"></i> Temperature Depth Filter</h4>
             <div class="control-group">
                 <div style="margin-bottom: 8px;">
-                    <input type="number" id="depth-filter" placeholder="Depth (m)" step="1" value="3000" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;">
+                    <select id="depth-filter" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; background: white;">
+                        <option value="2000">2,000m</option>
+                        <option value="3000" selected>3,000m</option>
+                        <option value="4000">4,000m</option>
+                        <option value="5000">5,000m</option>
+                        <option value="6000">6,000m</option>
+                        <option value="7000">7,000m</option>
+                    </select>
                 </div>
                 <div style="font-size: 11px; color: #888; margin-top: 4px;">
-                    Filter hexagon temperatures by depth
+                    Select depth for geothermal temperature display
                 </div>
             </div>
         </div>

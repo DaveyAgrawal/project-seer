@@ -1591,7 +1591,7 @@ class GeospatialApp {
         });
         
         // Depth filter functionality - re-aggregate mesh when depth changes
-        document.getElementById('depth-filter').addEventListener('input', async (e) => {
+        document.getElementById('depth-filter').addEventListener('change', async (e) => {
             const depth = parseFloat(e.target.value);
             if (depth && depth > 0) {
                 console.log(`🌡️ Filtering geothermal data by depth: ${depth}m`);
