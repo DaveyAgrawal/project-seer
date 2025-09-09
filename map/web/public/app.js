@@ -93,18 +93,10 @@ class GeospatialApp {
 
     async checkDataCacheValidity(dataSource) {
         const metadata = this.dataCache.metadata;
-        console.log(`🔍 Cache validation for ${dataSource}:`, {
-            hasMetadata: !!metadata,
-            hasSource: !!(metadata && metadata.sources && metadata.sources[dataSource]),
-            sourceInfo: metadata?.sources?.[dataSource]
-        });
-        
         if (!metadata || !metadata.sources[dataSource]) return false;
         
         const sourceInfo = metadata.sources[dataSource];
-        const isValid = sourceInfo.cached && sourceInfo.dataVersion;
-        console.log(`✅ Cache validation result for ${dataSource}: ${isValid}`);
-        return isValid;
+        return sourceInfo.cached && sourceInfo.dataVersion;
     }
 
     async loadCachedData(dataSource, subType = null) {
@@ -1092,12 +1084,23 @@ class GeospatialApp {
             // Clear selected hexagon state
             this.meshConfig.selectedHexId = null;
             
-            // Re-generate mesh with new depth
-            console.log('🔷 Re-generating hexagon grid for new depth...');
-            const hexGrid = this.generateHexagonGrid(this.meshConfig.size);
+            // Try to load from cache first
+            let hexGridWithData = null;
+            if (await this.checkDataCacheValidity('geothermal')) {
+                console.log(`💨 Attempting to load cached geothermal mesh for ${newDepth}m...`);
+                hexGridWithData = await this.loadCachedData('geothermal', newDepth);
+            }
             
-            // Re-aggregate with new depth filter
-            const hexGridWithData = await this.aggregateGeothermalDataToHex(hexGrid);
+            // Generate if no cache available
+            if (!hexGridWithData) {
+                console.log(`🔷 Re-generating hexagon grid for depth ${newDepth}m (no cache available)...`);
+                const hexGrid = this.generateHexagonGrid(this.meshConfig.size);
+                
+                // Re-aggregate with new depth filter
+                hexGridWithData = await this.aggregateGeothermalDataToHex(hexGrid);
+            } else {
+                console.log(`⚡ Successfully loaded geothermal mesh for ${newDepth}m from cache!`);
+            }
             
             // Re-add mesh layers
             this.map.addSource('hexagon-mesh', {
@@ -1173,6 +1176,9 @@ class GeospatialApp {
             });
             
             console.log(`✅ Hexagon mesh updated for depth: ${newDepth}m`);
+            
+            // Save the newly generated mesh to cache
+            await this.saveCachedData('geothermal', hexGridWithData, newDepth);
             
         } catch (error) {
             console.error('❌ Error updating hexagon mesh for depth:', error);
