@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Transmission Lines</title>
+    <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+    <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet">
+</head>
+<body>
+    <div id="map" style="width: 100%; height: 500px;"></div>
+    <div id="debug" style="padding: 20px;"></div>
+    
+    <script>
+        const map = new maplibregl.Map({
+            container: 'map',
+            style: {
+                version: 8,
+                sources: {
+                    'osm': {
+                        type: 'raster',
+                        tiles: ['https://a.tile.openstreetmap.org/{z}/{x}/{y}.png'],
+                        tileSize: 256
+                    }
+                },
+                layers: [{
+                    id: 'osm',
+                    type: 'raster',
+                    source: 'osm'
+                }]
+            },
+            center: [-98.5795, 39.8282], // US center
+            zoom: 6
+        });
+
+        map.on('load', () => {
+            console.log('Map loaded');
+            
+            // Add transmission source
+            map.addSource('transmission', {
+                type: 'vector',
+                tiles: ['http://localhost:7800/public.transmission_lines_us/{z}/{x}/{y}.mvt']
+            });
+            
+            // Try different source-layer names
+            const sourceLayerNames = [
+                'default',
+                'transmission_lines_us',
+                'public.transmission_lines_us', 
+                'transmission_lines',
+                'public_transmission_lines_us',
+                // pg_tileserv default is usually just the table name
+                'geothermal_points_us' // This one works in the main app
+            ];
+            
+            sourceLayerNames.forEach((sourceLayer, index) => {
+                map.addLayer({
+                    id: `transmission-test-${index}`,
+                    type: 'line',
+                    source: 'transmission',
+                    'source-layer': sourceLayer,
+                    paint: {
+                        'line-color': `hsl(${index * 90}, 70%, 50%)`,
+                        'line-width': 3,
+                        'line-opacity': 0.8
+                    }
+                });
+                
+                console.log(`Added layer transmission-test-${index} with source-layer: ${sourceLayer}`);
+            });
+            
+            // Check for features on click
+            map.on('click', (e) => {
+                const allFeatures = map.queryRenderedFeatures(e.point);
+                const transmissionFeatures = allFeatures.filter(f => f.layer.id.startsWith('transmission-test'));
+                
+                console.log('All features at click:', allFeatures.length);
+                console.log('Transmission features:', transmissionFeatures);
+                
+                document.getElementById('debug').innerHTML = `
+                    <h3>Debug Results</h3>
+                    <p>Total features: ${allFeatures.length}</p>
+                    <p>Transmission features: ${transmissionFeatures.length}</p>
+                    ${transmissionFeatures.map((f, i) => `
+                        <p>Layer ${f.layer.id}: ${JSON.stringify(f.properties)}</p>
+                    `).join('')}
+                `;
+            });
+            
+            // Log map info after load
+            setTimeout(() => {
+                console.log('Map layers:', map.getStyle().layers.map(l => l.id));
+                console.log('Map sources:', Object.keys(map.getStyle().sources));
+            }, 2000);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  postgis:
+    image: postgis/postgis:16-3.4
+    container_name: geospatial_postgis
+    environment:
+      POSTGRES_DB: geospatial
+      POSTGRES_USER: geouser
+      POSTGRES_PASSWORD: geopass
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgis_data:/var/lib/postgresql/data
+      - ./initdb:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U geouser -d geospatial"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  pg_tileserv:
+    image: pramsey/pg_tileserv:latest
+    container_name: geospatial_tileserv
+    depends_on:
+      postgis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://geouser:geopass@postgis:5432/geospatial
+      # Enable CORS for web development
+      TS_CORS_ORIGINS: "*"
+      # Optimize for performance
+      TS_CACHE_TTL: 300
+      TS_PARALLEL_REQUESTS: 8
+    ports:
+      - "7800:7800"
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:7800/index.json || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  postgis_data:
