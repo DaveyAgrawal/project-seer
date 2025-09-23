@@ -82,7 +82,6 @@ class GeospatialApp {
             const response = await fetch('/cache/metadata.json');
             if (response.ok) {
                 this.dataCache.metadata = await response.json();
-                console.log('📋 Cache metadata loaded:', this.dataCache.metadata);
                 return this.dataCache.metadata;
             }
         } catch (error) {
@@ -111,7 +110,6 @@ class GeospatialApp {
                 throw new Error(`Unknown data source: ${dataSource}`);
             }
 
-            console.log(`📦 Loading cached ${dataSource} data from ${cachePath}...`);
             const response = await fetch(cachePath);
             
             if (response.ok) {
@@ -300,7 +298,6 @@ class GeospatialApp {
         
         // Try to load cached transmission lines first
         if (transmissionDataset && await this.checkDataCacheValidity('transmission')) {
-            console.log('💨 Loading cached transmission lines...');
             const cachedTransmission = await this.loadCachedData('transmission');
             
             if (cachedTransmission) {
@@ -348,60 +345,6 @@ class GeospatialApp {
         console.log('🕒 Starting hexagon mesh creation with sectioned geothermal data...');
         this.addHexagonMeshLayer();
         
-        // Debug: Log all map layers and check for errors
-        setTimeout(() => {
-            console.log('Map layers after adding all layers:', this.map.getStyle().layers.map(l => l.id));
-            console.log('Map sources:', Object.keys(this.map.getStyle().sources));
-            
-            // Check transmission line layers specifically
-            const transmissionLayers = ['transmission-lines-all'];
-            transmissionLayers.forEach(layerId => {
-                const layer = this.map.getLayer(layerId);
-                if (layer) {
-                    const visibility = this.map.getLayoutProperty(layerId, 'visibility');
-                    console.log(`🔌 Layer ${layerId}: exists, visibility = ${visibility || 'visible'}`);
-                } else {
-                    console.log(`❌ Layer ${layerId}: NOT FOUND`);
-                }
-            });
-            
-            // Check if layers are visible
-            const pointsLayer = this.map.getLayer('geothermal-points');
-            
-            console.log('Points layer exists:', !!pointsLayer);
-            
-            if (pointsLayer) {
-                console.log('Points layer visibility:', this.map.getLayoutProperty('geothermal-points', 'visibility'));
-                console.log('Points layer opacity:', this.map.getPaintProperty('geothermal-points', 'circle-opacity'));
-            }
-            
-            // Test specific tile URLs
-            console.log('🧪 Testing tile URLs...');
-                
-            fetch('http://localhost:7800/public.geothermal_points_us/6/16/25.mvt')
-                .then(response => {
-                    console.log('Points tile response:', response.status, response.statusText);
-                    return response.arrayBuffer();
-                })
-                .then(buffer => {
-                    console.log('Points tile size:', buffer.byteLength, 'bytes');
-                })
-                .catch(err => console.error('Points tile error:', err));
-                
-            // Check current zoom and bounds
-            console.log('🔍 Map state:');
-            console.log('Current zoom:', this.map.getZoom());
-            console.log('Current center:', this.map.getCenter());
-            console.log('Current bounds:', this.map.getBounds());
-            
-            // Try to query for features at current view
-            const features = this.map.queryRenderedFeatures();
-            console.log('Features rendered at current view:', features.length);
-            
-            
-            const pointFeatures = this.map.queryRenderedFeatures(undefined, { layers: ['geothermal-points'] });
-            console.log('Point features rendered:', pointFeatures.length);
-        }, 2000);
     }
 
     addTransmissionLinesLayer(layerId, sourceId, minZoom, maxZoom) {
@@ -640,8 +583,7 @@ class GeospatialApp {
             
             const usBoundary = usaFeature;
             
-            console.log(`🔍 Filtering ${hexGrid.features.length} hexagons using precise US boundaries...`);
-            
+                
             // Filter hexagons: keep all with data + empty ones within US boundaries
             const filteredFeatures = hexGrid.features.filter(hex => {
                 // Always keep hexagons with geothermal data
@@ -664,7 +606,6 @@ class GeospatialApp {
             const removedCount = originalCount - filteredFeatures.length;
             
             console.log(`🇺🇸 Trimmed to US boundaries: kept ${filteredFeatures.length} hexagons, removed ${removedCount} ocean/border hexagons`);
-            console.log(`📊 Preserved all ${dataHexagonCount} hexagons with geothermal data`);
             
             return hexGrid;
             
@@ -677,7 +618,6 @@ class GeospatialApp {
     
     async filterHexagonsSimplified(hexGrid, dataHexagonCount) {
         // Simplified fallback filtering (similar to our earlier approach but more conservative)
-        console.log(`🔍 Using simplified boundary filtering...`);
         
         const filteredFeatures = hexGrid.features.filter(hex => {
             // Always keep hexagons with geothermal data
@@ -709,7 +649,6 @@ class GeospatialApp {
     
     async processSectionGeothermalData(hexagons, section) {
         // Query real geothermal data from tile server for this section
-        console.log(`🔍 Querying real geothermal data for ${section.name}...`);
         
         let processedCount = 0;
         
@@ -802,7 +741,6 @@ class GeospatialApp {
             }
             
             const data = await response.json();
-            console.log(`📊 Retrieved ${data.points.length} points from database for ${section.name}`);
             
             return data.points;
             
@@ -838,98 +776,16 @@ class GeospatialApp {
             const tileKey = `${tile.z}/${tile.x}/${tile.y}`;
             const cacheKey = `${tileKey}_${depthFilter}`;
             
-            console.log(`🔍 DEBUG: Fetching real data for tile ${tileKey} at depth ${depthFilter}m`);
             
             // Use direct database API instead of vector tiles
             return await this.fetchRealGeothermalData(tile, depthFilter);
-            
-            // Check cache first
-            if (this.tileCache.has(cacheKey)) {
-                console.log(`📋 Using cached data for tile ${tileKey} at depth ${depthFilter}m`);
-                return this.tileCache.get(cacheKey);
-            }
-            
-            const tileUrl = `http://localhost:7800/public.geothermal_points/${tileKey}.pbf`;
-            console.log(`🌐 Fetching tile from: ${tileUrl}`);
-            
-            // Fetch the MVT tile
-            const response = await fetch(tileUrl);
-            if (!response.ok) {
-                console.warn(`⚠️ Tile ${tileKey} not found (${response.status})`);
-                return [];
-            }
-            
-            console.log(`✅ Tile ${tileKey} fetched, size: ${response.headers.get('content-length')} bytes`);
-            
-            // Parse binary MVT data
-            const buffer = await response.arrayBuffer();
-            console.log(`📦 Buffer size: ${buffer.byteLength} bytes`);
-            
-            const pbfTile = new VectorTile(new Pbf(buffer));
-            console.log(`🗂️ Available layers in tile:`, Object.keys(pbfTile.layers));
-            
-            // Get the geothermal points layer from the tile
-            // pg_tileserv typically uses just the table name as the layer name
-            const possibleLayerNames = ['public.geothermal_points', 'geothermal_points', 'default'];
-            let layer = null;
-            let layerName = null;
-            
-            for (const name of possibleLayerNames) {
-                if (pbfTile.layers[name]) {
-                    layer = pbfTile.layers[name];
-                    layerName = name;
-                    break;
-                }
-            }
-            
-            if (!layer) {
-                console.warn(`⚠️ No geothermal layer found in tile ${tile.z}/${tile.x}/${tile.y}`);
-                console.warn('Available layers:', Object.keys(pbfTile.layers));
-                return [];
-            }
-            
-            console.log(`🔍 Parsing ${layer.length} real geothermal points from tile ${tile.z}/${tile.x}/${tile.y}`);
-            
-            const points = [];
-            const depthTolerance = 50; // ±50m tolerance for depth filtering
-            
-            // Process each feature in the tile
-            for (let i = 0; i < layer.length; i++) {
-                const feature = layer.feature(i);
-                const properties = feature.properties;
-                const geometry = feature.loadGeometry()[0][0]; // Point geometry
-                
-                // Convert tile coordinates to geographic coordinates
-                const coords = this.tileCoordinatesToLatLng(geometry.x, geometry.y, tile.x, tile.y, tile.z);
-                
-                // Filter by depth (within tolerance)
-                const pointDepth = parseFloat(properties.depth_m);
-                if (Math.abs(pointDepth - depthFilter) <= depthTolerance) {
-                    points.push({
-                        coordinates: [coords.lng, coords.lat],
-                        temperature_f: parseFloat(properties.temperature_f),
-                        depth_m: pointDepth,
-                        latitude: coords.lat,
-                        longitude: coords.lng,
-                        gid: properties.gid
-                    });
-                }
-            }
-            
-            console.log(`✅ Found ${points.length} points at depth ${depthFilter}m (±${depthTolerance}m) in tile ${tileKey}`);
-            
-            // Cache the results
-            this.tileCache.set(cacheKey, points);
-            
-            return points;
             
         } catch (error) {
             const tileKey = `${tile.z}/${tile.x}/${tile.y}`;
             console.error(`❌ Error parsing MVT tile ${tileKey}:`, error);
             console.error('Error details:', error.stack);
             
-            // TEMPORARY: Return some test data so mesh doesn't disappear completely
-            console.warn(`🔧 FALLBACK: Generating temporary data for tile ${tileKey}`);
+            console.warn(`⚠️ Falling back to generated data for tile ${tileKey}`);
             return this.generateFallbackData(tile, depthFilter);
         }
     }
@@ -941,7 +797,6 @@ class GeospatialApp {
         
         // Check cache first
         if (this.tileCache.has(cacheKey)) {
-            console.log(`📋 Using cached real data for tile ${tileKey} at depth ${depthFilter}m`);
             return this.tileCache.get(cacheKey);
         }
         
@@ -975,7 +830,6 @@ class GeospatialApp {
             }
             
             const data = await response.json();
-            console.log(`✅ Fetched ${data.points.length} real geothermal points for tile ${tileKey}`);
             
             // Cache the results
             this.tileCache.set(cacheKey, data.points);
@@ -1036,7 +890,6 @@ class GeospatialApp {
             });
         }
         
-        console.log(`🔧 Generated ${points.length} enhanced fallback points for tile ${tile.x}/${tile.y}/${tile.z}`);
         return points;
     }
     
@@ -1064,7 +917,6 @@ class GeospatialApp {
         return { lng, lat };
     }
     
-    // Removed fake data generation functions - now using real MVT parsing
     
     async updateMeshForDepth(newDepth) {
         console.log(`🔄 Updating hexagon mesh for depth: ${newDepth}m`);
@@ -1569,16 +1421,6 @@ class GeospatialApp {
             this.updateTransmissionOpacity(opacity);
         });
 
-        // Geothermal controls (removed from UI)
-        // document.getElementById('geothermal-toggle').addEventListener('change', (e) => {
-        //     this.toggleGeothermalPoints(e.target.checked);
-        // });
-
-        // Removed aggregated layer toggle as it doesn't exist
-
-        // Geothermal opacity and temperature filter controls removed from UI
-        // (Data now shown via hexagon mesh only)
-        
         // Mesh controls
         document.getElementById('mesh-toggle').addEventListener('change', (e) => {
             this.toggleMesh(e.target.checked);
