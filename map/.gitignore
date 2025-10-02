@@ -34,5 +34,5 @@ logs/
 # TypeScript
 *.tsbuildinfo
 
-# Cache files (generated data, too large for git)
-web/public/cache/
+# Cache files - now committed for production use
+# web/public/cache/
