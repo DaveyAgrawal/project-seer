@@ -7,7 +7,12 @@
     "build": "tsc",
     "dev": "ts-node src/ingest.ts",
     "start": "node dist/ingest.js",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "scrape": "ts-node src/run-multi-listing-scraper.ts",
+    "scrape:all": "ts-node src/run-multi-listing-scraper.ts scrape",
+    "scrape:test": "ts-node src/run-multi-listing-scraper.ts test",
+    "scrape:stats": "ts-node src/run-multi-listing-scraper.ts stats",
+    "scrape:init": "ts-node src/run-multi-listing-scraper.ts init"
   },
   "bin": {
     "geoingest": "dist/ingest.js"
@@ -19,6 +24,7 @@
     "dotenv": "^16.3.1",
     "pg": "^8.11.3",
     "pg-copy-streams": "^6.0.5",
+    "puppeteer": "^21.5.0",
     "stream-json": "^1.8.0",
     "wellknown": "^0.5.0"
   },
