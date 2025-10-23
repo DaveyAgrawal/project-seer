@@ -176,7 +176,7 @@ export class MultiListingScraper {
         // Find all listing containers (adjust selector based on actual page structure)
         const listingElements = document.querySelectorAll('div[class*="listing"], tr[class*="listing"], .govt-listing');
         
-        listingElements.forEach((element, index) => {
+        listingElements.forEach((element: any, index: number) => {
           try {
             // Extract listing details (adjust selectors based on actual page structure)
             const titleElement = element.querySelector('h3, .title, td:first-child, a[href*="govt_listing"]');
@@ -267,7 +267,7 @@ export class MultiListingScraper {
         // Look for GIS download links (WGS84, NAD83, NAD27)
         const downloadLinks = document.querySelectorAll('a[href*=".zip"], a[href*="library/secure"]');
         
-        downloadLinks.forEach(link => {
+        downloadLinks.forEach((link: any) => {
           const href = link.getAttribute('href') || '';
           const text = link.textContent?.trim().toLowerCase() || '';
           
@@ -305,7 +305,7 @@ export class MultiListingScraper {
         description: `${listing.listingType} - ${listing.agency}`,
         gisDownloadUrl: preferredDownload.url,
         gisFilePath: '', // Will be set after download
-        parcels: null    // Will be set after processing
+        parcels: undefined    // Will be set after processing
       };
       
       // Download and process GIS data using existing pipeline

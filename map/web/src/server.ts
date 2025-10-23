@@ -101,6 +101,7 @@ class GeospatialWebServer {
     this.app.post('/api/geothermal-tile-data', this.getGeothermalTileData.bind(this));
     this.app.get('/api/generate-cache/:dataSource', this.generateCacheData.bind(this));
     this.app.post('/api/save-cache/:dataSource', this.saveCacheData.bind(this));
+    this.app.post('/api/apply-schema', this.applySchema.bind(this));
     
     // Serve main application
     this.app.get('/', (req, res) => {
@@ -584,6 +585,37 @@ class GeospatialWebServer {
     } catch (error) {
       console.error('Cache save error:', error);
       res.status(500).json({ error: 'Failed to save cache data' });
+    }
+  }
+
+  private async applySchema(req: express.Request, res: express.Response): Promise<void> {
+    try {
+      const { schemaSQL } = req.body;
+      
+      if (!schemaSQL || typeof schemaSQL !== 'string') {
+        res.status(400).json({ error: 'Schema SQL is required' });
+        return;
+      }
+      
+      console.log('🔧 Applying database schema...');
+      
+      // Execute the schema SQL
+      await this.pool.query(schemaSQL);
+      
+      console.log('✅ Schema applied successfully');
+      
+      res.json({
+        success: true,
+        message: 'Database schema applied successfully',
+        timestamp: new Date().toISOString()
+      });
+      
+    } catch (error) {
+      console.error('❌ Schema application error:', error);
+      res.status(500).json({ 
+        error: 'Failed to apply schema',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   }
 
