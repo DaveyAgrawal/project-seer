@@ -99,6 +99,7 @@ class GeospatialWebServer {
     this.app.get('/api/health', this.getHealth.bind(this));
     this.app.post('/api/temperature-lookup', this.temperatureLookup.bind(this));
     this.app.post('/api/geothermal-tile-data', this.getGeothermalTileData.bind(this));
+    this.app.get('/api/energynet-parcels', this.getEnergyNetParcels.bind(this));
     this.app.get('/api/generate-cache/:dataSource', this.generateCacheData.bind(this));
     this.app.post('/api/save-cache/:dataSource', this.saveCacheData.bind(this));
     this.app.post('/api/apply-schema', this.applySchema.bind(this));
@@ -379,6 +380,57 @@ class GeospatialWebServer {
     } catch (error) {
       console.error('Temperature lookup error:', error);
       res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+
+  private async getEnergyNetParcels(req: express.Request, res: express.Response): Promise<void> {
+    try {
+      console.log('🏛️ Fetching EnergyNet land parcels...');
+      
+      // Query all land parcels from the database
+      const result = await this.pool.query(`
+        SELECT 
+          parcel_id,
+          listing_id,
+          state,
+          acres,
+          description,
+          ST_AsGeoJSON(geom) as geometry
+        FROM energynet_parcels
+        WHERE geom IS NOT NULL
+        ORDER BY listing_id, parcel_id
+      `);
+      
+      // Convert to GeoJSON FeatureCollection
+      const features = result.rows.map(row => ({
+        type: 'Feature',
+        id: `${row.listing_id}_${row.parcel_id}`,
+        properties: {
+          parcel_id: row.parcel_id,
+          listing_id: row.listing_id,
+          state: row.state,
+          acres: row.acres,
+          description: row.description || 'Government Land Parcel'
+        },
+        geometry: JSON.parse(row.geometry)
+      }));
+      
+      const geojson = {
+        type: 'FeatureCollection',
+        features,
+        metadata: {
+          total_parcels: features.length,
+          total_acres: result.rows.reduce((sum, row) => sum + (row.acres || 0), 0),
+          generated: new Date().toISOString()
+        }
+      };
+      
+      console.log(`✅ Returning ${features.length} EnergyNet land parcels`);
+      res.json(geojson);
+      
+    } catch (error) {
+      console.error('❌ Error fetching EnergyNet parcels:', error);
+      res.status(500).json({ error: 'Failed to fetch land parcels' });
     }
   }
 

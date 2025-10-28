@@ -16,8 +16,7 @@ class GeospatialApp {
         this.layerState = {
             transmissionLines: true,
             geothermalPoints: false,
-            hexagonMesh: false,
-            energynetParcels: true
+            hexagonMesh: false
         };
         
         // Mesh configuration (65 square miles per hexagon)
@@ -34,15 +33,13 @@ class GeospatialApp {
         this.dataCache = {
             metadata: null,
             geothermal: null,
-            transmission: null,
-            energynet: null
+            transmission: null
         };
         
         // Track data source types for proper layer styling
         this.dataSourceTypes = {
             transmission: 'vector', // 'vector' or 'geojson'
-            geothermal: 'api',      // 'api' or 'geojson'
-            energynet: 'api'        // 'api' for EnergyNet parcels
+            geothermal: 'api'       // 'api' or 'geojson'
         };
         
         this.init();
@@ -343,10 +340,6 @@ class GeospatialApp {
         
         // Set initial layer visibility based on state
         this.toggleTransmissionLines(this.layerState.transmissionLines);
-        
-        // Add EnergyNet land parcels layer
-        console.log('🏞️ Adding EnergyNet land parcels layer...');
-        this.addEnergyNetParcelsLayer();
         
         // Add hexagon mesh layer with geothermal aggregation (no individual points needed)
         console.log('🕒 Starting hexagon mesh creation with sectioned geothermal data...');
@@ -1045,281 +1038,6 @@ class GeospatialApp {
         }
     }
 
-    async addEnergyNetParcelsLayer() {
-        console.log('🏞️ Adding EnergyNet land parcels layer...');
-        
-        try {
-            // Add source for EnergyNet parcels
-            if (!this.map.getSource('energynet-parcels')) {
-                this.map.addSource('energynet-parcels', {
-                    type: 'geojson',
-                    data: {
-                        type: 'FeatureCollection',
-                        features: []
-                    }
-                });
-                console.log('✅ Added EnergyNet parcels source');
-            }
-            
-            // Add fill layer for parcels
-            this.map.addLayer({
-                id: 'energynet-parcels-fill',
-                type: 'fill',
-                source: 'energynet-parcels',
-                minzoom: 4,
-                maxzoom: 18,
-                paint: {
-                    'fill-color': '#FF1493',    // Bright pink - highly visible
-                    'fill-opacity': 0.7         // 70% opacity for better visibility
-                }
-            });
-            
-            // Add outline layer for parcels
-            this.map.addLayer({
-                id: 'energynet-parcels-outline',
-                type: 'line',
-                source: 'energynet-parcels',
-                minzoom: 4,
-                maxzoom: 18,
-                paint: {
-                    'line-color': '#0066CC',    // Bright blue for outline
-                    'line-width': [
-                        'interpolate',
-                        ['linear'],
-                        ['zoom'],
-                        4, 1.0,   // Slightly thicker at low zoom for visibility
-                        8, 1.5,   // Medium at mid zoom
-                        14, 2.0   // Thicker at high zoom
-                    ],
-                    'line-opacity': 0.9
-                }
-            });
-            
-            console.log('✅ Successfully added EnergyNet parcels layers');
-            
-            // Load parcel data
-            await this.loadEnergyNetParcels();
-            
-            // Set initial visibility
-            this.toggleEnergyNetParcels(this.layerState.energynetParcels);
-            
-            // Add click handlers for popup
-            this.map.on('click', 'energynet-parcels-fill', (e) => {
-                this.showEnergyNetParcelPopup(e);
-            });
-            
-            // Add hover cursor
-            this.map.on('mouseenter', 'energynet-parcels-fill', () => {
-                this.map.getCanvas().style.cursor = 'pointer';
-            });
-            
-            this.map.on('mouseleave', 'energynet-parcels-fill', () => {
-                this.map.getCanvas().style.cursor = '';
-            });
-            
-        } catch (error) {
-            console.error('❌ Error adding EnergyNet parcels layer:', error);
-        }
-    }
-
-    // Force refresh EnergyNet data (can be called from browser console)
-    async forceRefreshEnergyNet() {
-        console.log('🔄 Force refreshing EnergyNet data (no cache)...');
-        
-        // Reload data (always fresh)
-        await this.loadEnergyNetParcels();
-        
-        // Make sure layers are visible if they should be
-        if (this.layerState.energynetParcels) {
-            this.toggleEnergyNetParcels(true);
-        }
-        
-        // Debug layer status
-        this.debugEnergyNetLayers();
-    }
-    
-    // Debug function to check layer status
-    debugEnergyNetLayers() {
-        console.log('🔍 EnergyNet Debug Info:');
-        const source = this.map.getSource('energynet-parcels');
-        const fillLayer = this.map.getLayer('energynet-parcels-fill');
-        const outlineLayer = this.map.getLayer('energynet-parcels-outline');
-        
-        console.log('📊 Source exists:', !!source);
-        console.log('🎨 Fill layer exists:', !!fillLayer);
-        console.log('🖊️ Outline layer exists:', !!outlineLayer);
-        
-        if (fillLayer) {
-            const visibility = this.map.getLayoutProperty('energynet-parcels-fill', 'visibility');
-            console.log('👁️ Fill layer visibility:', visibility || 'visible');
-        }
-        
-        if (source && source._data) {
-            console.log('📍 Source has data:', source._data.features?.length || 0, 'features');
-        }
-        
-        console.log('🎛️ Layer state energynetParcels:', this.layerState.energynetParcels);
-    }
-    
-    // Navigate to New Mexico parcels (can be called from browser console)
-    goToNewMexicoParcels() {
-        console.log('🗺️ Navigating to New Mexico EnergyNet parcels...');
-        // Center coordinates for New Mexico parcels: approximately -104.0, 32.5
-        this.map.flyTo({
-            center: [-104.0, 32.5],
-            zoom: 8,
-            duration: 2000
-        });
-        
-        setTimeout(() => {
-            this.forceRefreshEnergyNet();
-        }, 2500);
-    }
-
-    async loadEnergyNetParcels() {
-        try {
-            const zoom = this.map.getZoom();
-            console.log(`📡 Loading EnergyNet parcels data for zoom level ${zoom.toFixed(1)} (no cache - always fresh)...`);
-            
-            const response = await fetch(`/api/energynet-parcels?zoom=${Math.floor(zoom)}`, {
-                headers: {
-                    'Cache-Control': 'no-cache',
-                    'Pragma': 'no-cache'
-                }
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-            
-            const data = await response.json();
-            console.log(`🏞️ Loaded ${data.features?.length || 0} EnergyNet parcels from view '${data.metadata?.view_used}' (fresh from API)`);
-            
-            // Log coordinate bounds for debugging
-            if (data.features && data.features.length > 0) {
-                const firstFeature = data.features[0];
-                console.log(`🎯 First parcel coordinates:`, firstFeature.geometry.coordinates[0]);
-                const bounds = this.calculateBounds(data.features);
-                console.log(`🗺️ Parcel bounds: ${bounds.minLng.toFixed(3)}, ${bounds.minLat.toFixed(3)} to ${bounds.maxLng.toFixed(3)}, ${bounds.maxLat.toFixed(3)}`);
-                
-                // Check current map view
-                const mapBounds = this.map.getBounds();
-                console.log(`👁️ Current map view: ${mapBounds.getWest().toFixed(3)}, ${mapBounds.getSouth().toFixed(3)} to ${mapBounds.getEast().toFixed(3)}, ${mapBounds.getNorth().toFixed(3)}`);
-            }
-            
-            // Update source data without removing (safer for layers)
-            const source = this.map.getSource('energynet-parcels');
-            if (source) {
-                source.setData(data);
-                console.log(`✅ Updated existing EnergyNet source with fresh data`);
-            } else {
-                // Add fresh source only if it doesn't exist
-                this.map.addSource('energynet-parcels', {
-                    type: 'geojson',
-                    data: data
-                });
-                console.log(`✅ Added new EnergyNet parcels source`);
-            }
-            
-            // Ensure layers are visible
-            const isVisible = this.layerState.energynetParcels;
-            console.log(`👁️ EnergyNet layer visibility state: ${isVisible}`);
-            
-        } catch (error) {
-            console.error('❌ Error loading EnergyNet parcels:', error);
-            
-            // Show empty data on error
-            const source = this.map.getSource('energynet-parcels');
-            if (source) {
-                source.setData({
-                    type: 'FeatureCollection',
-                    features: []
-                });
-            }
-        }
-    }
-
-    calculateBounds(features) {
-        let minLng = Infinity, minLat = Infinity, maxLng = -Infinity, maxLat = -Infinity;
-        
-        features.forEach(feature => {
-            if (feature.geometry && feature.geometry.coordinates) {
-                const coords = feature.geometry.coordinates[0]; // First ring of polygon
-                coords.forEach(([lng, lat]) => {
-                    minLng = Math.min(minLng, lng);
-                    maxLng = Math.max(maxLng, lng);
-                    minLat = Math.min(minLat, lat);
-                    maxLat = Math.max(maxLat, lat);
-                });
-            }
-        });
-        
-        return { minLng, minLat, maxLng, maxLat };
-    }
-
-    showEnergyNetParcelPopup(e) {
-        const feature = e.features[0];
-        const props = feature.properties;
-        
-        // Close any existing popup
-        if (this.activePopup) {
-            this.activePopup.remove();
-        }
-        
-        // Create popup content matching EnergyNet.com format
-        const popupContent = `
-            <div class="popup-header">
-                <i class="fas fa-map-marked-alt"></i> Land Parcel
-            </div>
-            <div class="popup-content">
-                <div class="popup-row">
-                    <span class="popup-label">Listing:</span> 
-                    <span class="popup-value">${props.listing_id || 'Unknown'}</span>
-                </div>
-                <div class="popup-row">
-                    <span class="popup-label">Parcel:</span> 
-                    <span class="popup-value">${props.parcel_id || 'Unknown'}</span>
-                </div>
-                <div class="popup-row">
-                    <span class="popup-label">State:</span> 
-                    <span class="popup-value">${props.state || 'Unknown'}</span>
-                </div>
-                <div class="popup-row">
-                    <span class="popup-label">Area:</span> 
-                    <span class="popup-value">${props.acres ? `${props.acres.toLocaleString()} acres` : 'Unknown'}</span>
-                </div>
-                <div class="popup-row">
-                    <span class="popup-label">Type:</span> 
-                    <span class="popup-value">${props.description || 'Government Land Lease'}</span>
-                </div>
-            </div>
-        `;
-        
-        // Create and show popup
-        this.activePopup = new maplibregl.Popup({ closeOnClick: true })
-            .setLngLat(e.lngLat)
-            .setHTML(popupContent)
-            .addTo(this.map);
-    }
-
-    toggleEnergyNetParcels(visible) {
-        const fillLayerId = 'energynet-parcels-fill';
-        const outlineLayerId = 'energynet-parcels-outline';
-        
-        const visibility = visible ? 'visible' : 'none';
-        
-        if (this.map.getLayer(fillLayerId)) {
-            this.map.setLayoutProperty(fillLayerId, 'visibility', visibility);
-        }
-        
-        if (this.map.getLayer(outlineLayerId)) {
-            this.map.setLayoutProperty(outlineLayerId, 'visibility', visibility);
-        }
-        
-        this.layerState.energynetParcels = visible;
-        console.log(`🏞️ EnergyNet parcels visibility: ${visible ? 'ON' : 'OFF'}`);
-    }
-
     async addHexagonMeshLayer() {
         console.log('🔷 Adding hexagon mesh layer...');
         
@@ -1703,17 +1421,6 @@ class GeospatialApp {
             this.updateTransmissionOpacity(opacity);
         });
 
-        // EnergyNet parcels controls
-        document.getElementById('energynet-toggle').addEventListener('change', (e) => {
-            this.toggleEnergyNetParcels(e.target.checked);
-        });
-
-        document.getElementById('energynet-opacity').addEventListener('input', (e) => {
-            const opacity = e.target.value / 100;
-            document.getElementById('energynet-opacity-value').textContent = e.target.value + '%';
-            this.updateEnergyNetParcelsOpacity(opacity);
-        });
-
         // Mesh controls
         document.getElementById('mesh-toggle').addEventListener('change', (e) => {
             this.toggleMesh(e.target.checked);
@@ -1776,20 +1483,6 @@ class GeospatialApp {
         layers.forEach(layerId => {
             this.map.setPaintProperty(layerId, 'line-opacity', opacity);
         });
-    }
-
-    updateEnergyNetParcelsOpacity(opacity) {
-        const fillLayerId = 'energynet-parcels-fill';
-        const outlineLayerId = 'energynet-parcels-outline';
-        
-        if (this.map.getLayer(fillLayerId)) {
-            this.map.setPaintProperty(fillLayerId, 'fill-opacity', opacity);
-        }
-        
-        if (this.map.getLayer(outlineLayerId)) {
-            // Keep outline slightly more opaque
-            this.map.setPaintProperty(outlineLayerId, 'line-opacity', Math.min(1.0, opacity + 0.2));
-        }
     }
 
     updateGeothermalOpacity(opacity) {
@@ -2011,8 +1704,5 @@ class GeospatialApp {
 
 // Initialize the application when the page loads
 document.addEventListener('DOMContentLoaded', () => {
-    const app = new GeospatialApp();
-    // Make available globally for debugging
-    window.geoApp = app;
-    console.log('🔧 Debug: Type window.geoApp.mapManager.forceRefreshEnergyNet() to force refresh EnergyNet data');
+    new GeospatialApp();
 });
