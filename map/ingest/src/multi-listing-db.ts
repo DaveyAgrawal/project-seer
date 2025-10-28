@@ -509,6 +509,18 @@ export class MultiListingDatabase {
         console.log('✅ Database optimization completed');
     }
 
+    async listingExists(listingId: string): Promise<boolean> {
+        try {
+            const result = await this.db.query(
+                'SELECT 1 FROM energynet_listings WHERE listing_id = $1 OR sale_group = $1',
+                [listingId]
+            );
+            return result.rows.length > 0;
+        } catch (error) {
+            return false;
+        }
+    }
+
     async close(): Promise<void> {
         await this.db.close();
     }

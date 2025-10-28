@@ -1,8 +1,8 @@
 import puppeteer, { Browser, Page } from 'puppeteer';
 import * as fs from 'fs';
 import * as path from 'path';
-import { EnergyNetListing } from './energynet';
-import { EnergyNetDatabase } from './energynet-db';
+import { EnergyNetProcessor, EnergyNetListing } from './energynet';
+import { MultiListingDatabase } from './multi-listing-db';
 import { GISProcessor } from './gis-processor';
 
 interface DiscoveredListing {
@@ -30,8 +30,9 @@ interface ScrapingStats {
 
 export class MultiListingScraper {
   private browser: Browser | null = null;
-  private db: EnergyNetDatabase;
+  private db: MultiListingDatabase;
   private gisProcessor: GISProcessor;
+  private energyNetProcessor: EnergyNetProcessor;
   private downloadDir: string;
   
   // Anti-bot configuration
@@ -46,8 +47,9 @@ export class MultiListingScraper {
   private readonly maxDelay = 5000;  // 5 seconds max delay
 
   constructor() {
-    this.db = new EnergyNetDatabase();
+    this.db = new MultiListingDatabase();
     this.gisProcessor = new GISProcessor();
+    this.energyNetProcessor = new EnergyNetProcessor(undefined, false); // Don't double-initialize DB
     this.downloadDir = path.join(__dirname, '../downloads/energynet');
     
     // Ensure download directory exists
@@ -62,7 +64,10 @@ export class MultiListingScraper {
     // Initialize database schema
     await this.db.initialize();
     
-    // Launch browser with anti-detection measures
+    // Initialize the EnergyNet processor
+    await this.energyNetProcessor.initialize();
+    
+    // Launch browser with anti-detection measures for listing discovery
     this.browser = await puppeteer.launch({
       headless: 'new',
       args: [
@@ -126,17 +131,39 @@ export class MultiListingScraper {
           // Add respectful delay between requests
           await this.respectfulDelay();
           
-          // Process the individual listing
-          const processResult = await this.processListing(listing);
+          // Process the individual listing using the real EnergyNet processor
+          const listingUrl = `https://www.energynet.com/govt_listing.pl?sg=${listing.saleGroup}`;
+          const energyNetListing = await this.energyNetProcessor.processListing(listingUrl);
           
-          if (processResult.success) {
+          if (energyNetListing && energyNetListing.parcels) {
+            // Store using multi-listing database
+            const multiListingData = {
+              saleGroup: listing.saleGroup,
+              listingId: listing.listingId,
+              title: listing.title,
+              region: listing.region,
+              listingType: listing.listingType,
+              agency: listing.agency,
+              status: listing.status,
+              url: listing.url,
+              gisDownloadUrl: energyNetListing.gisDownloadUrl,
+              description: energyNetListing.description,
+              parcels: energyNetListing.parcels
+            };
+
+            const dbResult = await this.db.storeMultiListing(multiListingData, {
+              updateExisting: true,
+              batchSize: 1000,
+              skipGeometryValidation: false
+            });
+
             stats.processed++;
             stats.newListings++;
-            stats.totalParcels += processResult.parcelsCount;
-            console.log(`✅ Successfully processed ${listing.saleGroup}: ${processResult.parcelsCount} parcels`);
+            stats.totalParcels += dbResult.parcelsInserted;
+            console.log(`✅ Successfully processed ${listing.saleGroup}: ${dbResult.parcelsInserted} parcels`);
           } else {
             stats.failed++;
-            console.log(`❌ Failed to process ${listing.saleGroup}: ${processResult.error}`);
+            console.log(`❌ Failed to process ${listing.saleGroup}: No parcels found or processing failed`);
           }
           
         } catch (error) {
@@ -244,103 +271,7 @@ export class MultiListingScraper {
     }
   }
 
-  private async processListing(listing: DiscoveredListing): Promise<{ success: boolean; parcelsCount: number; error?: string }> {
-    const page = await this.browser!.newPage();
-    
-    try {
-      // Set random user agent
-      const userAgent = this.userAgents[Math.floor(Math.random() * this.userAgents.length)];
-      await page.setUserAgent(userAgent);
-      
-      console.log(`🔍 Accessing listing page: ${listing.url}`);
-      
-      // Navigate to specific listing page
-      await page.goto(listing.url, {
-        waitUntil: 'networkidle2',
-        timeout: 30000
-      });
-      
-      // Extract GIS download URLs
-      const gisDownloads = await page.evaluate(() => {
-        const downloads: { format: string; url: string }[] = [];
-        
-        // Look for GIS download links (WGS84, NAD83, NAD27)
-        const downloadLinks = document.querySelectorAll('a[href*=".zip"], a[href*="library/secure"]');
-        
-        downloadLinks.forEach((link: any) => {
-          const href = link.getAttribute('href') || '';
-          const text = link.textContent?.trim().toLowerCase() || '';
-          
-          if (href.includes('.zip') || href.includes('library/secure')) {
-            let format = 'Unknown';
-            if (text.includes('wgs84') || href.includes('WGS84')) format = 'WGS84';
-            else if (text.includes('nad83') || href.includes('NAD83')) format = 'NAD83';
-            else if (text.includes('nad27') || href.includes('NAD27')) format = 'NAD27';
-            
-            downloads.push({
-              format,
-              url: href.startsWith('http') ? href : `https://www.energynet.com${href}`
-            });
-          }
-        });
-        
-        return downloads;
-      });
-      
-      if (gisDownloads.length === 0) {
-        return { success: false, parcelsCount: 0, error: 'No GIS download links found' };
-      }
-      
-      // Prefer WGS84 format, fallback to first available
-      const preferredDownload = gisDownloads.find(d => d.format === 'WGS84') || gisDownloads[0];
-      
-      console.log(`📥 Found GIS download: ${preferredDownload.format}`);
-      
-      // Create EnergyNet listing object
-      const energyNetListing: EnergyNetListing = {
-        id: listing.listingId,
-        title: listing.title,
-        state: listing.region,
-        url: listing.url,
-        description: `${listing.listingType} - ${listing.agency}`,
-        gisDownloadUrl: preferredDownload.url,
-        gisFilePath: '', // Will be set after download
-        parcels: undefined    // Will be set after processing
-      };
-      
-      // Download and process GIS data using existing pipeline
-      console.log(`📦 Downloading and processing GIS data...`);
-      
-      // Use existing EnergyNet scraper logic for download and processing
-      // (This would typically involve downloading the ZIP, extracting shapefiles, and processing)
-      
-      // For now, simulate successful processing
-      // In actual implementation, this would use the existing download/process pipeline
-      
-      // Store listing in database with multi-listing fields
-      const insertResult = await this.db.storeListing(energyNetListing, {
-        updateExisting: true
-      });
-      
-      // Update with multi-listing specific fields
-      // This would be done through database queries to add sale_group, region, etc.
-      
-      return {
-        success: true,
-        parcelsCount: insertResult.parcelsInserted,
-        error: undefined
-      };
-      
-    } catch (error) {
-      return {
-        success: false,
-        parcelsCount: 0,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      };
-    } finally {
-      await page.close();
-    }
-  }
+  // Note: processListing method removed - now using EnergyNetProcessor directly
 
   private async updateListingStatus(discoveredListings: DiscoveredListing[]): Promise<void> {
     console.log('🔄 Updating listing status in database...');
@@ -367,6 +298,9 @@ export class MultiListingScraper {
       this.browser = null;
     }
     
+    // Close the EnergyNet processor
+    await this.energyNetProcessor.close();
+    
     await this.db.close();
     console.log('✅ Multi-Listing Scraper closed');
   }
@@ -375,21 +309,19 @@ export class MultiListingScraper {
   async testSingleListing(saleGroup: string): Promise<void> {
     console.log(`🧪 Testing single listing: ${saleGroup}`);
     
-    const testListing: DiscoveredListing = {
-      saleGroup,
-      listingId: saleGroup,
-      title: `Test Listing ${saleGroup}`,
-      region: 'Test State',
-      listingType: 'Oil & Gas Lease',
-      agency: 'Test Agency',
-      saleStartDate: null,
-      saleEndDate: null,
-      url: `https://www.energynet.com/govt_listing.pl?sg=${saleGroup}`,
-      status: 'active'
-    };
+    // Test using the EnergyNet processor directly
+    const listingUrl = `https://www.energynet.com/govt_listing.pl?sg=${saleGroup}`;
+    const energyNetListing = await this.energyNetProcessor.processListing(listingUrl);
     
-    const result = await this.processListing(testListing);
-    console.log('Test result:', result);
+    if (energyNetListing && energyNetListing.parcels) {
+      console.log('✅ Test successful:', {
+        title: energyNetListing.title,
+        state: energyNetListing.state,
+        parcelsFound: energyNetListing.parcels.features.length
+      });
+    } else {
+      console.log('❌ Test failed: No parcels found or processing failed');
+    }
   }
 }
 
