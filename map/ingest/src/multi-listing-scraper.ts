@@ -196,60 +196,89 @@ export class MultiListingScraper {
         timeout: 30000
       });
       
-      // Extract all active listings
+      // Extract all active listings using corrected discovery logic
       const discoveredListings = await page.evaluate(() => {
         const listings: any[] = [];
         
-        // Find all listing containers (adjust selector based on actual page structure)
-        const listingElements = document.querySelectorAll('div[class*="listing"], tr[class*="listing"], .govt-listing');
+        // Find all "View Listings" buttons - these are the key to each listing
+        const viewListingButtons = Array.from(document.querySelectorAll('a[href*="govt_listing.pl?sg="]'));
         
-        listingElements.forEach((element: any, index: number) => {
+        viewListingButtons.forEach((button: any, index: number) => {
           try {
-            // Extract listing details (adjust selectors based on actual page structure)
-            const titleElement = element.querySelector('h3, .title, td:first-child, a[href*="govt_listing"]');
-            const linkElement = element.querySelector('a[href*="govt_listing.pl?sg="], a[href*="View"]');
+            // Get the sale group ID from the href
+            const href = button.getAttribute('href');
+            const sgMatch = href.match(/sg=([^&]+)/);
+            const saleGroup = sgMatch ? sgMatch[1] : `unknown-${index}`;
             
-            if (titleElement && linkElement) {
-              const title = titleElement.textContent?.trim() || '';
-              const url = linkElement.getAttribute('href') || '';
-              
-              // Extract sale group ID from URL (sg=XXXX)
-              const sgMatch = url.match(/sg=([^&]+)/);
-              const saleGroup = sgMatch ? sgMatch[1] : `unknown-${index}`;
-              
-              // Parse region/state from title
-              let region = 'Unknown';
-              if (title.includes('Nevada')) region = 'Nevada';
-              else if (title.includes('Wyoming')) region = 'Wyoming';
-              else if (title.includes('New Mexico')) region = 'New Mexico';
-              else if (title.includes('Alaska')) region = 'Alaska';
-              else if (title.includes('Utah')) region = 'Utah';
-              else if (title.includes('Montana')) region = 'Montana';
-              else if (title.includes('Colorado')) region = 'Colorado';
-              
-              // Parse listing type
-              let listingType = 'Oil & Gas Lease';
-              if (title.toLowerCase().includes('geothermal')) listingType = 'Geothermal';
-              else if (title.toLowerCase().includes('land sale')) listingType = 'Land Sale';
-              
-              // Extract agency
-              let agency = 'Unknown Agency';
-              if (title.includes('BLM')) agency = `BLM ${region} State Office`;
-              else if (title.includes('State')) agency = `${region} State Lands`;
-              
-              listings.push({
-                saleGroup,
-                listingId: saleGroup, // Use sale group as listing ID for now
-                title,
-                region,
-                listingType,
-                agency,
-                url: url.startsWith('http') ? url : `https://www.energynet.com/${url}`,
-                status: 'active'
-              });
+            // Find the parent container for this listing
+            const container = button.closest('.row') || button.closest('div');
+            if (!container) return;
+            
+            // Extract title from the lead paragraph
+            const titleElement = container.querySelector('p.fs-5.fw-semibold.lead');
+            const title = titleElement ? titleElement.textContent.trim() : 'Unknown Title';
+            
+            // Extract parcel info from the byline
+            const bylineElement = container.querySelector('#byline_one, .text-secondary span');
+            const bylineText = bylineElement ? bylineElement.textContent.trim() : '';
+            
+            // Parse region/state from title
+            let region = 'Unknown';
+            const titleLower = title.toLowerCase();
+            if (titleLower.includes('wyoming')) region = 'Wyoming';
+            else if (titleLower.includes('nevada')) region = 'Nevada';
+            else if (titleLower.includes('new mexico')) region = 'New Mexico';
+            else if (titleLower.includes('alaska')) region = 'Alaska';
+            else if (titleLower.includes('utah')) region = 'Utah';
+            else if (titleLower.includes('montana')) region = 'Montana';
+            else if (titleLower.includes('colorado')) region = 'Colorado';
+            else if (titleLower.includes('oklahoma')) region = 'Oklahoma';
+            else if (titleLower.includes('idaho')) region = 'Idaho';
+            else if (titleLower.includes('las vegas')) region = 'Nevada';
+            
+            // Parse listing type
+            let listingType = 'Oil & Gas Lease';
+            if (titleLower.includes('geothermal')) listingType = 'Geothermal';
+            else if (titleLower.includes('land sale')) listingType = 'Land Sale';
+            
+            // Extract agency from title
+            let agency = 'Unknown Agency';
+            if (titleLower.includes('blm')) {
+              agency = `BLM ${region} State Office`;
+            } else if (titleLower.includes('state oil & gas') || titleLower.includes('state land')) {
+              agency = `${region} State Lands`;
+            } else if (titleLower.includes('dnr')) {
+              agency = `${region} DNR`;
+            } else if (titleLower.includes('clo')) {
+              agency = `${region} CLO`;
+            } else if (titleLower.includes('city of las vegas')) {
+              agency = 'City of Las Vegas';
             }
+            
+            // Extract date information
+            const dateElement = container.querySelector('small.text-center');
+            let saleStartDate = null;
+            let saleEndDate = null;
+            
+            if (dateElement) {
+              const dateText = dateElement.textContent;
+              console.log(`Date text for ${saleGroup}: ${dateText}`);
+            }
+            
+            listings.push({
+              saleGroup,
+              listingId: saleGroup,
+              title,
+              region,
+              listingType,
+              agency,
+              url: `https://www.energynet.com/govt_listing.pl?sg=${saleGroup}`,
+              status: 'active',
+              byline: bylineText
+            });
+            
           } catch (error) {
-            console.log('Error parsing listing element:', error);
+            console.log(`Error parsing listing ${index}:`, error);
           }
         });
         

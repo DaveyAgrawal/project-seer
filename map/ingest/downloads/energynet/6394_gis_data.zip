@@ -1,0 +1,342 @@
+    <!doctype html>
+    <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="EnergyNet Landing Page">
+        <meta name="author" content="EnergyNet">
+        <meta name="generator" content="EnergyNet 2.0.0">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+
+        <title>Buyer Login</title>
+
+
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=240903">
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=240903">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=240903">
+        <link rel="manifest" href="/site.webmanifest?v=240903">
+        <link rel="mask-icon" href="/safari-pinned-tab.svg?v=240903" color="#335eab">
+        <link rel="shortcut icon" href="/favicon.ico?v=240903">
+        <meta name="msapplication-TileColor" content="#335eab">
+        <meta name="msapplication-TileImage" content="/mstile-150x150.png?v=240903">
+        <meta name="theme-color" content="#335eab">
+        <meta name="apple-mobile-web-app-title" content="Efficient Markets">
+        <meta name="application-name" content="Efficient Markets">
+        <link rel="preload" href="/fonts/Lato/Lato-Thin.ttf" as="font" type="font/ttf" crossorigin="anonymous">
+        <link rel="preload" href="/fonts/Lato/Lato-ThinItalic.ttf" as="font" type="font/ttf" crossorigin="anonymous">
+        <link rel="preload" href="/fonts/Lato/Lato-Light.ttf" as="font" type="font/ttf" crossorigin="anonymous">
+        <link rel="preload" href="/fonts/Lato/Lato-LightItalic.ttf" as="font" type="font/ttf" crossorigin="anonymous">
+        <link rel="preload" href="/fonts/Lato/Lato-Italic.ttf" as="font" type="font/ttf" crossorigin="anonymous">
+        <link rel="preload" href="/fonts/Lato/Lato-Regular.ttf" as="font" type="font/ttf" crossorigin="anonymous">
+        <link rel="preload" href="/fonts/Lato/Lato-Bold.ttf" as="font" type="font/ttf" crossorigin="anonymous">
+        <link rel="preload" href="/fonts/Lato/Lato-BoldItalic.ttf" as="font" type="font/ttf" crossorigin="anonymous">
+        <link rel="preload" href="/fonts/Lato/Lato-Black.ttf" as="font" type="font/ttf" crossorigin="anonymous">
+        <link rel="preload" href="/fonts/Lato/Lato-BlackItalic.ttf" as="font" type="font/ttf" crossorigin="anonymous">
+
+        <link rel="preload" href="/fonts/Montserrat/static/Montserrat-Regular.ttf" as="font" type="font/ttf" crossorigin="anonymous">
+        <link rel="preload" href="/fonts/Montserrat/static/Montserrat-Bold.ttf" as="font" type="font/ttf" crossorigin="anonymous">
+        <link rel="preload" href="/fonts/Montserrat/static/Montserrat-Medium.ttf" as="font" type="font/ttf" crossorigin="anonymous">
+        <link rel="preload" href="/fonts/Montserrat/static/Montserrat-SemiBold.ttf" as="font" type="font/ttf" crossorigin="anonymous">
+        <link rel="preload" href="/fonts/Montserrat/static/Montserrat-Italic.ttf" as="font" type="font/ttf" crossorigin="anonymous">
+
+        <link rel="preload" href="/fonts/Flaticon.woff" as="font" type="font/woff" crossorigin="anonymous">
+
+        <script src="devextreme/23.2.6/js/jquery.min.js"></script>
+
+        <link rel="stylesheet" href="css/main.76f6bba7d6.css" media="all">
+        <link rel="stylesheet" href="css/main_tweaks.af5ac06507.css" media="all">
+        <script src="/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+
+        <!--
+        <link rel="stylesheet" href="devextreme/23.2.6/css/dx.fluent.saas.light.css" media="all">
+        -->
+        <link rel="stylesheet" href="css/dx.fluent.lato-sans.compact.08805c1b28.css" media="all">
+        <script src="devextreme/23.2.6/js/dx.all.js"></script>
+
+        <link rel="stylesheet" href="/font-awesome/6.5.2/css/brands.min.css">
+        <link rel="stylesheet" href="/font-awesome/6.5.2/css/solid.min.css">
+        <link rel="stylesheet" href="/font-awesome/6.5.2/css/regular.min.css">
+        <link rel="stylesheet" href="/font-awesome/6.5.2/css/svg-with-js.min.css">
+        <link rel="stylesheet" href="/font-awesome/6.5.2/css/fontawesome.min.css">
+        <script defer src="/font-awesome/6.5.2/js/brands.min.js"></script>
+        <script defer src="/font-awesome/6.5.2/js/solid.min.js"></script>
+        <script defer src="/font-awesome/6.5.2/js/regular.min.js"></script>
+        <script defer src="/font-awesome/6.5.2/js/fontawesome.min.js" data-auto-add-css="false"></script>
+
+        <script src="exceljs/4.4.0/js/exceljs.min.js"></script>
+        <script src="FileSaver/2.0.5/js/FileSaver.min.js"></script>
+
+        <link rel="stylesheet" href="../datatables/2.1.3/css/datatables.min.css" media="all">
+        <script src="datatables/2.1.3/js/datatables.min.js"></script>
+        <script src="js/en/config.c0cc22aab5.js"></script>
+        <script src="js/en/enci.core.42fb325f34.js"></script>
+        <script src="js/enci.toast.1a85613d82.js"></script>
+        <script src="js/enci.bookmark.8154e50448.js"></script>
+        <script src="js/enci.bootstrap.701e55b0bc.js"></script>
+        <script src="js/enci.format.d2b0bcadc3.js"></script>
+        <script src="js/enci.utils.910af5331e.js"></script>
+        <script src="js/enci.ui.e33a1184f6.js"></script>
+        <script src="js/enci.token.c7e4657718.js"></script>
+        <script src="js/enci.helpers.c2410f56f3.js"></script>
+        <script src="js/enci.jsondata.05a52052dc.js"></script>
+        <script src="js/enci.datagrid.7e165f4649.js"></script>
+        <script src="js/enci.common.9b560c864a.js"></script>
+        <script src="js/enci.sessionsync.f1ff212377.js"></script>
+
+        <!-- # Tag to hide class='js' elements when javascript is disabled. Noscript allowed here by HTML5 -->
+        <noscript>
+          <style>
+            .js{display:none;}
+          </style>
+        </noscript>
+      <script type="text/javascript" src="js/enci.obscure_password.162fbf15dd.js"></script>
+      <script type="text/javascript" src="js/enci.login.842c139280.js"></script>
+      <script src='https://www.google.com/recaptcha/api.js?onload=en_recaptcha_load' async defer nonce='d863fdac44432420'></script>
+      <!---->
+</head>
+      <body class=' dx-viewport' data-environment='prd' data-user-type='' >
+
+        
+
+        
+
+        <header class="fixed-top">
+          <nav class="navbar navbar-expand-lg bd-navbar">
+            <div class="container bd-gutter flex-wrap flex-lg-nowrap">
+
+              <div class="dropdown dropdown-brands">
+                <button class="btn dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+                  <span class="navbar-brand logo d-flex align-items-center">
+                      <img id="logo-img" src="images/White_EM_small_width.png" alt="Company Logo" class="img-fluid">
+                      <i class="fa-solid fa-chevron-down fa-2xs"></i>
+                  </span>
+                </button>
+                <ul class="dropdown-menu dropdown-images" aria-labelledby="dropdownMenuButton1">
+                  <li data-theme="efficientmarkets" class="dropdown-submenu">
+                    <a class="dropdown-item dropdown-toggle" href="https://www.efficientmarkets.com/" data-bs-toggle="dropdown">
+                      Efficient Markets <i class='fas fa-chevron-right fa-2xs d-none d-md-inline-block'></i>
+                    </a>
+                    <ul class="dropdown-menu">
+                      <li data-theme="efficientmarkets">
+                        <a class="dropdown-item" href="https://www.efficientmarkets.com/GovernmentResources">
+                          Government Resources
+                        </a>
+                      </li>
+                      <li data-theme="efficientmarkets">
+                        <a class="dropdown-item" href="https://www.efficientmarkets.com/LandRealEstate">
+                          Land &amp; Real Estate
+                        </a>
+                      </li>
+                      <li data-theme="efficientmarkets">
+                        <a class="dropdown-item" href="https://www.efficientmarkets.com/AlternativeEnergy">
+                          Alternative Energy
+                        </a>
+                      </li>
+                    </ul>
+                  </li>
+                  <li data-theme="efficientmarkets">
+                    <a class="dropdown-item" href="https://www.efficientmarkets.com/EnergyNet">
+                      EnergyNet
+                    </a>
+                  </li>
+                  <li data-theme="efficientmarkets">
+                    <a class="dropdown-item" href="https://www.efficientmarkets.com/IndigoEnergy">
+                      Indigo Energy Advisors
+                    </a>
+                  </li>
+                </ul>
+              </div>
+
+                  <div class=" d-lg-none ms-auto">
+      <div class="dropdown text-end" data-selector="js-login-link">
+        <a class="btn btn-sm btn-primary user-login__button" role="button" href='login.pl'>
+          <i class="fas fa-sign-in-alt fa-fw fa-sm"></i>
+          <span class="d-none d-md-inline ms-1">Log In or Register</span>
+        </a>
+      </div>
+    </div>
+
+
+              <button class="navbar-toggler collapsed ms-3" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+
+              <div class="collapse navbar-collapse" id="navbarNavDropdown">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0"><li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href='#' id='navbarDropdownMenuLink0' data-bs-toggle='dropdown' aria-expanded='false' role='button'><span class="dropdown-item-title">Opportunities</span> <i class='fas fa-chevron-down fa-2xs d-none d-md-inline-block'></i></a><ul class="dropdown-menu"><li class=""><a class="dropdown-item " href='/property_listing.pl'  ><span class="dropdown-item-title">Oil & Gas Opportunities</span></a></li><li class=""><a class="dropdown-item " href='/sealed_listing.pl'  ><span class="dropdown-item-title">Sealed Bids Opportunities</span></a></li><li class=""><a class="dropdown-item " href='/sealed_listing.pl?category[]=indigo'  ><span class="dropdown-item-title">Indigo Energy Advisors Opportunities</span></a></li><li class=""><a class="dropdown-item " href='/govt_listing.pl'  ><span class="dropdown-item-title">Government Opportunities</span></a></li><li class=""><a class="dropdown-item " href='/property_listing.pl?displayedProperties=%5B%5D&displayFilterOptions=true&selectedTab=%22%23quick-filters%22&showAllPropertyRows=false&dxddb-interest-type=%5B%22renewable%22%5D'  ><span class="dropdown-item-title">Alternative Energy Opportunities</span></a></li><li class=""><a class="dropdown-item " href='/property_listing.pl?displayedProperties=%5B%5D&displayFilterOptions=true&selectedTab=%22%23quick-filters%22&showAllPropertyRows=false&dxddb-interest-type=%5B%22realestate%22%5D'  ><span class="dropdown-item-title">Real Estate Opportunities</span></a></li><li class=""><a class="dropdown-item " href='/search.pl'  ><span class="dropdown-item-title">Property Search/Saved Searches</span></a></li><li class=""><a class="dropdown-item " href='/cartographer.pl'  ><span class="dropdown-item-title">Search By Map</span></a></li></ul></li><li class="nav-item"><a class="nav-link" href='https://www.efficientmarkets.com/wiki/Registration'  ><span class="dropdown-item-title">Registration</span></a></li><li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href='#' id='navbarDropdownMenuLink2' data-bs-toggle='dropdown' aria-expanded='false' role='button'><span class="dropdown-item-title">About</span> <i class='fas fa-chevron-down fa-2xs d-none d-md-inline-block'></i></a><ul class="dropdown-menu"><li class=""><a class="dropdown-item " href='https://www.efficientmarkets.com/wiki/About_Us'  ><span class="dropdown-item-title">About Us</span></a></li><li class=""><a class="dropdown-item " href='https://www.efficientmarkets.com/News'  ><span class="dropdown-item-title">News</span></a></li><li class=""><a class="dropdown-item " href='https://www.efficientmarkets.com/Contact'  ><span class="dropdown-item-title">Contact</span></a></li><li class=""><a class="dropdown-item " href='https://www.efficientmarkets.com/Staff'  ><span class="dropdown-item-title">Staff</span></a></li></ul></li><li class="nav-item"><a class="nav-link" href='https://www.efficientmarkets.com/wiki/Help_Center'  ><span class="dropdown-item-title">Help</span></a></li></ul>
+                    <div class=" d-none d-lg-block">
+      <div class="dropdown text-end" data-selector="js-login-link">
+        <a class="btn btn-sm btn-primary user-login__button" role="button" href='login.pl'>
+          <i class="fas fa-sign-in-alt fa-fw fa-sm"></i>
+          <span class="d-none d-md-inline ms-1">Log In or Register</span>
+        </a>
+      </div>
+    </div>
+
+
+              </div>
+            </div>
+          </nav>
+        </header>
+
+        <main>
+    <form action="login.pl" method="post" id="en-main-login" name="MainLogin">
+      <section class="banner p-0 mb-0 position-relative fullscreen-banner">
+        <div class="banner-slider">
+          <div class="banner-img " data-overlay="9" data-bg-img-intro="images/brand/efficientmarket/banner/webp/cai-fang-k_0bcT6ycDk-unsplash-1-p-2000.webp">
+            <div class="align-center p-0 align-center-alt">
+              <div class="container-lg">
+                <div class="row">
+                  <div class="col-md-12">
+                    <div class="card card__narrow">
+                      <div class='card-header'>
+                        <h4 class="card-title">Log In or Register</h2>
+                      </div>
+                      <div class='card-body'>
+                          <div class="mb-3">
+                            <label>Account Type</label><br>
+                            <div class="btn-group" role="group">
+                              <input type="radio" class="btn-check" name="type" id="form_bidder_radio" value="b" checked style="display: none;">
+                              <label class="btn btn-buyer" for="form_bidder_radio">
+                                <span class="radio-icon" aria-hidden="true"></span>
+                                <strong>Buyer</strong>
+                              </label>
+                              <input type="radio" class="btn-check" name="type" id="form_seller_radio" value="s"  style="display: none;">
+                              <label class="btn btn-seller" for="form_seller_radio">
+                                <span class="radio-icon" aria-hidden="true"></span>
+                                <strong>Seller</strong>
+                              </label>
+                            </div>
+                          </div>
+
+                          <div class="mb-3">
+                            <label for="main_username" class="form-label">Username</label>
+                            <input class="form-control input-md autofocus" id="main_username" name="username" maxlength="35" type="text" required=''  autofocus>
+                          </div>
+
+                          <div class="mb-3">
+                            <label for="main_password" class="form-label">Password</label>
+                            <div class="input-group">
+                              <input type="password" class="form-control" id="main_password" name="password" autocomplete="off" required>
+                              <button class="btn btn-primary" type="button" id="togglePassword">
+                                <i class="fas fa-eye"></i>
+                              </button>
+                            </div>
+                          </div>
+
+                          <div class="mb-3">
+                            <div class="form-check">
+                              <input class="form-check-input" id='keep_logged_in' name="rememberme" type="checkbox" >
+                              <label class="form-check-label" for="keep_logged_in">Keep me signed in</label>
+                            </div>
+                          </div>
+
+                          <p>By clicking <b>Log In</b> I acknowledge the EnergyNet <a href='https://www.efficientmarkets.com/wiki/Website_Terms_of_Use'>Website Terms of Use</a>.</p>
+
+                          <div class="mb-3">
+                            <input type='hidden' name='csrf' value='434335627ec366fdb7242c83f0b065114cc68216,1761846133'>
+                            <button class="btn btn-primary input-md" id="recaptcha-submit-btn" type="button" disabled="disabled">Log In</button>
+                          </div>
+                          <input type='hidden' name='ssidcheck' value='3f92362c2c98df3fc40be780af5ac2ab63ee1518fdf990636757a811704c162c'>
+
+                        <p><a href='lost_password.pl'>Lost your Username or Password?</a></p>
+                        <p><a href='page/Registration'>Don&apos;t have an account? Register now.</a></p>
+
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+            <div class="g-recaptcha"
+          data-sitekey="6Ld7Ej8UAAAAAIUmAObsM5Aj5AUd0D0AAoVGChdo"
+          data-callback="en_recaptcha_success"
+          data-size="invisible">
+        </div>
+
+
+    </form>
+
+        </main>
+
+            <footer class="footer dark-bg position-relative pattern" data-bg-img-footer="images/bg/09.png">
+        <div class="primary-footer">
+          <div class="container-lg">
+            <div class="copyright">
+              <div class="row align-items-center mb-4">
+                <div class="col-md-12 text-md-start mt-3 mt-md-0 ps-0 footer-list">
+                  <ul class="list-inline">
+                    <li><a href="/" class="logo"><img class="img-fluid footer-image" src="images/White_EM_small_width.png" loading="lazy" alt=""></a></li>
+                    <!-- inject <li>Toll Free <strong><a href="tel:ConstantValues.PhoneNumberFormatted">ConstantValues.PhoneNumber2</a></strong></li> -->
+                    <li>Toll Free:<strong><a class="ms-1" href="tel:+18773514488">(877) 351-4488</a></strong></li>
+                    <li><a href="page/Regulatory_Disclosures"><strong>Regulatory Disclosures</strong></a></li>
+                    <li><a href="page/Accessibility_Statement"><strong>Accessibility Statement</strong></a></li>
+                    <li><a href="img/portal/pdf/EnergyNet_Form_CRS_2024.pdf"><strong>Client Relationship Summary</strong></a></li>
+                    <li><a href="page/Website_Terms_of_Use"><strong>Website Terms of Use</strong></a></li>
+                    <li><a href="page/Telephone_Consumer_Protection_Act_Disclosure"><strong>TCPA Disclosure</strong></a></li>
+                  </ul>
+                </div>
+              </div>
+              <div class="row align-items-center mb-4">
+                <div class="col-md-7">
+                  <span class="copytext">
+                    <!-- inject ConstantValues.Copyright -->
+                    <p>Copyright &copy;1999-2025 EnergyNet.com, LLC, All Rights Reserved</p>
+
+                  </span>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-12">
+                  <div class="copytext">
+                    <!-- inject footer wiki section here -->
+                    <p><a href='https://www.finra.org'>Member FINRA</a>. Investments in oil and gas properties involve substantial risk including the possible loss of principal. These risks include, among others, commodity price fluctuations and unforeseen events that may affect oil and gas property values in addition to risks associated with each specific investment. The information included herein is intended to introduce information for independent review and analysis by sophisticated, institutional investors who are engaged in the oil and gas business, and can identify the analyze independently the inherent risks and speculative nature associated with valuing, purchasing, drilling, producing, and operating oil and gas assets. Importantly, EnergyNet may not have independently verified and/or updated information listed herein and may have limited the information included here. Thus, the information may not be complete or up to date and must not be relied upon because each buyer must independently collect, verify, and analyze the information relevant to its purchase decisions. Nothing herein shall be construed as giving legal, financial, or other advice of any kind. The material included herein is for informational purposes only and does not constitute an offer or solicitation to sell or purchase any securities. <a href='https://brokercheck.finra.org/firm/102100'>Check the background of this Firm on FINRA's BrokerCheck</a>.</p>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+    </footer>
+
+<div class='visually-hidden' id='cf_dc'>1</div>            <!-- Google tag (gtag.js) -->
+            <script async src="https://www.googletagmanager.com/gtag/js?id=G-XKKPNCM5SH"></script>
+            <script nonce="d863fdac44432420">
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-XKKPNCM5SH');
+            </script>
+            <!---->
+
+        <!-- Toast container -->
+        <div aria-live="polite" aria-atomic="true" class="position-relative">
+          <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toast-container">
+            <div id="custom-toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+              <div class="toast-body d-flex align-items-center">
+                <span id="toast-icon-container"><i class="fa-solid fa-info-circle fa-fw fa-lg me-2"></i></span>
+                <span id="toast-message">Default message</span>
+                <button type="button" class="btn-close ms-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+              </div>
+            </div>
+          </div>
+
+          <!-- New toast container for cursor position -->
+          <div id="cursor-toast-container" class="position-fixed">
+            <div id="cursor-toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+              <div class="toast-body d-flex align-items-center">
+                <span id="cursor-toast-message" class="text-center"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </body>
+    </html>
