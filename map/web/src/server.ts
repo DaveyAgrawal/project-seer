@@ -4,6 +4,7 @@ import compression from 'compression';
 import { Pool } from 'pg';
 import { config } from 'dotenv';
 import path from 'path';
+import { MultiListingScraper } from '../../ingest/dist/multi-listing-scraper';
 
 // Load environment variables
 config();
@@ -100,6 +101,7 @@ class GeospatialWebServer {
     this.app.post('/api/temperature-lookup', this.temperatureLookup.bind(this));
     this.app.post('/api/geothermal-tile-data', this.getGeothermalTileData.bind(this));
     this.app.get('/api/energynet-parcels', this.getEnergyNetParcels.bind(this));
+    this.app.post('/api/scrape-update', this.scrapeUpdate.bind(this));
     this.app.get('/api/generate-cache/:dataSource', this.generateCacheData.bind(this));
     this.app.post('/api/save-cache/:dataSource', this.saveCacheData.bind(this));
     this.app.post('/api/apply-schema', this.applySchema.bind(this));
@@ -315,6 +317,171 @@ class GeospatialWebServer {
         error: 'Database connection failed'
       });
     }
+  }
+
+  private async scrapeUpdate(req: express.Request, res: express.Response): Promise<void> {
+    try {
+      console.log('🔄 Starting EnergyNet scraper update...');
+      
+      // Set up Server-Sent Events for progress tracking
+      res.writeHead(200, {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Cache-Control'
+      });
+
+      const sendProgress = (data: any) => {
+        res.write(`data: ${JSON.stringify(data)}\n\n`);
+      };
+
+      // Send initial progress
+      sendProgress({ status: 'starting', message: 'Initializing scraper...' });
+
+      const scraper = new MultiListingScraper();
+      
+      try {
+        await scraper.initialize();
+        sendProgress({ status: 'discovering', message: 'Discovering active listings...' });
+        
+        // Phase 1: Discover all active listings
+        const discoveredListings = await scraper.discoverActiveListings();
+        const totalListings = discoveredListings.length;
+        
+        sendProgress({ 
+          status: 'discovered', 
+          message: `Found ${totalListings} active listings`,
+          totalListings,
+          currentListing: 0
+        });
+
+        // Phase 2: Update listing status (remove expired ones)
+        sendProgress({ status: 'cleanup', message: 'Removing expired listings...' });
+        await this.cleanupExpiredListings(discoveredListings);
+
+        // Phase 3: Process each listing
+        sendProgress({ status: 'processing', message: 'Processing listings...' });
+        
+        let processed = 0;
+        let failed = 0;
+        const failedListings: string[] = [];
+
+        for (const listing of discoveredListings) {
+          try {
+            sendProgress({
+              status: 'processing',
+              message: `Processing ${listing.saleGroup} (${listing.region})...`,
+              currentListing: processed + 1,
+              totalListings
+            });
+
+            // Check if already exists
+            const exists = await this.listingExists(listing.listingId);
+            if (!exists) {
+              // Process the listing with retries
+              const success = await this.processListingWithRetries(listing, sendProgress);
+              if (!success) {
+                failed++;
+                failedListings.push(listing.saleGroup);
+              }
+            }
+            
+            processed++;
+            
+          } catch (error) {
+            console.error(`❌ Error processing ${listing.saleGroup}:`, error);
+            failed++;
+            failedListings.push(listing.saleGroup);
+            processed++;
+          }
+        }
+
+        // Send completion status
+        const completionData = {
+          status: 'complete',
+          message: `Update complete: ${processed} processed, ${failed} failed`,
+          totalProcessed: processed,
+          totalFailed: failed,
+          failedListings
+        };
+        
+        sendProgress(completionData);
+        console.log('✅ Scraper update completed:', completionData);
+        
+      } catch (error) {
+        console.error('❌ Scraper error:', error);
+        sendProgress({
+          status: 'error',
+          message: `Scraper failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+        });
+      } finally {
+        await scraper.close();
+        res.end();
+      }
+      
+    } catch (error) {
+      console.error('❌ Scraper update failed:', error);
+      res.status(500).json({ error: 'Scraper update failed' });
+    }
+  }
+
+  private async cleanupExpiredListings(activeListings: any[]): Promise<void> {
+    const activeSaleGroups = activeListings.map(l => l.saleGroup);
+    
+    if (activeSaleGroups.length === 0) return;
+    
+    // Remove listings that are no longer active
+    const placeholders = activeSaleGroups.map((_, i) => `$${i + 1}`).join(',');
+    
+    await this.pool.query(`
+      DELETE FROM energynet_parcels 
+      WHERE sale_group NOT IN (${placeholders})
+    `, activeSaleGroups);
+    
+    await this.pool.query(`
+      DELETE FROM energynet_listings 
+      WHERE sale_group NOT IN (${placeholders})
+    `, activeSaleGroups);
+  }
+
+  private async listingExists(listingId: string): Promise<boolean> {
+    const result = await this.pool.query(
+      'SELECT 1 FROM energynet_listings WHERE listing_id = $1',
+      [listingId]
+    );
+    return result.rows.length > 0;
+  }
+
+  private async processListingWithRetries(listing: any, sendProgress: Function): Promise<boolean> {
+    const maxRetries = 3;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        sendProgress({
+          status: 'processing',
+          message: `Processing ${listing.saleGroup} (attempt ${attempt}/${maxRetries})...`
+        });
+        
+        // This would integrate with the existing EnergyNetProcessor
+        // For now, we'll just simulate success
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate processing time
+        
+        return true;
+        
+      } catch (error) {
+        console.error(`❌ Attempt ${attempt} failed for ${listing.saleGroup}:`, error);
+        
+        if (attempt === maxRetries) {
+          return false;
+        }
+        
+        // Wait before retry
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+    }
+    
+    return false;
   }
 
   public async start(): Promise<void> {

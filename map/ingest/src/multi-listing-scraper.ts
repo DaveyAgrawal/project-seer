@@ -180,7 +180,7 @@ export class MultiListingScraper {
     }
   }
 
-  private async discoverActiveListings(): Promise<DiscoveredListing[]> {
+  async discoverActiveListings(): Promise<DiscoveredListing[]> {
     const page = await this.browser!.newPage();
     const listings: DiscoveredListing[] = [];
     
