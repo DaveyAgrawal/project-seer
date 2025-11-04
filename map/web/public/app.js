@@ -1713,6 +1713,11 @@ class GeospatialApp {
             document.getElementById('energynet-opacity-value').textContent = e.target.value + '%';
             this.updateEnergyNetParcelsOpacity(opacity);
         });
+        
+        // Update Active Listings button
+        document.getElementById('update-listings-btn').addEventListener('click', () => {
+            this.updateActiveListings();
+        });
 
         // Mesh controls
         document.getElementById('mesh-toggle').addEventListener('change', (e) => {
@@ -1789,6 +1794,130 @@ class GeospatialApp {
         if (this.map.getLayer(outlineLayerId)) {
             // Keep outline slightly more opaque
             this.map.setPaintProperty(outlineLayerId, 'line-opacity', Math.min(1.0, opacity + 0.2));
+        }
+    }
+
+    async updateActiveListings() {
+        const button = document.getElementById('update-listings-btn');
+        const icon = button.querySelector('i');
+        
+        try {
+            // Disable button and show loading state
+            button.disabled = true;
+            button.classList.add('loading');
+            button.innerHTML = '<i class="fas fa-sync-alt"></i> Updating...';
+            
+            // Disable EnergyNet layer toggle during update
+            const energynetToggle = document.getElementById('energynet-toggle');
+            energynetToggle.disabled = true;
+            
+            console.log('🔄 Starting active listings update...');
+            
+            // Connect to the scraper endpoint with Server-Sent Events
+            const response = await fetch('/api/scrape-update', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'text/event-stream',
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            
+            while (true) {
+                const { value, done } = await reader.read();
+                if (done) break;
+                
+                const chunk = decoder.decode(value);
+                const lines = chunk.split('\n');
+                
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        try {
+                            const data = JSON.parse(line.substring(6));
+                            this.handleScraperProgress(data, button);
+                        } catch (e) {
+                            console.warn('Failed to parse SSE data:', line);
+                        }
+                    }
+                }
+            }
+            
+        } catch (error) {
+            console.error('❌ Error updating active listings:', error);
+            button.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Update Failed';
+            setTimeout(() => {
+                button.innerHTML = '<i class="fas fa-sync-alt"></i> Update Active Listings';
+                button.disabled = false;
+                button.classList.remove('loading');
+            }, 3000);
+        } finally {
+            // Re-enable EnergyNet layer toggle
+            const energynetToggle = document.getElementById('energynet-toggle');
+            energynetToggle.disabled = false;
+        }
+    }
+
+    handleScraperProgress(data, button) {
+        const { status, message, currentListing, totalListings } = data;
+        
+        console.log(`📡 Scraper progress: ${status} - ${message}`);
+        
+        switch (status) {
+            case 'starting':
+                button.innerHTML = '<i class="fas fa-sync-alt"></i> Starting...';
+                break;
+                
+            case 'discovering':
+                button.innerHTML = '<i class="fas fa-search"></i> Discovering...';
+                break;
+                
+            case 'discovered':
+                button.innerHTML = `<i class="fas fa-list"></i> Found ${totalListings} listings`;
+                break;
+                
+            case 'cleanup':
+                button.innerHTML = '<i class="fas fa-broom"></i> Cleaning up...';
+                break;
+                
+            case 'processing':
+                if (currentListing && totalListings) {
+                    const progress = Math.round((currentListing / totalListings) * 100);
+                    button.innerHTML = `<i class="fas fa-cog"></i> ${progress}% (${currentListing}/${totalListings})`;
+                } else {
+                    button.innerHTML = '<i class="fas fa-cog"></i> Processing...';
+                }
+                break;
+                
+            case 'complete':
+                button.innerHTML = '<i class="fas fa-check"></i> Update Complete';
+                console.log('✅ Scraper update completed successfully');
+                
+                // Refresh the EnergyNet parcels data
+                setTimeout(async () => {
+                    console.log('🔄 Refreshing EnergyNet parcels data...');
+                    await this.loadEnergyNetParcels();
+                    
+                    // Reset button
+                    button.innerHTML = '<i class="fas fa-sync-alt"></i> Update Active Listings';
+                    button.disabled = false;
+                    button.classList.remove('loading');
+                }, 1000);
+                break;
+                
+            case 'error':
+                button.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error';
+                console.error('❌ Scraper error:', message);
+                setTimeout(() => {
+                    button.innerHTML = '<i class="fas fa-sync-alt"></i> Update Active Listings';
+                    button.disabled = false;
+                    button.classList.remove('loading');
+                }, 3000);
+                break;
         }
     }
 
