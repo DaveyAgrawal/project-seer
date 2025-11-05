@@ -1097,6 +1097,9 @@ class GeospatialApp {
             
             console.log('✅ Successfully added EnergyNet parcels layers');
             
+            // Add clustered pins layer for low zoom levels (0-7.5)
+            await this.addEnergyNetPinsLayer();
+            
             // Load parcel data
             await this.loadEnergyNetParcels();
             
@@ -1306,8 +1309,14 @@ class GeospatialApp {
         const fillLayerId = 'energynet-parcels-fill';
         const outlineLayerId = 'energynet-parcels-outline';
         
+        // Pin layer IDs
+        const clustersLayerId = 'energynet-clusters';
+        const clusterCountLayerId = 'energynet-cluster-count';
+        const unclusteredLayerId = 'energynet-unclustered-pins';
+        
         const visibility = visible ? 'visible' : 'none';
         
+        // Toggle parcel layers (zoom 7.5+)
         if (this.map.getLayer(fillLayerId)) {
             this.map.setLayoutProperty(fillLayerId, 'visibility', visibility);
         }
@@ -1316,8 +1325,21 @@ class GeospatialApp {
             this.map.setLayoutProperty(outlineLayerId, 'visibility', visibility);
         }
         
+        // Toggle pin layers (zoom 0-7.5)
+        if (this.map.getLayer(clustersLayerId)) {
+            this.map.setLayoutProperty(clustersLayerId, 'visibility', visibility);
+        }
+        
+        if (this.map.getLayer(clusterCountLayerId)) {
+            this.map.setLayoutProperty(clusterCountLayerId, 'visibility', visibility);
+        }
+        
+        if (this.map.getLayer(unclusteredLayerId)) {
+            this.map.setLayoutProperty(unclusteredLayerId, 'visibility', visibility);
+        }
+        
         this.layerState.energynetParcels = visible;
-        console.log(`🏞️ EnergyNet parcels visibility: ${visible ? 'ON' : 'OFF'}`);
+        console.log(`🏞️ EnergyNet parcels and pins visibility: ${visible ? 'ON' : 'OFF'}`);
     }
 
     async addHexagonMeshLayer() {
@@ -1787,6 +1809,11 @@ class GeospatialApp {
         const fillLayerId = 'energynet-parcels-fill';
         const outlineLayerId = 'energynet-parcels-outline';
         
+        // Pin layer IDs
+        const clustersLayerId = 'energynet-clusters';
+        const unclusteredLayerId = 'energynet-unclustered-pins';
+        
+        // Update parcel layers opacity
         if (this.map.getLayer(fillLayerId)) {
             this.map.setPaintProperty(fillLayerId, 'fill-opacity', opacity);
         }
@@ -1794,6 +1821,148 @@ class GeospatialApp {
         if (this.map.getLayer(outlineLayerId)) {
             // Keep outline slightly more opaque
             this.map.setPaintProperty(outlineLayerId, 'line-opacity', Math.min(1.0, opacity + 0.2));
+        }
+        
+        // Update pin layers opacity
+        if (this.map.getLayer(clustersLayerId)) {
+            this.map.setPaintProperty(clustersLayerId, 'circle-opacity', opacity);
+        }
+        
+        if (this.map.getLayer(unclusteredLayerId)) {
+            this.map.setPaintProperty(unclusteredLayerId, 'circle-opacity', opacity);
+        }
+    }
+
+    async addEnergyNetPinsLayer() {
+        console.log('📍 Adding EnergyNet clustered pins layer...');
+        
+        try {
+            // Load pins data
+            const response = await fetch('/api/energynet-pins', {
+                headers: {
+                    'Cache-Control': 'no-cache',
+                    'Pragma': 'no-cache'
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const pinsData = await response.json();
+            console.log(`📍 Loaded ${pinsData.features?.length || 0} EnergyNet pins`);
+            
+            // Add clustered source for pins
+            this.map.addSource('energynet-pins', {
+                type: 'geojson',
+                data: pinsData,
+                cluster: true,
+                clusterMaxZoom: 14,
+                clusterRadius: 50,
+                clusterProperties: {
+                    // Sum total acres in each cluster
+                    sum_acres: ['+', ['get', 'acres']]
+                }
+            });
+            
+            // Add cluster circles layer
+            this.map.addLayer({
+                id: 'energynet-clusters',
+                type: 'circle',
+                source: 'energynet-pins',
+                minzoom: 0,
+                maxzoom: 7.5,
+                filter: ['has', 'point_count'],
+                paint: {
+                    'circle-color': '#FF1493', // Bright pink matching parcels
+                    'circle-radius': [
+                        'step',
+                        ['get', 'point_count'],
+                        20,   // radius for clusters with 1-99 points
+                        100, 30,  // radius for clusters with 100-999 points  
+                        750, 40   // radius for clusters with 1000+ points
+                    ],
+                    'circle-opacity': 0.7,
+                    'circle-stroke-width': 2,
+                    'circle-stroke-color': '#0066CC'
+                }
+            });
+            
+            // Add cluster count labels
+            this.map.addLayer({
+                id: 'energynet-cluster-count',
+                type: 'symbol',
+                source: 'energynet-pins',
+                minzoom: 0,
+                maxzoom: 7.5,
+                filter: ['has', 'point_count'],
+                layout: {
+                    'text-field': '{point_count_abbreviated}',
+                    'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+                    'text-size': 12
+                },
+                paint: {
+                    'text-color': 'white'
+                }
+            });
+            
+            // Add unclustered point layer (individual pins)
+            this.map.addLayer({
+                id: 'energynet-unclustered-pins',
+                type: 'circle',
+                source: 'energynet-pins',
+                minzoom: 0,
+                maxzoom: 7.5,
+                filter: ['!', ['has', 'point_count']],
+                paint: {
+                    'circle-color': '#FF1493', // Bright pink matching parcels
+                    'circle-radius': 8,
+                    'circle-opacity': 0.7,
+                    'circle-stroke-width': 1,
+                    'circle-stroke-color': '#0066CC'
+                }
+            });
+            
+            // Add click handlers for clusters and pins
+            this.map.on('click', 'energynet-clusters', (e) => {
+                const features = this.map.queryRenderedFeatures(e.point, {
+                    layers: ['energynet-clusters']
+                });
+                const clusterId = features[0].properties.cluster_id;
+                this.map.getSource('energynet-pins').getClusterExpansionZoom(clusterId, (err, zoom) => {
+                    if (!err) {
+                        this.map.easeTo({
+                            center: features[0].geometry.coordinates,
+                            zoom: zoom
+                        });
+                    }
+                });
+            });
+            
+            // Add click handler for individual pins (same popup as parcels)
+            this.map.on('click', 'energynet-unclustered-pins', (e) => {
+                this.showEnergyNetParcelPopup(e);
+            });
+            
+            // Add hover cursor
+            this.map.on('mouseenter', 'energynet-clusters', () => {
+                this.map.getCanvas().style.cursor = 'pointer';
+            });
+            this.map.on('mouseleave', 'energynet-clusters', () => {
+                this.map.getCanvas().style.cursor = '';
+            });
+            
+            this.map.on('mouseenter', 'energynet-unclustered-pins', () => {
+                this.map.getCanvas().style.cursor = 'pointer';
+            });
+            this.map.on('mouseleave', 'energynet-unclustered-pins', () => {
+                this.map.getCanvas().style.cursor = '';
+            });
+            
+            console.log('✅ Successfully added EnergyNet clustered pins layer');
+            
+        } catch (error) {
+            console.error('❌ Error adding EnergyNet pins layer:', error);
         }
     }
 
@@ -1897,10 +2066,11 @@ class GeospatialApp {
                 button.innerHTML = '<i class="fas fa-check"></i> Update Complete';
                 console.log('✅ Scraper update completed successfully');
                 
-                // Refresh the EnergyNet parcels data
+                // Refresh the EnergyNet parcels and pins data
                 setTimeout(async () => {
-                    console.log('🔄 Refreshing EnergyNet parcels data...');
+                    console.log('🔄 Refreshing EnergyNet parcels and pins data...');
                     await this.loadEnergyNetParcels();
+                    await this.refreshEnergyNetPins();
                     
                     // Reset button
                     button.innerHTML = '<i class="fas fa-sync-alt"></i> Update Active Listings';
@@ -1918,6 +2088,34 @@ class GeospatialApp {
                     button.classList.remove('loading');
                 }, 3000);
                 break;
+        }
+    }
+
+    async refreshEnergyNetPins() {
+        try {
+            console.log('📍 Refreshing EnergyNet pins data...');
+            
+            // Load fresh pins data
+            const response = await fetch('/api/energynet-pins', {
+                headers: {
+                    'Cache-Control': 'no-cache',
+                    'Pragma': 'no-cache'
+                }
+            });
+            
+            if (response.ok) {
+                const pinsData = await response.json();
+                console.log(`📍 Refreshed ${pinsData.features?.length || 0} EnergyNet pins`);
+                
+                // Update the existing pins source
+                const source = this.map.getSource('energynet-pins');
+                if (source) {
+                    source.setData(pinsData);
+                    console.log('✅ Updated EnergyNet pins source with fresh data');
+                }
+            }
+        } catch (error) {
+            console.error('❌ Error refreshing EnergyNet pins:', error);
         }
     }
 

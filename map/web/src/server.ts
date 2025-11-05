@@ -101,6 +101,7 @@ class GeospatialWebServer {
     this.app.post('/api/temperature-lookup', this.temperatureLookup.bind(this));
     this.app.post('/api/geothermal-tile-data', this.getGeothermalTileData.bind(this));
     this.app.get('/api/energynet-parcels', this.getEnergyNetParcels.bind(this));
+    this.app.get('/api/energynet-pins', this.getEnergyNetPins.bind(this));
     this.app.post('/api/scrape-update', this.scrapeUpdate.bind(this));
     this.app.get('/api/generate-cache/:dataSource', this.generateCacheData.bind(this));
     this.app.post('/api/save-cache/:dataSource', this.saveCacheData.bind(this));
@@ -316,6 +317,60 @@ class GeospatialWebServer {
         timestamp: new Date().toISOString(),
         error: 'Database connection failed'
       });
+    }
+  }
+
+  private async getEnergyNetPins(req: express.Request, res: express.Response): Promise<void> {
+    try {
+      console.log('📍 Fetching EnergyNet parcel pins (centroids)...');
+      
+      // Query centroid points for all land parcels
+      const result = await this.pool.query(`
+        SELECT 
+          parcel_id,
+          listing_id,
+          sale_group,
+          state,
+          acres,
+          description,
+          ST_AsGeoJSON(centroid) as geometry
+        FROM energynet_parcels
+        WHERE centroid IS NOT NULL
+        ORDER BY listing_id, parcel_id
+      `);
+      
+      // Convert to GeoJSON FeatureCollection for clustering
+      const features = result.rows.map(row => ({
+        type: 'Feature',
+        id: `${row.listing_id}_${row.parcel_id}`,
+        properties: {
+          parcel_id: row.parcel_id,
+          listing_id: row.listing_id,
+          sale_group: row.sale_group,
+          state: row.state,
+          acres: row.acres,
+          description: row.description || 'Government Land Parcel'
+        },
+        geometry: JSON.parse(row.geometry)
+      }));
+      
+      const geojson = {
+        type: 'FeatureCollection',
+        features,
+        metadata: {
+          total_pins: features.length,
+          total_acres: result.rows.reduce((sum, row) => sum + (row.acres || 0), 0),
+          generated: new Date().toISOString(),
+          data_type: 'pins'
+        }
+      };
+      
+      console.log(`✅ Returning ${features.length} EnergyNet parcel pins`);
+      res.json(geojson);
+      
+    } catch (error) {
+      console.error('❌ Error fetching EnergyNet pins:', error);
+      res.status(500).json({ error: 'Failed to fetch parcel pins' });
     }
   }
 
