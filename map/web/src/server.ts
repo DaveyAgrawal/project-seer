@@ -335,7 +335,7 @@ class GeospatialWebServer {
           description,
           ST_AsGeoJSON(centroid) as geometry
         FROM energynet_parcels
-        WHERE centroid IS NOT NULL
+        WHERE centroid IS NOT NULL AND is_active = true
         ORDER BY listing_id, parcel_id
       `);
       
@@ -486,16 +486,20 @@ class GeospatialWebServer {
     
     if (activeSaleGroups.length === 0) return;
     
-    // Remove listings that are no longer active
+    // Mark listings and parcels as inactive instead of deleting them
     const placeholders = activeSaleGroups.map((_, i) => `$${i + 1}`).join(',');
     
+    // Mark parcels as inactive for expired listings
     await this.pool.query(`
-      DELETE FROM energynet_parcels 
+      UPDATE energynet_parcels 
+      SET is_active = false
       WHERE sale_group NOT IN (${placeholders})
     `, activeSaleGroups);
     
+    // Mark listings as expired
     await this.pool.query(`
-      DELETE FROM energynet_listings 
+      UPDATE energynet_listings 
+      SET status = 'expired', updated_at = NOW()
       WHERE sale_group NOT IN (${placeholders})
     `, activeSaleGroups);
   }
@@ -619,7 +623,7 @@ class GeospatialWebServer {
           description,
           ST_AsGeoJSON(geom) as geometry
         FROM energynet_parcels
-        WHERE geom IS NOT NULL
+        WHERE geom IS NOT NULL AND is_active = true
         ORDER BY listing_id, parcel_id
       `);
       

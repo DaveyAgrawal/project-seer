@@ -39,11 +39,13 @@ CREATE INDEX IF NOT EXISTS energynet_listings_sale_dates_idx ON energynet_listin
 -- Update energynet_parcels to reference sale_group for better organization
 ALTER TABLE energynet_parcels 
 ADD COLUMN IF NOT EXISTS sale_group TEXT,
-ADD COLUMN IF NOT EXISTS region TEXT;
+ADD COLUMN IF NOT EXISTS region TEXT,
+ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true;
 
 -- Add index for sale_group in parcels
 CREATE INDEX IF NOT EXISTS energynet_parcels_sale_group_idx ON energynet_parcels(sale_group);
 CREATE INDEX IF NOT EXISTS energynet_parcels_region_idx ON energynet_parcels(region);
+CREATE INDEX IF NOT EXISTS energynet_parcels_is_active_idx ON energynet_parcels(is_active);
 
 -- Enhanced statistics view for multi-listing analytics
 CREATE OR REPLACE VIEW energynet_multi_stats AS
@@ -125,6 +127,7 @@ WHERE ST_Intersects(
     ST_MakeEnvelope(-67.5, 17.6, -65, 18.6, 4326)   -- Puerto Rico
   ])
 )
+AND is_active = true
 AND EXISTS (
   SELECT 1 FROM energynet_listings l 
   WHERE l.sale_group = energynet_parcels.sale_group 
