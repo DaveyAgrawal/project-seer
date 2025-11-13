@@ -297,8 +297,8 @@ export class MultiListingDatabase {
 
                 const query = `
                     INSERT INTO energynet_parcels (
-                        listing_id, parcel_id, sale_group, state, region, acres, description, props, geom
-                    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, ST_GeomFromGeoJSON($9))
+                        listing_id, parcel_id, sale_group, state, region, acres, description, props, geom, is_active
+                    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, ST_GeomFromGeoJSON($9), $10)
                     ON CONFLICT (listing_id, parcel_id) DO UPDATE SET
                         sale_group = EXCLUDED.sale_group,
                         state = EXCLUDED.state,
@@ -306,7 +306,8 @@ export class MultiListingDatabase {
                         acres = EXCLUDED.acres,
                         description = EXCLUDED.description,
                         props = EXCLUDED.props,
-                        geom = EXCLUDED.geom
+                        geom = EXCLUDED.geom,
+                        is_active = EXCLUDED.is_active
                 `;
 
                 const values = [
@@ -328,7 +329,8 @@ export class MultiListingDatabase {
                         acres: undefined,
                         description: undefined
                     }),
-                    JSON.stringify(parcel.geometry)
+                    JSON.stringify(parcel.geometry),
+                    listingData.status === 'active' // Set is_active based on listing status
                 ];
 
                 await client.query(query, values);
