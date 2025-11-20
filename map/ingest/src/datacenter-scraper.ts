@@ -107,6 +107,7 @@ export class DatacenterScraper {
 
   /**
    * Discover all datacenter facility URLs from paginated listings
+   * Site has 204 pages with 40 results per page (8129 total listings)
    */
   async discoverAllDatacenters(): Promise<string[]> {
     if (!this.page) {
@@ -115,23 +116,14 @@ export class DatacenterScraper {
 
     const facilityUrls: string[] = [];
     const startUrl = `${this.baseUrl}/locations`;
+    const totalPages = 204; // 8129 listings / 40 per page = 204 pages
+    const resultsPerPage = 40;
 
     console.log(`🔍 Starting discovery from ${startUrl}`);
+    console.log(`📊 Expected: ${totalPages} pages, ~40 results per page, ~8129 total listings`);
     this.sendProgress('discovering', { message: 'Starting to discover datacenters...' });
 
     try {
-      // Navigate to the first page to determine total pages
-      await this.page.goto(startUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
-      await this.respectfulDelay();
-
-      const content = await this.page.content();
-      const $ = cheerio.load(content);
-
-      // Determine total number of pages (assume 203 as specified)
-      // Adjust this selector based on actual site structure
-      const totalPages = 203;
-      console.log(`📄 Total pages to scrape: ${totalPages}`);
-
       // Iterate through all pages
       for (let currentPage = 1; currentPage <= totalPages; currentPage++) {
         try {
@@ -145,24 +137,33 @@ export class DatacenterScraper {
           const pageUrl = currentPage === 1 ? startUrl : `${startUrl}?page=${currentPage}`;
 
           // Navigate to the page
-          await this.page.goto(pageUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
+          await this.page.goto(pageUrl, { waitUntil: 'networkidle', timeout: 30000 });
+
+          // Wait a bit for JavaScript to render
+          await this.page.waitForTimeout(1000);
           await this.respectfulDelay();
 
           // Extract facility URLs from the page
           const pageContent = await this.page.content();
           const page$ = cheerio.load(pageContent);
 
-          // Extract all facility links
-          // Adjust these selectors based on actual site structure
+          // Extract all facility links - they follow pattern: /provider-slug-datacenter-slug
           const facilityLinks: string[] = [];
 
-          page$('a[href*="/locations/"]').each((_, element) => {
+          // Look for links that match datacenter detail page pattern
+          page$('a[href^="/"]').each((_, element) => {
             const href = page$(element).attr('href');
-            if (href && href.includes('/locations/') && !href.endsWith('/locations')) {
-              // Build full URL
-              const fullUrl = href.startsWith('http') ? href : `${this.baseUrl}${href}`;
+            if (href &&
+                !href.startsWith('/locations') &&
+                !href.startsWith('/providers') &&
+                !href.includes('?') &&
+                href !== '/' &&
+                href.split('/').length === 2 && // Only one path segment
+                href.split('-').length >= 2) { // Has provider-datacenter format
 
-              // Avoid duplicates and ensure it's a facility page
+              const fullUrl = `${this.baseUrl}${href}`;
+
+              // Avoid duplicates
               if (!facilityUrls.includes(fullUrl) && !facilityLinks.includes(fullUrl)) {
                 facilityLinks.push(fullUrl);
               }
@@ -227,6 +228,7 @@ export class DatacenterScraper {
 
   /**
    * Extract all datacenter fields from the page HTML
+   * Data is stored in embedded JSON within script tags
    */
   private extractDatacenterFields($: cheerio.CheerioAPI, facilityUrl: string): DatacenterData {
     const datacenter: DatacenterData = {
@@ -236,110 +238,152 @@ export class DatacenterScraper {
       missingFields: []
     };
 
-    // Extract basic information
-    // Note: These selectors are placeholders and need to be adjusted based on actual site structure
+    try {
+      // Find and parse the embedded JSON data in script tags
+      let locationData: any = null;
 
-    // Name (facility name, not parent company)
-    datacenter.name = $('h1.facility-name, .datacenter-name, h1').first().text().trim() || 'Unknown Facility';
+      $('script').each((_, script) => {
+        const scriptContent = $(script).html();
+        if (scriptContent && scriptContent.includes('"location"') && scriptContent.includes('"latitude"')) {
+          try {
+            // Try to extract JSON object
+            const jsonMatch = scriptContent.match(/\{[\s\S]*"location"[\s\S]*\}/);
+            if (jsonMatch) {
+              locationData = JSON.parse(jsonMatch[0]);
+            }
+          } catch (e) {
+            // Continue trying other scripts
+          }
+        }
+      });
 
-    // Operator/Company
-    datacenter.operator = $('.operator, .company-name, .provider').first().text().trim() || undefined;
+      if (!locationData || !locationData.location) {
+        console.warn(`⚠️ No embedded JSON found for ${facilityUrl}, trying HTML extraction`);
+        return this.extractFromHTML($, facilityUrl);
+      }
 
-    // Address fields
-    datacenter.streetAddress = $('.address, .street-address').first().text().trim() || undefined;
-    datacenter.city = $('.city, .locality').first().text().trim() || undefined;
-    datacenter.state = $('.state, .region').first().text().trim() || undefined;
-    datacenter.country = $('.country').first().text().trim() || 'Unknown';
+      const location = locationData.location;
+      const provider = locationData.provider || {};
+      const city = locationData.city || {};
+      const countryState = locationData.countryState || {};
+      const country = locationData.country || {};
 
-    // Latitude/Longitude
-    // Look for lat/lng in meta tags, data attributes, or embedded maps
+      // Extract basic information
+      datacenter.name = location.name || 'Unknown Facility';
+      datacenter.operator = provider.name || undefined;
+
+      // Address parsing
+      if (location.fullAddress) {
+        datacenter.streetAddress = location.fullAddress;
+        // Try to parse components
+        const addressParts = location.fullAddress.split(',');
+        if (addressParts.length >= 2) {
+          datacenter.city = city.name || addressParts[addressParts.length - 2].trim();
+          datacenter.country = country.name || addressParts[addressParts.length - 1].trim();
+        }
+      }
+
+      datacenter.city = city.name || datacenter.city || undefined;
+      datacenter.state = countryState.name || undefined;
+      datacenter.country = country.name || datacenter.country || 'Unknown';
+
+      // Geographic coordinates
+      datacenter.latitude = location.latitude ? parseFloat(location.latitude) : undefined;
+      datacenter.longitude = location.longitude ? parseFloat(location.longitude) : undefined;
+
+      // Technical specifications
+      if (location.grossBuildingSize && parseFloat(location.grossBuildingSize) > 0) {
+        datacenter.squareFootage = parseFloat(location.grossBuildingSize);
+      }
+
+      datacenter.facilityType = location.type || undefined;
+
+      if (location.totalPowerMw && parseFloat(location.totalPowerMw) > 0) {
+        datacenter.powerCapacityMw = parseFloat(location.totalPowerMw);
+      }
+
+      // Certifications
+      if (location.certifications && Array.isArray(location.certifications)) {
+        const certs = location.certifications
+          .filter((cert: any) => cert.active)
+          .map((cert: any) => cert.abbreviation);
+        datacenter.certifications = certs.length > 0 ? certs : undefined;
+      }
+
+      // Features (Bare Metal, Internet Exchange, Colocation, IaaS)
+      if (location.facilities && Array.isArray(location.facilities)) {
+        const features: Record<string, boolean> = {};
+        location.facilities.forEach((facility: any) => {
+          const slug = facility.slug || facility.name.toLowerCase().replace(/\s+/g, '_');
+          features[slug] = facility.live || false;
+        });
+        datacenter.features = Object.keys(features).length > 0 ? features : undefined;
+      }
+
+      // Provider URL
+      if (provider.url) {
+        datacenter.providerUrl = provider.url.startsWith('http') ? provider.url : `${this.baseUrl}${provider.url}`;
+      }
+
+      // Breadcrumb hierarchy (from location data)
+      const breadcrumbs: string[] = [];
+      if (country.name && country.name !== 'Unknown') breadcrumbs.push(country.name);
+      if (countryState.name) breadcrumbs.push(countryState.name);
+      if (city.name) breadcrumbs.push(city.name);
+      if (location.name) breadcrumbs.push(location.name);
+      datacenter.breadcrumbHierarchy = breadcrumbs.length > 0 ? breadcrumbs : undefined;
+
+      // Market region
+      datacenter.marketRegion = location.marketLabel || `${city.name}, ${countryState.name || country.name}`;
+
+      // Miles to airport
+      if (location.nearestAirport) {
+        datacenter.milesToAirport = parseFloat(location.nearestAirport);
+      }
+
+      // Phone number
+      datacenter.phoneNumber = provider.supportNumber || location.phone || undefined;
+
+      // Media availability flags
+      datacenter.hasImages = location.images && Array.isArray(location.images) && location.images.length > 0;
+      datacenter.hasBrochures = location.locationBrochures && Array.isArray(location.locationBrochures) && location.locationBrochures.length > 0;
+      datacenter.hasMedia = datacenter.hasImages || datacenter.hasBrochures;
+
+      // Nearby datacenter count - try to extract from page text
+      const bodyText = $('body').text();
+      const nearbyMatch = bodyText.match(/(\d+)\s+facilities?\s+within\s+50\s+miles/i);
+      if (nearbyMatch) {
+        datacenter.nearbyDatacenterCount = parseInt(nearbyMatch[1], 10);
+      }
+
+    } catch (error) {
+      console.error(`❌ Error extracting JSON data for ${facilityUrl}:`, error);
+      return this.extractFromHTML($, facilityUrl);
+    }
+
+    return datacenter;
+  }
+
+  /**
+   * Fallback: Extract from HTML when JSON is not available
+   */
+  private extractFromHTML($: cheerio.CheerioAPI, facilityUrl: string): DatacenterData {
+    const datacenter: DatacenterData = {
+      facilityUrl,
+      name: $('h1').first().text().trim() || 'Unknown Facility',
+      country: 'Unknown'
+    };
+
+    // Basic extraction from HTML as fallback
+    datacenter.operator = $('.provider-name, .operator').first().text().trim() || undefined;
+    datacenter.streetAddress = $('.address').first().text().trim() || undefined;
+
+    // Try to extract lat/lng from meta tags or data attributes
     const latLng = this.extractLatLng($);
     if (latLng) {
       datacenter.latitude = latLng.lat;
       datacenter.longitude = latLng.lng;
     }
-
-    // Technical specifications
-    const sqft = $('.square-footage, .size').first().text().trim();
-    if (sqft) {
-      datacenter.squareFootage = this.parseNumber(sqft);
-    }
-
-    datacenter.facilityType = $('.facility-type, .type').first().text().trim() || undefined;
-
-    const powerMw = $('.power-capacity, .power').first().text().trim();
-    if (powerMw) {
-      datacenter.powerCapacityMw = this.parseNumber(powerMw);
-    }
-
-    // Certifications
-    const certifications: string[] = [];
-    $('.certification, .cert, .badge').each((_, el) => {
-      const cert = $(el).text().trim();
-      if (cert && cert.length > 0) {
-        certifications.push(cert);
-      }
-    });
-    datacenter.certifications = certifications.length > 0 ? certifications : undefined;
-
-    // Features (Bare Metal, Internet Exchange, Colocation, IaaS)
-    const features: Record<string, boolean> = {};
-    const featureKeywords = ['bare metal', 'internet exchange', 'colocation', 'iaas', 'cloud', 'managed services'];
-
-    $('.feature-box, .feature, .service').each((_, el) => {
-      const featureText = $(el).text().toLowerCase().trim();
-      featureKeywords.forEach(keyword => {
-        if (featureText.includes(keyword)) {
-          features[keyword.replace(' ', '_')] = true;
-        }
-      });
-    });
-    datacenter.features = Object.keys(features).length > 0 ? features : undefined;
-
-    // Provider URL
-    const providerLink = $('a[href*="/providers/"], a.provider-link').first().attr('href');
-    if (providerLink) {
-      datacenter.providerUrl = providerLink.startsWith('http') ? providerLink : `${this.baseUrl}${providerLink}`;
-    }
-
-    // Breadcrumb hierarchy
-    const breadcrumbs: string[] = [];
-    $('.breadcrumb a, nav.breadcrumb a, .breadcrumbs a').each((_, el) => {
-      const crumb = $(el).text().trim();
-      if (crumb && crumb.length > 0 && crumb.toLowerCase() !== 'home') {
-        breadcrumbs.push(crumb);
-      }
-    });
-    datacenter.breadcrumbHierarchy = breadcrumbs.length > 0 ? breadcrumbs : undefined;
-
-    // Market/region label
-    datacenter.marketRegion = $('.market-label, .region-label, .market').first().text().trim() || undefined;
-
-    // Nearby datacenter count
-    const nearbyText = $('.nearby-count, .density').first().text().trim();
-    if (nearbyText) {
-      const nearbyMatch = nearbyText.match(/(\d+)/);
-      if (nearbyMatch) {
-        datacenter.nearbyDatacenterCount = parseInt(nearbyMatch[1], 10);
-      }
-    }
-
-    // Miles to airport
-    const airportText = $('.airport-distance, .miles-to-airport').first().text().trim();
-    if (airportText) {
-      const milesMatch = airportText.match(/(\d+\.?\d*)/);
-      if (milesMatch) {
-        datacenter.milesToAirport = parseFloat(milesMatch[1]);
-      }
-    }
-
-    // Phone number
-    datacenter.phoneNumber = $('.phone, .contact-phone, [href^="tel:"]').first().text().trim() || undefined;
-
-    // Media availability flags
-    datacenter.hasImages = $('img.facility-image, .gallery img, .photo').length > 0;
-    datacenter.hasBrochures = $('a[href$=".pdf"], .brochure-download').length > 0;
-    datacenter.hasMedia = $('.media-tab, .gallery, .photos').length > 0;
 
     return datacenter;
   }
