@@ -5,6 +5,7 @@ import { Pool } from 'pg';
 import { config } from 'dotenv';
 import path from 'path';
 import { MultiListingScraper } from '../../ingest/dist/multi-listing-scraper';
+import { DatacenterScraper } from '../../ingest/dist/datacenter-scraper';
 
 // Load environment variables
 config();
@@ -103,6 +104,8 @@ class GeospatialWebServer {
     this.app.get('/api/energynet-parcels', this.getEnergyNetParcels.bind(this));
     this.app.get('/api/energynet-pins', this.getEnergyNetPins.bind(this));
     this.app.post('/api/scrape-update', this.scrapeUpdate.bind(this));
+    this.app.get('/api/datacenters', this.getDatacenters.bind(this));
+    this.app.post('/api/scrape-datacenters', this.scrapeDatacenters.bind(this));
     this.app.get('/api/generate-cache/:dataSource', this.generateCacheData.bind(this));
     this.app.post('/api/save-cache/:dataSource', this.saveCacheData.bind(this));
     this.app.post('/api/apply-schema', this.applySchema.bind(this));
@@ -514,33 +517,167 @@ class GeospatialWebServer {
 
   private async processListingWithRetries(listing: any, sendProgress: Function): Promise<boolean> {
     const maxRetries = 3;
-    
+
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         sendProgress({
           status: 'processing',
           message: `Processing ${listing.saleGroup} (attempt ${attempt}/${maxRetries})...`
         });
-        
+
         // This would integrate with the existing EnergyNetProcessor
         // For now, we'll just simulate success
         await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate processing time
-        
+
         return true;
-        
+
       } catch (error) {
         console.error(`❌ Attempt ${attempt} failed for ${listing.saleGroup}:`, error);
-        
+
         if (attempt === maxRetries) {
           return false;
         }
-        
+
         // Wait before retry
         await new Promise(resolve => setTimeout(resolve, 2000));
       }
     }
-    
+
     return false;
+  }
+
+  private async getDatacenters(req: express.Request, res: express.Response): Promise<void> {
+    try {
+      console.log('🏢 Fetching datacenter facilities...');
+
+      // Query datacenter facilities (US only for map display)
+      const result = await this.pool.query(`
+        SELECT
+          internal_id,
+          facility_url,
+          name,
+          operator,
+          city,
+          state,
+          country,
+          latitude,
+          longitude,
+          power_capacity_mw,
+          facility_type,
+          certifications,
+          features,
+          ST_AsGeoJSON(geom) as geometry
+        FROM datacenter_listings
+        WHERE is_us = true AND latitude IS NOT NULL AND longitude IS NOT NULL
+        ORDER BY name
+      `);
+
+      // Convert to GeoJSON FeatureCollection for clustering
+      const features = result.rows.map(row => ({
+        type: 'Feature',
+        id: row.internal_id,
+        properties: {
+          internal_id: row.internal_id,
+          facility_url: row.facility_url,
+          name: row.name,
+          operator: row.operator,
+          city: row.city,
+          state: row.state,
+          country: row.country,
+          power_capacity_mw: row.power_capacity_mw,
+          facility_type: row.facility_type,
+          certifications: row.certifications,
+          features: row.features
+        },
+        geometry: JSON.parse(row.geometry)
+      }));
+
+      const geojson = {
+        type: 'FeatureCollection',
+        features,
+        metadata: {
+          total_datacenters: features.length,
+          total_power_mw: result.rows.reduce((sum, row) => sum + (row.power_capacity_mw || 0), 0),
+          generated: new Date().toISOString(),
+          data_type: 'datacenters',
+          filter: 'US only'
+        }
+      };
+
+      console.log(`✅ Returning ${features.length} US datacenter facilities`);
+      res.json(geojson);
+
+    } catch (error) {
+      console.error('❌ Error fetching datacenters:', error);
+      res.status(500).json({ error: 'Failed to fetch datacenters' });
+    }
+  }
+
+  private async scrapeDatacenters(req: express.Request, res: express.Response): Promise<void> {
+    try {
+      console.log('🔄 Starting datacenter scraper...');
+
+      // Set up Server-Sent Events for progress tracking
+      res.writeHead(200, {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Cache-Control'
+      });
+
+      const sendProgress = (data: any) => {
+        res.write(`data: ${JSON.stringify(data)}\n\n`);
+      };
+
+      // Send initial progress
+      sendProgress({ status: 'starting', message: 'Initializing datacenter scraper...' });
+
+      const scraper = new DatacenterScraper(true);
+
+      try {
+        await scraper.initialize();
+
+        // Set up progress callback
+        scraper.setProgressCallback((status: string, data?: any) => {
+          sendProgress({ status, ...data });
+        });
+
+        sendProgress({ status: 'discovering', message: 'Discovering datacenter facilities...' });
+
+        // Start the full scrape
+        const stats = await scraper.scrapeAll();
+
+        // Send completion status
+        const completionData = {
+          status: 'complete',
+          message: `Scrape complete: ${stats.processed} processed, ${stats.failed} failed, ${stats.skipped} skipped`,
+          totalDiscovered: stats.discovered,
+          totalProcessed: stats.processed,
+          totalFailed: stats.failed,
+          totalSkipped: stats.skipped,
+          totalUs: stats.totalUs,
+          totalInternational: stats.totalInternational
+        };
+
+        sendProgress(completionData);
+        console.log('✅ Datacenter scraper completed:', completionData);
+
+      } catch (error) {
+        console.error('❌ Datacenter scraper error:', error);
+        sendProgress({
+          status: 'error',
+          message: `Scraper failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+        });
+      } finally {
+        await scraper.close();
+        res.end();
+      }
+
+    } catch (error) {
+      console.error('❌ Datacenter scraper failed:', error);
+      res.status(500).json({ error: 'Datacenter scraper failed' });
+    }
   }
 
   public async start(): Promise<void> {
