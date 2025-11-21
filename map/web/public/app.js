@@ -17,7 +17,8 @@ class GeospatialApp {
             transmissionLines: true,
             geothermalPoints: false,
             hexagonMesh: false,
-            energynetParcels: true
+            energynetParcels: true,
+            datacenters: true
         };
         
         // Mesh configuration (65 square miles per hexagon)
@@ -35,14 +36,16 @@ class GeospatialApp {
             metadata: null,
             geothermal: null,
             transmission: null,
-            energynet: null
+            energynet: null,
+            datacenters: null
         };
-        
+
         // Track data source types for proper layer styling
         this.dataSourceTypes = {
             transmission: 'vector', // 'vector' or 'geojson'
             geothermal: 'api',      // 'api' or 'geojson'
-            energynet: 'api'        // 'api' for EnergyNet parcels
+            energynet: 'api',       // 'api' for EnergyNet parcels
+            datacenters: 'api'      // 'api' for datacenters
         };
         
         this.init();
@@ -347,7 +350,11 @@ class GeospatialApp {
         // Add EnergyNet land parcels layer
         console.log('🏞️ Adding EnergyNet land parcels layer...');
         this.addEnergyNetParcelsLayer();
-        
+
+        // Add Datacenter facilities layer
+        console.log('🏢 Adding Datacenter facilities layer...');
+        this.addDatacenterLayer();
+
         // Add hexagon mesh layer with geothermal aggregation (no individual points needed)
         console.log('🕒 Starting hexagon mesh creation with sectioned geothermal data...');
         this.addHexagonMeshLayer();
@@ -1741,6 +1748,16 @@ class GeospatialApp {
             this.updateActiveListings();
         });
 
+        // Datacenter controls
+        document.getElementById('datacenter-toggle').addEventListener('change', (e) => {
+            this.toggleDatacenters(e.target.checked);
+        });
+
+        // Update Data Centers button
+        document.getElementById('update-datacenters-btn').addEventListener('click', () => {
+            this.updateDatacenters();
+        });
+
         // Mesh controls
         document.getElementById('mesh-toggle').addEventListener('change', (e) => {
             this.toggleMesh(e.target.checked);
@@ -2094,7 +2111,7 @@ class GeospatialApp {
     async refreshEnergyNetPins() {
         try {
             console.log('📍 Refreshing EnergyNet pins data...');
-            
+
             // Load fresh pins data
             const response = await fetch('/api/energynet-pins', {
                 headers: {
@@ -2102,11 +2119,11 @@ class GeospatialApp {
                     'Pragma': 'no-cache'
                 }
             });
-            
+
             if (response.ok) {
                 const pinsData = await response.json();
                 console.log(`📍 Refreshed ${pinsData.features?.length || 0} EnergyNet pins`);
-                
+
                 // Update the existing pins source
                 const source = this.map.getSource('energynet-pins');
                 if (source) {
@@ -2116,6 +2133,374 @@ class GeospatialApp {
             }
         } catch (error) {
             console.error('❌ Error refreshing EnergyNet pins:', error);
+        }
+    }
+
+    // ==== DATACENTER METHODS ====
+
+    async addDatacenterLayer() {
+        console.log('🏢 Adding Datacenter facilities layer...');
+
+        try {
+            // Add source for datacenters
+            if (!this.map.getSource('datacenters')) {
+                this.map.addSource('datacenters', {
+                    type: 'geojson',
+                    data: {
+                        type: 'FeatureCollection',
+                        features: []
+                    },
+                    cluster: true,
+                    clusterMaxZoom: 14,
+                    clusterRadius: 50
+                });
+                console.log('✅ Added datacenters source');
+            }
+
+            // Add cluster circles layer
+            this.map.addLayer({
+                id: 'datacenter-clusters',
+                type: 'circle',
+                source: 'datacenters',
+                filter: ['has', 'point_count'],
+                paint: {
+                    'circle-color': '#00FF00', // Green for datacenters
+                    'circle-radius': [
+                        'step',
+                        ['get', 'point_count'],
+                        20,   // radius for clusters with 1-99 points
+                        100, 30,  // radius for clusters with 100-999 points
+                        750, 40   // radius for clusters with 1000+ points
+                    ],
+                    'circle-opacity': 0.7,
+                    'circle-stroke-width': 2,
+                    'circle-stroke-color': '#006600'
+                }
+            });
+
+            // Add cluster count labels
+            this.map.addLayer({
+                id: 'datacenter-cluster-count',
+                type: 'symbol',
+                source: 'datacenters',
+                filter: ['has', 'point_count'],
+                layout: {
+                    'text-field': '{point_count_abbreviated}',
+                    'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+                    'text-size': 12
+                },
+                paint: {
+                    'text-color': 'white'
+                }
+            });
+
+            // Add unclustered point layer (individual datacenters)
+            this.map.addLayer({
+                id: 'datacenter-points',
+                type: 'circle',
+                source: 'datacenters',
+                filter: ['!', ['has', 'point_count']],
+                paint: {
+                    'circle-color': '#00FF00', // Green for datacenters
+                    'circle-radius': 8,
+                    'circle-opacity': 0.7,
+                    'circle-stroke-width': 2,
+                    'circle-stroke-color': '#006600'
+                }
+            });
+
+            console.log('✅ Successfully added datacenter layers');
+
+            // Load datacenter data
+            await this.loadDatacenters();
+
+            // Set initial visibility
+            this.toggleDatacenters(this.layerState.datacenters);
+
+            // Add click handlers for clusters
+            this.map.on('click', 'datacenter-clusters', (e) => {
+                const features = this.map.queryRenderedFeatures(e.point, {
+                    layers: ['datacenter-clusters']
+                });
+                const clusterId = features[0].properties.cluster_id;
+                this.map.getSource('datacenters').getClusterExpansionZoom(clusterId, (err, zoom) => {
+                    if (!err) {
+                        this.map.easeTo({
+                            center: features[0].geometry.coordinates,
+                            zoom: zoom
+                        });
+                    }
+                });
+            });
+
+            // Add click handler for individual datacenters
+            this.map.on('click', 'datacenter-points', (e) => {
+                this.showDatacenterPopup(e);
+            });
+
+            // Add hover cursor
+            this.map.on('mouseenter', 'datacenter-clusters', () => {
+                this.map.getCanvas().style.cursor = 'pointer';
+            });
+            this.map.on('mouseleave', 'datacenter-clusters', () => {
+                this.map.getCanvas().style.cursor = '';
+            });
+
+            this.map.on('mouseenter', 'datacenter-points', () => {
+                this.map.getCanvas().style.cursor = 'pointer';
+            });
+            this.map.on('mouseleave', 'datacenter-points', () => {
+                this.map.getCanvas().style.cursor = '';
+            });
+
+        } catch (error) {
+            console.error('❌ Error adding datacenter layer:', error);
+        }
+    }
+
+    async loadDatacenters() {
+        try {
+            console.log('📡 Loading datacenter facilities data...');
+
+            const response = await fetch('/api/datacenters', {
+                headers: {
+                    'Cache-Control': 'no-cache',
+                    'Pragma': 'no-cache'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            console.log(`🏢 Loaded ${data.features?.length || 0} US datacenter facilities`);
+
+            // Update the map source
+            const source = this.map.getSource('datacenters');
+            if (source) {
+                source.setData(data);
+                console.log('✅ Updated datacenters source with data');
+            }
+
+            // Cache the data
+            this.dataCache.datacenters = data;
+
+        } catch (error) {
+            console.error('❌ Error loading datacenters:', error);
+        }
+    }
+
+    toggleDatacenters(visible) {
+        const layers = ['datacenter-clusters', 'datacenter-cluster-count', 'datacenter-points'];
+        layers.forEach(layerId => {
+            try {
+                if (this.map.getLayer(layerId)) {
+                    this.map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
+                }
+            } catch (error) {
+                // Layer might not exist, ignore
+            }
+        });
+    }
+
+    showDatacenterPopup(e) {
+        const feature = e.features[0];
+        const props = feature.properties;
+
+        // Parse JSONB fields if they're strings
+        let certifications = [];
+        let features = {};
+
+        try {
+            certifications = props.certifications ? JSON.parse(props.certifications) : [];
+        } catch (e) {
+            certifications = [];
+        }
+
+        try {
+            features = props.features ? JSON.parse(props.features) : {};
+        } catch (e) {
+            features = {};
+        }
+
+        // Build certifications HTML
+        let certificationsHTML = '';
+        if (certifications && certifications.length > 0) {
+            certificationsHTML = `
+                <div class="popup-row">
+                    <span class="popup-label">Certifications:</span>
+                    <span class="popup-value">${certifications.join(', ')}</span>
+                </div>
+            `;
+        }
+
+        // Build features HTML
+        let featuresHTML = '';
+        const activeFeatures = Object.entries(features).filter(([k, v]) => v).map(([k, v]) => k.replace(/_/g, ' '));
+        if (activeFeatures.length > 0) {
+            featuresHTML = `
+                <div class="popup-row">
+                    <span class="popup-label">Features:</span>
+                    <span class="popup-value">${activeFeatures.join(', ')}</span>
+                </div>
+            `;
+        }
+
+        const html = `
+            <div class="popup-header">🏢 ${props.name || 'Datacenter Facility'}</div>
+            <div class="popup-row">
+                <span class="popup-label">Operator:</span>
+                <span class="popup-value">${props.operator || 'N/A'}</span>
+            </div>
+            <div class="popup-row">
+                <span class="popup-label">Location:</span>
+                <span class="popup-value">${props.city || 'N/A'}, ${props.state || 'N/A'}</span>
+            </div>
+            ${props.power_capacity_mw ? `
+            <div class="popup-row">
+                <span class="popup-label">Power Capacity:</span>
+                <span class="popup-value">${props.power_capacity_mw} MW</span>
+            </div>
+            ` : ''}
+            ${props.facility_type ? `
+            <div class="popup-row">
+                <span class="popup-label">Type:</span>
+                <span class="popup-value">${props.facility_type}</span>
+            </div>
+            ` : ''}
+            ${certificationsHTML}
+            ${featuresHTML}
+        `;
+
+        new maplibregl.Popup()
+            .setLngLat(feature.geometry.coordinates)
+            .setHTML(html)
+            .addTo(this.map);
+    }
+
+    async updateDatacenters() {
+        const button = document.getElementById('update-datacenters-btn');
+        const icon = button.querySelector('i');
+
+        try {
+            // Disable button and show loading state
+            button.disabled = true;
+            button.classList.add('loading');
+            button.innerHTML = '<i class="fas fa-sync-alt"></i> Updating...';
+
+            // Disable datacenter layer toggle during update
+            const datacenterToggle = document.getElementById('datacenter-toggle');
+            datacenterToggle.disabled = true;
+
+            console.log('🔄 Starting datacenter scraper...');
+
+            // Connect to the scraper endpoint with Server-Sent Events
+            const response = await fetch('/api/scrape-datacenters', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'text/event-stream',
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+
+            while (true) {
+                const { value, done } = await reader.read();
+                if (done) break;
+
+                const chunk = decoder.decode(value);
+                const lines = chunk.split('\n');
+
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        try {
+                            const data = JSON.parse(line.substring(6));
+                            this.handleDatacenterScraperProgress(data, button);
+                        } catch (e) {
+                            console.warn('Failed to parse SSE data:', line);
+                        }
+                    }
+                }
+            }
+
+        } catch (error) {
+            console.error('❌ Error updating datacenters:', error);
+            button.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Update Failed';
+            setTimeout(() => {
+                button.innerHTML = '<i class="fas fa-sync-alt"></i> Update Data Centers';
+                button.disabled = false;
+                button.classList.remove('loading');
+            }, 3000);
+        } finally {
+            // Re-enable datacenter layer toggle
+            const datacenterToggle = document.getElementById('datacenter-toggle');
+            datacenterToggle.disabled = false;
+        }
+    }
+
+    handleDatacenterScraperProgress(data, button) {
+        const { status, message, currentPage, totalPages, currentListing, totalListings } = data;
+
+        console.log(`📡 Datacenter scraper progress: ${status} - ${message}`);
+
+        switch (status) {
+            case 'starting':
+                button.innerHTML = '<i class="fas fa-sync-alt"></i> Starting...';
+                break;
+
+            case 'discovering':
+                if (currentPage && totalPages) {
+                    const progress = Math.round((currentPage / totalPages) * 100);
+                    button.innerHTML = `<i class="fas fa-search"></i> Page ${currentPage}/${totalPages} (${progress}%)`;
+                } else {
+                    button.innerHTML = '<i class="fas fa-search"></i> Discovering...';
+                }
+                break;
+
+            case 'discovered':
+                button.innerHTML = `<i class="fas fa-list"></i> Found ${totalListings} facilities`;
+                break;
+
+            case 'scraping':
+                if (currentListing && totalListings) {
+                    const progress = Math.round((currentListing / totalListings) * 100);
+                    button.innerHTML = `<i class="fas fa-cog"></i> ${progress}% (${currentListing}/${totalListings})`;
+                } else {
+                    button.innerHTML = '<i class="fas fa-cog"></i> Scraping...';
+                }
+                break;
+
+            case 'complete':
+                button.innerHTML = '<i class="fas fa-check"></i> Update Complete';
+                console.log('✅ Datacenter scraper completed successfully');
+
+                // Refresh the datacenter data
+                setTimeout(async () => {
+                    console.log('🔄 Refreshing datacenter data...');
+                    await this.loadDatacenters();
+
+                    // Reset button
+                    button.innerHTML = '<i class="fas fa-sync-alt"></i> Update Data Centers';
+                    button.disabled = false;
+                    button.classList.remove('loading');
+                }, 1000);
+                break;
+
+            case 'error':
+                button.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error';
+                console.error('❌ Datacenter scraper error:', message);
+                setTimeout(() => {
+                    button.innerHTML = '<i class="fas fa-sync-alt"></i> Update Data Centers';
+                    button.disabled = false;
+                    button.classList.remove('loading');
+                }, 3000);
+                break;
         }
     }
 
