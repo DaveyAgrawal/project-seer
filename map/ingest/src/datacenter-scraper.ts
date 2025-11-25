@@ -30,7 +30,7 @@ export interface ScrapingStats {
 export class DatacenterScraper {
   private browser: Browser | null = null;
   private page: Page | null = null;
-  private db: DatacenterDatabase;
+  private db: DatacenterDatabase | null = null;
   private progressCallback: ProgressCallback | null = null;
 
   // Anti-bot configuration
@@ -192,7 +192,8 @@ export class DatacenterScraper {
 
     } catch (error) {
       console.error('❌ Error during discovery:', error);
-      this.sendProgress('error', { message: `Discovery failed: ${error.message}` });
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      this.sendProgress('error', { message: `Discovery failed: ${errorMessage}` });
       throw error;
     }
   }
@@ -213,10 +214,7 @@ export class DatacenterScraper {
       await this.respectfulDelay();
 
       const content = await this.page.content();
-      const $ = cheerio.load(content);
-
-      // Extract all required fields
-      const datacenter = this.extractDatacenterFields($, facilityUrl);
+      const datacenter = this.extractDatacenterFields(content, facilityUrl);
 
       return datacenter;
 
@@ -230,7 +228,9 @@ export class DatacenterScraper {
    * Extract all datacenter fields from the page HTML
    * Data is stored in embedded JSON within script tags
    */
-  private extractDatacenterFields($: cheerio.CheerioAPI, facilityUrl: string): DatacenterData {
+  private extractDatacenterFields(htmlContent: string, facilityUrl: string): DatacenterData {
+    const $ = cheerio.load(htmlContent);
+
     const datacenter: DatacenterData = {
       facilityUrl,
       name: '',
@@ -259,7 +259,7 @@ export class DatacenterScraper {
 
       if (!locationData || !locationData.location) {
         console.warn(`⚠️ No embedded JSON found for ${facilityUrl}, trying HTML extraction`);
-        return this.extractFromHTML($, facilityUrl);
+        return this.extractFromHTML(htmlContent, facilityUrl);
       }
 
       const location = locationData.location;
@@ -358,7 +358,7 @@ export class DatacenterScraper {
 
     } catch (error) {
       console.error(`❌ Error extracting JSON data for ${facilityUrl}:`, error);
-      return this.extractFromHTML($, facilityUrl);
+      return this.extractFromHTML(htmlContent, facilityUrl);
     }
 
     return datacenter;
@@ -367,7 +367,9 @@ export class DatacenterScraper {
   /**
    * Fallback: Extract from HTML when JSON is not available
    */
-  private extractFromHTML($: cheerio.CheerioAPI, facilityUrl: string): DatacenterData {
+  private extractFromHTML(htmlContent: string, facilityUrl: string): DatacenterData {
+    const $ = cheerio.load(htmlContent);
+
     const datacenter: DatacenterData = {
       facilityUrl,
       name: $('h1').first().text().trim() || 'Unknown Facility',
@@ -391,7 +393,7 @@ export class DatacenterScraper {
   /**
    * Extract latitude and longitude from page
    */
-  private extractLatLng($: cheerio.CheerioAPI): { lat: number; lng: number } | null {
+  private extractLatLng($: ReturnType<typeof cheerio.load>): { lat: number; lng: number } | null {
     // Try meta tags
     const lat = $('meta[property="place:location:latitude"], meta[name="geo.position"]').attr('content');
     const lng = $('meta[property="place:location:longitude"]').attr('content');
@@ -541,7 +543,8 @@ export class DatacenterScraper {
 
     } catch (error) {
       console.error('❌ Fatal error during scraping:', error);
-      this.sendProgress('error', { message: `Scraping failed: ${error.message}` });
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      this.sendProgress('error', { message: `Scraping failed: ${errorMessage}` });
       throw error;
     }
   }

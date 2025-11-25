@@ -72,16 +72,16 @@ async function showStats(): Promise<void> {
 
     console.log('Overall Statistics:');
     console.log('─'.repeat(50));
-    console.log(`  Total Datacenters:       ${stats.total_datacenters}`);
-    console.log(`  US Datacenters:          ${stats.us_datacenters}`);
-    console.log(`  International:           ${stats.international_datacenters}`);
-    console.log(`  Countries Covered:       ${stats.countries_covered}`);
-    console.log(`  States Covered:          ${stats.states_covered}`);
-    console.log(`  Unique Operators:        ${stats.unique_operators}`);
-    console.log(`  Total Power Capacity:    ${stats.total_power_capacity_mw.toFixed(2)} MW`);
-    console.log(`  Average Power Capacity:  ${stats.avg_power_capacity_mw.toFixed(2)} MW`);
-    console.log(`  Geocoded Count:          ${stats.geocoded_count}`);
-    console.log(`  Low Quality Records:     ${stats.low_quality_count}`);
+    console.log(`  Total Datacenters:       ${stats.total_datacenters || 0}`);
+    console.log(`  US Datacenters:          ${stats.us_datacenters || 0}`);
+    console.log(`  International:           ${stats.international_datacenters || 0}`);
+    console.log(`  Countries Covered:       ${stats.countries_covered || 0}`);
+    console.log(`  States Covered:          ${stats.states_covered || 0}`);
+    console.log(`  Unique Operators:        ${stats.unique_operators || 0}`);
+    console.log(`  Total Power Capacity:    ${(stats.total_power_capacity_mw || 0).toFixed(2)} MW`);
+    console.log(`  Average Power Capacity:  ${(stats.avg_power_capacity_mw || 0).toFixed(2)} MW`);
+    console.log(`  Geocoded Count:          ${stats.geocoded_count || 0}`);
+    console.log(`  Low Quality Records:     ${stats.low_quality_count || 0}`);
 
     console.log('\n\nTop Countries:');
     console.log('─'.repeat(50));
@@ -174,7 +174,8 @@ async function runScraper(options: CLIOptions): Promise<void> {
           await new Promise(resolve => setTimeout(resolve, 2000));
 
         } catch (error) {
-          console.error(`  ✗ Error: ${error.message}`);
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          console.error(`  ✗ Error: ${errorMessage}`);
           failed++;
         }
       }

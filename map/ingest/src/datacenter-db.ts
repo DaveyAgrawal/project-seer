@@ -329,7 +329,7 @@ export class DatacenterDatabase {
         SUM(COALESCE(power_capacity_mw, 0)) as total_power_capacity_mw,
         AVG(COALESCE(power_capacity_mw, 0)) as avg_power_capacity_mw,
         COUNT(CASE WHEN latitude IS NOT NULL AND longitude IS NOT NULL THEN 1 END) as geocoded_count,
-        COUNT(CASE WHEN array_length(missing_fields::text[]::text[], 1) > 5 THEN 1 END) as low_quality_count
+        COUNT(CASE WHEN jsonb_array_length(missing_fields) > 5 THEN 1 END) as low_quality_count
       FROM datacenter_listings
     `);
     return result.rows[0];
