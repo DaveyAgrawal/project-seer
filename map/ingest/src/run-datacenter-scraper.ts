@@ -133,13 +133,13 @@ async function runScraper(options: CLIOptions): Promise<void> {
     });
 
     if (options.testMode) {
-      // Test mode: Discover first page and scrape limited facilities
-      console.log('🔍 Discovering facilities (first page only)...\n');
+      // Test mode: Discover first 2 pages and scrape limited facilities
+      console.log('🔍 Discovering facilities (first 2 pages only)...\n');
 
-      const facilityUrls = await scraper.discoverAllDatacenters();
+      const facilityUrls = await scraper.discoverAllDatacenters(2);
       const limitedUrls = facilityUrls.slice(0, options.testLimit);
 
-      console.log(`\n📋 Found ${facilityUrls.length} total facilities`);
+      console.log(`\n📋 Found ${facilityUrls.length} facilities from first 2 pages`);
       console.log(`🧪 Testing with first ${limitedUrls.length} facilities\n`);
 
       let processed = 0;
@@ -158,10 +158,10 @@ async function runScraper(options: CLIOptions): Promise<void> {
             console.log(`  ✓ Power: ${datacenter.powerCapacityMw || 'N/A'} MW`);
             console.log(`  ✓ Coordinates: ${datacenter.latitude || 'N/A'}, ${datacenter.longitude || 'N/A'}`);
 
-            // Store in database
+            // Store in database (with updateExisting for testing)
             const db = new DatacenterDatabase();
             await db.initialize();
-            await db.storeDatacenter(datacenter);
+            await db.storeDatacenter(datacenter, { updateExisting: true });
             await db.close();
 
             processed++;

@@ -109,22 +109,22 @@ export class DatacenterScraper {
    * Discover all datacenter facility URLs from paginated listings
    * Site has 204 pages with 40 results per page (8129 total listings)
    */
-  async discoverAllDatacenters(): Promise<string[]> {
+  async discoverAllDatacenters(maxPages: number = 204): Promise<string[]> {
     if (!this.page) {
       throw new Error('Scraper not initialized. Call initialize() first.');
     }
 
     const facilityUrls: string[] = [];
     const startUrl = `${this.baseUrl}/locations`;
-    const totalPages = 204; // 8129 listings / 40 per page = 204 pages
+    const totalPages = Math.min(maxPages, 204); // Limit to requested pages or max 204
     const resultsPerPage = 40;
 
     console.log(`🔍 Starting discovery from ${startUrl}`);
-    console.log(`📊 Expected: ${totalPages} pages, ~40 results per page, ~8129 total listings`);
+    console.log(`📊 Scanning: ${totalPages} pages (max 204 total)`);
     this.sendProgress('discovering', { message: 'Starting to discover datacenters...' });
 
     try {
-      // Iterate through all pages
+      // Iterate through requested pages
       for (let currentPage = 1; currentPage <= totalPages; currentPage++) {
         try {
           console.log(`\n📄 Processing page ${currentPage}/${totalPages}...`);
@@ -209,10 +209,26 @@ export class DatacenterScraper {
     try {
       console.log(`🏢 Scraping facility: ${facilityUrl}`);
 
-      // Navigate to facility page
-      await this.page.goto(facilityUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
-      await this.respectfulDelay();
+      // Navigate to facility page and wait for network to be idle (Next.js needs time to hydrate)
+      await this.page.goto(facilityUrl, { waitUntil: 'networkidle', timeout: 30000 });
 
+      // Additional wait for React hydration and script execution
+      await this.page.waitForTimeout(2000);
+
+      // Try to extract data directly from Next.js window object
+      const nextData = await this.page.evaluate(() => {
+        // @ts-ignore
+        return window.__NEXT_DATA__;
+      });
+
+      if (nextData) {
+        const datacenter = this.extractFromNextData(nextData, facilityUrl);
+        if (datacenter) {
+          return datacenter;
+        }
+      }
+
+      // Fallback to HTML parsing
       const content = await this.page.content();
       const datacenter = this.extractDatacenterFields(content, facilityUrl);
 
@@ -220,6 +236,116 @@ export class DatacenterScraper {
 
     } catch (error) {
       console.error(`❌ Error scraping ${facilityUrl}:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Extract datacenter data from Next.js __NEXT_DATA__ object
+   */
+  private extractFromNextData(nextData: any, facilityUrl: string): DatacenterData | null {
+    try {
+      // Navigate through Next.js data structure to find location data
+      const pageProps = nextData?.props?.pageProps;
+      if (!pageProps) {
+        console.log('⚠️ No pageProps found in __NEXT_DATA__');
+        return null;
+      }
+
+      // Try to find location data in various possible locations
+      const location = pageProps.location || pageProps.data?.location || pageProps.initialData?.location;
+      if (!location) {
+        console.log('⚠️ No location data found in pageProps');
+        return null;
+      }
+
+      console.log(`✓ Found location data in __NEXT_DATA__: ${location.name}`);
+
+      const datacenter: DatacenterData = {
+        facilityUrl,
+        name: location.name || 'Unknown Facility',
+        country: 'Unknown'
+      };
+
+      // Extract provider/operator
+      const provider = pageProps.provider || location.provider;
+      if (provider) {
+        datacenter.operator = provider.name;
+        if (provider.url) {
+          datacenter.providerUrl = provider.url.startsWith('http')
+            ? provider.url
+            : `${this.baseUrl}${provider.url}`;
+        }
+        datacenter.phoneNumber = provider.supportNumber;
+      }
+
+      // Extract address components
+      if (location.fullAddress) {
+        datacenter.streetAddress = location.fullAddress;
+      }
+
+      const city = pageProps.city || location.city;
+      const countryState = pageProps.countryState || location.countryState;
+      const country = pageProps.country || location.country;
+
+      datacenter.city = city?.name;
+      datacenter.state = countryState?.name;
+      datacenter.country = country?.name || 'Unknown';
+
+      // Geographic coordinates - CRITICAL
+      if (location.latitude != null && location.longitude != null) {
+        datacenter.latitude = parseFloat(location.latitude);
+        datacenter.longitude = parseFloat(location.longitude);
+        console.log(`✓ Coordinates: ${datacenter.latitude}, ${datacenter.longitude}`);
+      }
+
+      // Technical specifications
+      if (location.grossBuildingSize) {
+        datacenter.squareFootage = parseFloat(location.grossBuildingSize);
+      }
+      if (location.totalPowerMw) {
+        datacenter.powerCapacityMw = parseFloat(location.totalPowerMw);
+      }
+      datacenter.facilityType = location.type;
+
+      // Certifications
+      if (location.certifications && Array.isArray(location.certifications)) {
+        datacenter.certifications = location.certifications
+          .filter((cert: any) => cert.active)
+          .map((cert: any) => cert.abbreviation);
+      }
+
+      // Features
+      if (location.facilities && Array.isArray(location.facilities)) {
+        const features: Record<string, boolean> = {};
+        location.facilities.forEach((facility: any) => {
+          const slug = facility.slug || facility.name.toLowerCase().replace(/\s+/g, '_');
+          features[slug] = facility.live || false;
+        });
+        datacenter.features = Object.keys(features).length > 0 ? features : undefined;
+      }
+
+      // Additional metadata
+      datacenter.milesToAirport = location.nearestAirport ? parseFloat(location.nearestAirport) : undefined;
+      datacenter.marketRegion = location.marketLabel;
+
+      // Media flags
+      datacenter.hasImages = location.images && location.images.length > 0;
+      datacenter.hasBrochures = location.locationBrochures && location.locationBrochures.length > 0;
+      datacenter.hasMedia = datacenter.hasImages || datacenter.hasBrochures;
+
+      // Breadcrumb hierarchy
+      const breadcrumbs: string[] = [];
+      if (datacenter.country && datacenter.country !== 'Unknown') breadcrumbs.push(datacenter.country);
+      if (datacenter.state) breadcrumbs.push(datacenter.state);
+      if (datacenter.city) breadcrumbs.push(datacenter.city);
+      if (datacenter.name) breadcrumbs.push(datacenter.name);
+      datacenter.breadcrumbHierarchy = breadcrumbs.length > 0 ? breadcrumbs : undefined;
+
+      return datacenter;
+
+    } catch (error) {
+      console.error(`❌ Error extracting from __NEXT_DATA__:`, error);
       return null;
     }
   }
@@ -239,114 +365,138 @@ export class DatacenterScraper {
     };
 
     try {
-      // Find and parse the embedded JSON data in script tags
-      let locationData: any = null;
+      // Find script tags containing latitude/longitude data using regex on raw HTML
+      // Cheerio may not properly handle script tag content, so we search the raw HTML
+      const scriptTagRegex = /<script[^>]*>([\s\S]*?)<\/script>/gi;
+      let rawData: string | null = null;
+      let match;
 
-      $('script').each((_, script) => {
-        const scriptContent = $(script).html();
-        if (scriptContent && scriptContent.includes('"location"') && scriptContent.includes('"latitude"')) {
-          try {
-            // Try to extract JSON object
-            const jsonMatch = scriptContent.match(/\{[\s\S]*"location"[\s\S]*\}/);
-            if (jsonMatch) {
-              locationData = JSON.parse(jsonMatch[0]);
-            }
-          } catch (e) {
-            // Continue trying other scripts
-          }
+      while ((match = scriptTagRegex.exec(htmlContent)) !== null) {
+        const scriptContent = match[1];
+
+        if (scriptContent && scriptContent.includes('latitude') && scriptContent.includes('longitude')) {
+          rawData = scriptContent;
+          break;
         }
-      });
+      }
 
-      if (!locationData || !locationData.location) {
-        console.warn(`⚠️ No embedded JSON found for ${facilityUrl}, trying HTML extraction`);
+      if (!rawData) {
+        console.warn(`⚠️ No embedded data found for ${facilityUrl}, trying HTML extraction`);
         return this.extractFromHTML(htmlContent, facilityUrl);
       }
 
-      const location = locationData.location;
-      const provider = locationData.provider || {};
-      const city = locationData.city || {};
-      const countryState = locationData.countryState || {};
-      const country = locationData.country || {};
+      // Type assertion: rawData is definitely a string at this point
+      // Decode HTML entities that might be in the script content
+      let scriptData: string = rawData
+        .replace(/&quot;/g, '"')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&#x27;/g, "'")
+        .replace(/&#x2F;/g, '/');
+
+      // Extract individual fields using regex patterns
+      const extractField = (pattern: RegExp): string | undefined => {
+        const match = scriptData.match(pattern);
+        return match ? match[1] : undefined;
+      };
+
+      const extractNumber = (pattern: RegExp): number | undefined => {
+        const match = scriptData.match(pattern);
+        return match ? parseFloat(match[1]) : undefined;
+      };
 
       // Extract basic information
-      datacenter.name = location.name || 'Unknown Facility';
-      datacenter.operator = provider.name || undefined;
+      // Note: Field names in the data follow the pattern: fieldName\":value (with escaped quote)
+      datacenter.name = extractField(/name\\":\\"([^"\\]+)\\"/) || 'Unknown Facility';
 
-      // Address parsing
-      if (location.fullAddress) {
-        datacenter.streetAddress = location.fullAddress;
-        // Try to parse components
-        const addressParts = location.fullAddress.split(',');
-        if (addressParts.length >= 2) {
-          datacenter.city = city.name || addressParts[addressParts.length - 2].trim();
-          datacenter.country = country.name || addressParts[addressParts.length - 1].trim();
+      // Extract operator
+      datacenter.operator = extractField(/operatorName\\":\\"([^"\\]+)\\"/);
+
+      // Extract address
+      const address = extractField(/streetAddress1\\":\\"([^"\\]+)\\"/);
+      if (address) {
+        datacenter.streetAddress = address;
+      }
+
+      // Extract city, state, country
+      datacenter.city = extractField(/city\\":\\"([^"\\]+)\\"/);
+      datacenter.state = extractField(/state\\":\\"([^"\\]+)\\"/);
+      datacenter.country = extractField(/country\\":\\"([^"\\]+)\\"/) || 'Unknown';
+
+      // Geographic coordinates - CRITICAL for map display
+      datacenter.latitude = extractNumber(/latitude\\":([\d\.\-]+)/);
+      datacenter.longitude = extractNumber(/longitude\\":([\d\.\-]+)/);
+
+      // Technical specifications
+      const squareFootage = extractNumber(/"grossBuildingSize":"?([\d\.]+)"?/);
+      if (squareFootage && squareFootage > 0) {
+        datacenter.squareFootage = squareFootage;
+      }
+
+      datacenter.facilityType = extractField(/"type":"([^"]+)"/);
+
+      const powerMw = extractNumber(/"totalPowerMw":"?([\d\.]+)"?/);
+      if (powerMw && powerMw > 0) {
+        datacenter.powerCapacityMw = powerMw;
+      }
+
+      // Certifications - extract from certifications array
+      const certsMatch = scriptData.match(/"certifications":\[([^\]]+)\]/);
+      if (certsMatch) {
+        const certAbbrs = [...certsMatch[1].matchAll(/"abbreviation":"([^"]+)"/g)];
+        if (certAbbrs.length > 0) {
+          datacenter.certifications = certAbbrs.map(m => m[1]);
         }
       }
 
-      datacenter.city = city.name || datacenter.city || undefined;
-      datacenter.state = countryState.name || undefined;
-      datacenter.country = country.name || datacenter.country || 'Unknown';
-
-      // Geographic coordinates
-      datacenter.latitude = location.latitude ? parseFloat(location.latitude) : undefined;
-      datacenter.longitude = location.longitude ? parseFloat(location.longitude) : undefined;
-
-      // Technical specifications
-      if (location.grossBuildingSize && parseFloat(location.grossBuildingSize) > 0) {
-        datacenter.squareFootage = parseFloat(location.grossBuildingSize);
-      }
-
-      datacenter.facilityType = location.type || undefined;
-
-      if (location.totalPowerMw && parseFloat(location.totalPowerMw) > 0) {
-        datacenter.powerCapacityMw = parseFloat(location.totalPowerMw);
-      }
-
-      // Certifications
-      if (location.certifications && Array.isArray(location.certifications)) {
-        const certs = location.certifications
-          .filter((cert: any) => cert.active)
-          .map((cert: any) => cert.abbreviation);
-        datacenter.certifications = certs.length > 0 ? certs : undefined;
-      }
-
-      // Features (Bare Metal, Internet Exchange, Colocation, IaaS)
-      if (location.facilities && Array.isArray(location.facilities)) {
+      // Features - extract facility types
+      const facilitiesMatch = scriptData.match(/"facilities":\[([^\]]+)\]/);
+      if (facilitiesMatch) {
         const features: Record<string, boolean> = {};
-        location.facilities.forEach((facility: any) => {
-          const slug = facility.slug || facility.name.toLowerCase().replace(/\s+/g, '_');
-          features[slug] = facility.live || false;
+        const facilityNames = [...facilitiesMatch[1].matchAll(/"name":"([^"]+)"/g)];
+        facilityNames.forEach(match => {
+          const slug = match[1].toLowerCase().replace(/\s+/g, '_');
+          features[slug] = true;
         });
-        datacenter.features = Object.keys(features).length > 0 ? features : undefined;
+        if (Object.keys(features).length > 0) {
+          datacenter.features = features;
+        }
       }
 
       // Provider URL
-      if (provider.url) {
-        datacenter.providerUrl = provider.url.startsWith('http') ? provider.url : `${this.baseUrl}${provider.url}`;
+      const providerUrlMatch = scriptData.match(/"provider":\{[^}]*"url":"([^"]+)"/);
+      if (providerUrlMatch) {
+        datacenter.providerUrl = providerUrlMatch[1].startsWith('http')
+          ? providerUrlMatch[1]
+          : `${this.baseUrl}${providerUrlMatch[1]}`;
       }
 
-      // Breadcrumb hierarchy (from location data)
+      // Breadcrumb hierarchy
       const breadcrumbs: string[] = [];
-      if (country.name && country.name !== 'Unknown') breadcrumbs.push(country.name);
-      if (countryState.name) breadcrumbs.push(countryState.name);
-      if (city.name) breadcrumbs.push(city.name);
-      if (location.name) breadcrumbs.push(location.name);
+      if (datacenter.country && datacenter.country !== 'Unknown') breadcrumbs.push(datacenter.country);
+      if (datacenter.state) breadcrumbs.push(datacenter.state);
+      if (datacenter.city) breadcrumbs.push(datacenter.city);
+      if (datacenter.name) breadcrumbs.push(datacenter.name);
       datacenter.breadcrumbHierarchy = breadcrumbs.length > 0 ? breadcrumbs : undefined;
 
       // Market region
-      datacenter.marketRegion = location.marketLabel || `${city.name}, ${countryState.name || country.name}`;
+      const marketLabel = extractField(/"marketLabel":"([^"]+)"/);
+      datacenter.marketRegion = marketLabel ||
+        (datacenter.city && datacenter.state
+          ? `${datacenter.city}, ${datacenter.state}`
+          : datacenter.city);
 
       // Miles to airport
-      if (location.nearestAirport) {
-        datacenter.milesToAirport = parseFloat(location.nearestAirport);
-      }
+      datacenter.milesToAirport = extractNumber(/"nearestAirport":"?([\d\.]+)"?/);
 
       // Phone number
-      datacenter.phoneNumber = provider.supportNumber || location.phone || undefined;
+      const phoneMatch = scriptData.match(/"supportNumber":"([^"]+)"|"phone":"([^"]+)"/);
+      datacenter.phoneNumber = phoneMatch ? (phoneMatch[1] || phoneMatch[2]) : undefined;
 
       // Media availability flags
-      datacenter.hasImages = location.images && Array.isArray(location.images) && location.images.length > 0;
-      datacenter.hasBrochures = location.locationBrochures && Array.isArray(location.locationBrochures) && location.locationBrochures.length > 0;
+      datacenter.hasImages = scriptData.includes('"images":[') && !scriptData.includes('"images":[]');
+      datacenter.hasBrochures = scriptData.includes('"locationBrochures":[') && !scriptData.includes('"locationBrochures":[]');
       datacenter.hasMedia = datacenter.hasImages || datacenter.hasBrochures;
 
       // Nearby datacenter count - try to extract from page text
