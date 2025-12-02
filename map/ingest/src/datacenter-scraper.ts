@@ -40,8 +40,10 @@ export class DatacenterScraper {
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36'
   ];
 
-  private readonly baseDelay = 2000; // 2 seconds base delay
-  private readonly maxDelay = 5000;  // 5 seconds max delay
+  private readonly baseDelay = 3000; // 3 seconds base delay (increased for production)
+  private readonly maxDelay = 7000;  // 7 seconds max delay (increased for production)
+  private readonly breakInterval = 100; // Take a break every 100 datacenters
+  private readonly breakDelay = 30000; // 30-60 second break
   private readonly baseUrl = 'https://www.datacenters.com';
 
   constructor(enableDatabase: boolean = true) {
@@ -96,6 +98,18 @@ export class DatacenterScraper {
   private async respectfulDelay(): Promise<void> {
     const delay = this.baseDelay + Math.random() * (this.maxDelay - this.baseDelay);
     await new Promise(resolve => setTimeout(resolve, delay));
+  }
+
+  /**
+   * Take a longer break every N datacenters (anti-bot measure)
+   */
+  private async periodicBreak(count: number): Promise<void> {
+    if (count > 0 && count % this.breakInterval === 0) {
+      const breakTime = this.breakDelay + Math.random() * 30000; // 30-60 seconds
+      console.log(`\n☕ Taking a ${Math.round(breakTime / 1000)}s break after ${count} datacenters...`);
+      await new Promise(resolve => setTimeout(resolve, breakTime));
+      console.log('▶️  Resuming scraping...\n');
+    }
   }
 
   /**
@@ -665,6 +679,9 @@ export class DatacenterScraper {
               } else {
                 stats.totalInternational++;
               }
+
+              // Take periodic breaks to avoid anti-bot measures
+              await this.periodicBreak(stats.processed);
             }
           } else {
             stats.failed++;
