@@ -121,23 +121,29 @@ export class DatacenterScraper {
 
   /**
    * Discover all datacenter facility URLs from paginated listings
-   * Site has 204 pages with 40 results per page (8129 total listings)
+   * Site has 171 pages with 48 results per page (~8,200 total listings)
+   * Uses client-side JavaScript pagination (clicking "Next" button)
    */
-  async discoverAllDatacenters(maxPages: number = 204): Promise<string[]> {
+  async discoverAllDatacenters(maxPages: number = 171): Promise<string[]> {
     if (!this.page) {
       throw new Error('Scraper not initialized. Call initialize() first.');
     }
 
     const facilityUrls: string[] = [];
     const startUrl = `${this.baseUrl}/locations`;
-    const totalPages = Math.min(maxPages, 204); // Limit to requested pages or max 204
-    const resultsPerPage = 40;
+    const totalPages = Math.min(maxPages, 171); // Limit to requested pages or max 171
+    const resultsPerPage = 48;
 
     console.log(`🔍 Starting discovery from ${startUrl}`);
-    console.log(`📊 Scanning: ${totalPages} pages (max 204 total)`);
+    console.log(`📊 Scanning: ${totalPages} pages (max 171 total)`);
+    console.log(`⚠️  Using client-side pagination (clicking Next button)`);
     this.sendProgress('discovering', { message: 'Starting to discover datacenters...' });
 
     try {
+      // Navigate to the first page
+      await this.page.goto(startUrl, { waitUntil: 'networkidle', timeout: 30000 });
+      await this.page.waitForTimeout(2000); // Wait for React/JS to fully load
+
       // Iterate through requested pages
       for (let currentPage = 1; currentPage <= totalPages; currentPage++) {
         try {
@@ -148,16 +154,7 @@ export class DatacenterScraper {
             totalPages
           });
 
-          const pageUrl = currentPage === 1 ? startUrl : `${startUrl}?page=${currentPage}`;
-
-          // Navigate to the page
-          await this.page.goto(pageUrl, { waitUntil: 'networkidle', timeout: 30000 });
-
-          // Wait a bit for JavaScript to render
-          await this.page.waitForTimeout(1000);
-          await this.respectfulDelay();
-
-          // Extract facility URLs from the page
+          // Extract facility URLs from the current page
           const pageContent = await this.page.content();
           const page$ = cheerio.load(pageContent);
 
@@ -187,8 +184,35 @@ export class DatacenterScraper {
           console.log(`   Found ${facilityLinks.length} facilities on page ${currentPage}`);
           facilityUrls.push(...facilityLinks);
 
-          // Respectful delay between pages
-          await this.respectfulDelay();
+          // Click the "Next" button to load the next page (unless we're on the last page)
+          if (currentPage < totalPages) {
+            try {
+              // Find and click the next button
+              const nextButton = await this.page.$('button[data-testid="next-page-button"]');
+
+              if (nextButton) {
+                // Check if button is disabled
+                const isDisabled = await nextButton.isDisabled();
+                if (isDisabled) {
+                  console.log(`   Next button is disabled - reached end of results`);
+                  break;
+                }
+
+                // Click the next button
+                await nextButton.click();
+
+                // Wait for the new content to load
+                await this.page.waitForTimeout(2000); // Wait for React to update
+                await this.respectfulDelay(); // Additional respectful delay
+              } else {
+                console.log(`   Could not find next button - stopping`);
+                break;
+              }
+            } catch (error) {
+              console.error(`   Error clicking next button:`, error);
+              break;
+            }
+          }
 
         } catch (error) {
           console.error(`❌ Error processing page ${currentPage}:`, error);
