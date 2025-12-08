@@ -2353,14 +2353,32 @@ class GeospatialApp {
                 <span class="popup-label">Operator:</span>
                 <span class="popup-value">${props.operator || 'N/A'}</span>
             </div>
+            ${props.street_address ? `
+            <div class="popup-row">
+                <span class="popup-label">Address:</span>
+                <span class="popup-value">${props.street_address}</span>
+            </div>
+            ` : ''}
             <div class="popup-row">
                 <span class="popup-label">Location:</span>
                 <span class="popup-value">${props.city || 'N/A'}, ${props.state || 'N/A'}</span>
             </div>
+            ${props.market_region ? `
+            <div class="popup-row">
+                <span class="popup-label">Market:</span>
+                <span class="popup-value">${props.market_region}</span>
+            </div>
+            ` : ''}
             ${props.power_capacity_mw ? `
             <div class="popup-row">
                 <span class="popup-label">Power Capacity:</span>
                 <span class="popup-value">${props.power_capacity_mw} MW</span>
+            </div>
+            ` : ''}
+            ${props.square_footage ? `
+            <div class="popup-row">
+                <span class="popup-label">Size:</span>
+                <span class="popup-value">${props.square_footage.toLocaleString()} sq ft</span>
             </div>
             ` : ''}
             ${props.facility_type ? `
@@ -2369,8 +2387,44 @@ class GeospatialApp {
                 <span class="popup-value">${props.facility_type}</span>
             </div>
             ` : ''}
+            ${props.phone_number ? `
+            <div class="popup-row">
+                <span class="popup-label">Phone:</span>
+                <span class="popup-value">${props.phone_number}</span>
+            </div>
+            ` : ''}
+            ${props.miles_to_airport ? `
+            <div class="popup-row">
+                <span class="popup-label">Airport Distance:</span>
+                <span class="popup-value">${props.miles_to_airport} miles</span>
+            </div>
+            ` : ''}
+            ${props.nearby_datacenter_count ? `
+            <div class="popup-row">
+                <span class="popup-label">Nearby Facilities:</span>
+                <span class="popup-value">${props.nearby_datacenter_count} within 50 miles</span>
+            </div>
+            ` : ''}
             ${certificationsHTML}
             ${featuresHTML}
+            ${props.has_images || props.has_brochures || props.has_media ? `
+            <div class="popup-row">
+                <span class="popup-label">Media:</span>
+                <span class="popup-value">
+                    ${props.has_images ? '📷 Images ' : ''}
+                    ${props.has_brochures ? '📄 Brochures ' : ''}
+                    ${props.has_media ? '🎥 Media ' : ''}
+                </span>
+            </div>
+            ` : ''}
+            ${props.facility_url ? `
+            <div class="popup-row" style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #eee;">
+                <a href="${props.facility_url}" target="_blank" rel="noopener noreferrer"
+                   style="color: #2196F3; text-decoration: none; font-size: 13px; display: flex; align-items: center; gap: 4px;">
+                    🔗 View Full Details on datacenters.com
+                </a>
+            </div>
+            ` : ''}
         `;
 
         new maplibregl.Popup()
