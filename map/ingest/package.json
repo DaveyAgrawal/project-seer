@@ -12,7 +12,10 @@
     "scrape:all": "ts-node src/run-multi-listing-scraper.ts scrape",
     "scrape:test": "ts-node src/run-multi-listing-scraper.ts test",
     "scrape:stats": "ts-node src/run-multi-listing-scraper.ts stats",
-    "scrape:init": "ts-node src/run-multi-listing-scraper.ts init"
+    "scrape:init": "ts-node src/run-multi-listing-scraper.ts init",
+    "scrape:datacenters": "ts-node src/run-datacenter-scraper.ts",
+    "scrape:datacenters:test": "ts-node src/run-datacenter-scraper.ts --test",
+    "scrape:datacenters:stats": "ts-node src/run-datacenter-scraper.ts --stats"
   },
   "bin": {
     "geoingest": "dist/ingest.js"
