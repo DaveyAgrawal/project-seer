@@ -7,9 +7,11 @@ A high-performance, production-ready geospatial data processing and visualizatio
 ### Data Ingestion
 - **Streaming CSV Processing**: Handle 4.5M+ row geothermal datasets with memory-efficient streaming
 - **GeoJSON Processing**: Process transmission line data with geometric normalization
+- **Web Scraping**: Automated scraping of 8,200+ datacenter facilities and EnergyNet land parcels with Playwright
 - **Smart Resume**: Crash-safe ingestion with automatic resume from last processed chunk
 - **Intelligent Detection**: Automatic file type detection and field mapping
 - **Unit Normalization**: Automatic conversion between units (°C↔°F, feet↔meters, voltage ranges)
+- **Anti-Bot Measures**: Conservative rate limiting (3-7s delays, periodic breaks) for reliable scraping
 
 ### Vector Tile Serving  
 - **PostGIS + pg_tileserv**: High-performance vector tile generation
@@ -22,6 +24,8 @@ A high-performance, production-ready geospatial data processing and visualizatio
 - **US-Bounded Viewport**: Locked to US geographic boundaries
 - **Voltage-Based Styling**: Transmission lines styled by voltage classification
 - **Temperature Mapping**: Geothermal data with temperature-based heat mapping
+- **Datacenter Visualization**: 2,700+ US datacenters with clustering and detailed facility popups
+- **Land Parcel Clustering**: EnergyNet land parcels with clustered pin visualization
 - **Real-time Filtering**: Interactive controls for data exploration
 
 ## 🏗️ Architecture
@@ -31,13 +35,18 @@ map/
 ├── infra/                    # Docker infrastructure
 │   ├── docker-compose.yml   # PostGIS + pg_tileserv services
 │   └── initdb/              # Database initialization
-├── ingest/                  # TypeScript ingestion CLI  
+├── ingest/                  # TypeScript ingestion CLI
 │   ├── src/
 │   │   ├── ingest.ts       # Main CLI entry point
 │   │   ├── csv.ts          # Streaming CSV processor
 │   │   ├── geojson.ts      # GeoJSON processor
+│   │   ├── datacenter-scraper.ts    # Datacenter web scraper
+│   │   ├── datacenter-db.ts         # Datacenter database management
+│   │   ├── run-datacenter-scraper.ts # Datacenter scraper CLI
+│   │   ├── energynet-scraper.ts     # EnergyNet land parcel scraper
 │   │   ├── db.ts           # Database management
 │   │   ├── resume.ts       # Resume functionality
+│   │   ├── schema/         # Database schemas
 │   │   └── utils/          # Parsing, validation, batching
 │   └── package.json
 ├── web/                     # MapLibre GL JS application
@@ -88,6 +97,14 @@ npm run dev ingest --file {{CSV_GEOTHERMAL_PATH}} --table geothermal_points --la
 # Ingest transmission lines GeoJSON
 npm run dev ingest --file {{GEOJSON_LINES_PATH}} --table transmission_lines --layer-name transmission_lines
 
+# Scrape datacenter data (already populated with 8,200+ facilities)
+npm run scrape:datacenters -- --stats          # View current database stats
+npm run scrape:datacenters -- --test           # Test mode: scrape first 5 facilities
+npm run scrape:datacenters                     # Full scrape: all 171 pages (~15-20 hours)
+
+# Scrape EnergyNet land parcels
+npm run scrape:energynet                       # Scrape active listings
+
 # Check ingestion status
 npm run dev status
 ```
@@ -130,6 +147,24 @@ Handles transmission line data with geometric normalization:
 4. **US Filtering**: Geometric intersection with US boundaries
 5. **Zoom Optimization**: Create progressive simplification views
 
+### Web Scraping (Datacenters & Land Parcels)
+
+Automated scraping of datacenter facilities and land parcels with Playwright:
+
+**Datacenter Scraper (datacenters.com):**
+- **Client-Side Pagination**: Handles JavaScript-based pagination (171 pages)
+- **Anti-Bot Measures**: 3-7 second delays, 30-60 second breaks every 100 facilities
+- **Data Extraction**: Name, address, coordinates, market region from Next.js embedded JSON
+- **Success Rate**: 99.96% (8,153 of 8,207 facilities scraped successfully)
+- **Global Coverage**: 2,732 US facilities, 5,472 international (174 countries)
+- **CLI Options**: Test mode (`--test`), stats view (`--stats`), full scrape
+
+**EnergyNet Scraper (energynet.com):**
+- **Active Listings**: Scrapes current government land parcels for sale
+- **Parcel Data**: Acreage, listing ID, sale group, state, centroid coordinates
+- **Database Tracking**: Marks expired listings inactive (preserves historical data)
+- **Real-time Updates**: Triggered via web interface or CLI
+
 ## 🗺️ Map Visualization
 
 ### Transmission Lines
@@ -143,10 +178,23 @@ Handles transmission line data with geometric normalization:
 - **Individual Points**: Full detail at high zoom levels
 - **Interactive Filtering**: Real-time temperature threshold filtering
 
+### Datacenter Facilities
+- **Clustering**: 2,700+ US datacenters with automatic clustering at low zoom
+- **Interactive Popups**: Facility name, address, market region, and link to source
+- **Real-time Updates**: Button to trigger scraper updates from datacenters.com
+- **Global Coverage**: 8,200+ facilities worldwide stored (174 countries), US-only display
+
+### EnergyNet Land Parcels
+- **Clustered Pins**: Land parcel centroids with clustering for performance
+- **Active Listings**: Automatically scrapes and displays active government land sales
+- **Parcel Details**: Acreage, sale group, listing ID in interactive popups
+- **Real-time Updates**: Button to refresh active listings from EnergyNet
+
 ### Map Controls
-- **Layer Toggles**: Show/hide transmission lines and geothermal data
+- **Layer Toggles**: Show/hide transmission lines, geothermal data, datacenters, and land parcels
 - **Opacity Sliders**: Adjust layer transparency
 - **Temperature Filter**: Filter geothermal data by minimum temperature
+- **Scraper Controls**: Trigger updates for datacenters and land parcels
 - **Aggregation Toggle**: Switch between aggregated and individual point views
 
 ## 🔧 Configuration
