@@ -5,25 +5,9 @@ import { Pool } from 'pg';
 import { config } from 'dotenv';
 import path from 'path';
 
-// Lazy-load scrapers to avoid Playwright import timeout at startup
-let MultiListingScraper: any = null;
-let DatacenterScraper: any = null;
-
-async function getMultiListingScraper() {
-  if (!MultiListingScraper) {
-    const module = await import('../../ingest/dist/multi-listing-scraper');
-    MultiListingScraper = module.MultiListingScraper;
-  }
-  return MultiListingScraper;
-}
-
-async function getDatacenterScraper() {
-  if (!DatacenterScraper) {
-    const module = await import('../../ingest/dist/datacenter-scraper');
-    DatacenterScraper = module.DatacenterScraper;
-  }
-  return DatacenterScraper;
-}
+// Scrapers disabled for production deployment (run locally only)
+// const MultiListingScraper = null;
+// const DatacenterScraper = null;
 
 // Load environment variables
 config();
@@ -401,6 +385,14 @@ class GeospatialWebServer {
   }
 
   private async scrapeUpdate(req: express.Request, res: express.Response): Promise<void> {
+    // Scraping disabled in production - run locally only
+    res.status(503).json({ 
+      error: 'Scraping is disabled in production. Run scraper locally instead.',
+      message: 'This endpoint is only available when running the server locally with the ingest module.'
+    });
+    return;
+    
+    /* DISABLED FOR PRODUCTION
     try {
       console.log('🔄 Starting EnergyNet scraper update...');
       
@@ -506,6 +498,7 @@ class GeospatialWebServer {
       console.error('❌ Scraper update failed:', error);
       res.status(500).json({ error: 'Scraper update failed' });
     }
+    */
   }
 
   private async cleanupExpiredListings(activeListings: any[]): Promise<void> {
@@ -885,6 +878,14 @@ class GeospatialWebServer {
   }
 
   private async scrapeDatacenters(req: express.Request, res: express.Response): Promise<void> {
+    // Scraping disabled in production - run locally only
+    res.status(503).json({ 
+      error: 'Scraping is disabled in production. Run scraper locally instead.',
+      message: 'This endpoint is only available when running the server locally with the ingest module.'
+    });
+    return;
+
+    /* DISABLED FOR PRODUCTION
     try {
       console.log('🔄 Starting datacenter scraper...');
 
@@ -950,6 +951,7 @@ class GeospatialWebServer {
       console.error('❌ Datacenter scraper failed:', error);
       res.status(500).json({ error: 'Datacenter scraper failed' });
     }
+    */
   }
 
   public async start(): Promise<void> {
