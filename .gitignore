@@ -20,4 +20,5 @@ logs/
 # Environment files
 .env
 .env.local
-.env.production
+.env.productionDataCenterMap-Scraper/more.data/3LYRModel_Shapefiles/
+DataCenterMap-Scraper/Copy of Copy of geospatial_dump.sql

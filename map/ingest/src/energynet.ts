@@ -181,9 +181,12 @@ export class EnergyNetProcessor {
 
   private async extractListingData($: cheerio.CheerioAPI, url: string): Promise<EnergyNetListing | null> {
     try {
-      // Extract listing ID from URL
-      const urlMatch = url.match(/sg=(\d+)/);
-      const id = urlMatch ? urlMatch[1] : 'unknown';
+      // Extract listing ID from URL - support both old and new formats
+      let id = 'unknown';
+      const oldMatch = url.match(/sg=(\d+)/);
+      const newMatch = url.match(/\/salegroup\/(\d+)/);
+      if (oldMatch) id = oldMatch[1];
+      else if (newMatch) id = newMatch[1];
 
       // Look for the main title - try multiple selectors
       let title = '';
@@ -228,6 +231,8 @@ export class EnergyNetProcessor {
       else if (titleLower.includes('utah')) state = 'Utah';
       else if (titleLower.includes('montana')) state = 'Montana';
       else if (titleLower.includes('colorado')) state = 'Colorado';
+      else if (titleLower.includes('california')) state = 'California';
+      else if (titleLower.includes('eastern states')) state = 'Eastern States';
 
       // Look for GIS data download link
       let gisDownloadUrl = '';

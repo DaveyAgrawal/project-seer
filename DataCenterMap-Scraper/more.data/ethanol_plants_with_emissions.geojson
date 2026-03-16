@@ -1,0 +1,5615 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -92.9535,
+          43.4976
+        ]
+      },
+      "properties": {
+        "OBJECTID": 579,
+        "Company": "Absolute Energy",
+        "Site": "St Ansgar",
+        "State": "Iowa",
+        "PADD": 2,
+        "Cap_Mmgal": 125,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -92.9535,
+        "Latitude": 43.4976,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -90.9609,
+          44.9587
+        ]
+      },
+      "properties": {
+        "OBJECTID": 580,
+        "Company": "Ace Ethanol LLC",
+        "Site": "Stanley",
+        "State": "Wisconsin",
+        "PADD": 2,
+        "Cap_Mmgal": 52,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -90.9609,
+        "Latitude": 44.9587,
+        "emissions_mt_co2e": 80642,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.8038,
+          42.3617
+        ]
+      },
+      "properties": {
+        "OBJECTID": 581,
+        "Company": "Adkins Energy LLC",
+        "Site": "Lena",
+        "State": "Illinois",
+        "PADD": 2,
+        "Cap_Mmgal": 60,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -89.8038,
+        "Latitude": 42.3617,
+        "emissions_mt_co2e": 89423,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -95.7796,
+          44.4748
+        ]
+      },
+      "properties": {
+        "OBJECTID": 582,
+        "Company": "ADM",
+        "Site": "Marshall",
+        "State": "Minnesota",
+        "PADD": 2,
+        "Cap_Mmgal": 48,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -95.7796,
+        "Latitude": 44.4748,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -88.8896,
+          39.8635
+        ]
+      },
+      "properties": {
+        "OBJECTID": 583,
+        "Company": "ADM ",
+        "Site": "Decatur",
+        "State": "Illinois",
+        "PADD": 2,
+        "Cap_Mmgal": 375,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -88.8896,
+        "Latitude": 39.8635,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -91.6885,
+          41.929
+        ]
+      },
+      "properties": {
+        "OBJECTID": 584,
+        "Company": "ADM Cedar Rapids IA Wet Mill",
+        "Site": "Cedar Rapids",
+        "State": "Iowa",
+        "PADD": 2,
+        "Cap_Mmgal": 240,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -91.6885,
+        "Latitude": 41.929,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -90.2162,
+          41.8173
+        ]
+      },
+      "properties": {
+        "OBJECTID": 585,
+        "Company": "ADM Clinton IA",
+        "Site": "Clinton",
+        "State": "Iowa",
+        "PADD": 2,
+        "Cap_Mmgal": 237,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -90.2162,
+        "Latitude": 41.8173,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -97.2869,
+          41.4153
+        ]
+      },
+      "properties": {
+        "OBJECTID": 586,
+        "Company": "ADM Columbus Wet Mill",
+        "Site": "Columbus",
+        "State": "Nebraska",
+        "PADD": 2,
+        "Cap_Mmgal": 100,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -97.2869,
+        "Latitude": 41.4153,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -120.9158,
+          37.553
+        ]
+      },
+      "properties": {
+        "OBJECTID": 587,
+        "Company": "Aemetis Advanced Fuels Keys Inc",
+        "Site": "Keyes",
+        "State": "California",
+        "PADD": 5,
+        "Cap_Mmgal": 70,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -120.9158,
+        "Latitude": 37.553,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -93.0175,
+          44.0508
+        ]
+      },
+      "properties": {
+        "OBJECTID": 588,
+        "Company": "Al-Corn Clean Fuel",
+        "Site": "Claremont",
+        "State": "Minnesota",
+        "PADD": 2,
+        "Cap_Mmgal": 130,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -93.0175,
+        "Latitude": 44.0508,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -119.6552,
+          45.8551
+        ]
+      },
+      "properties": {
+        "OBJECTID": 589,
+        "Company": "Alto Columbia LLC",
+        "Site": "Boardman",
+        "State": "Oregon",
+        "PADD": 5,
+        "Cap_Mmgal": 40,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -119.6552,
+        "Latitude": 45.8551,
+        "emissions_mt_co2e": 38611,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.6698,
+          40.555
+        ]
+      },
+      "properties": {
+        "OBJECTID": 590,
+        "Company": "Alto ICP LLC",
+        "Site": "Pekin",
+        "State": "Illinois",
+        "PADD": 2,
+        "Cap_Mmgal": 82,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -89.6698,
+        "Latitude": 40.555,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -113.8153,
+          42.5213
+        ]
+      },
+      "properties": {
+        "OBJECTID": 591,
+        "Company": "Alto Magic Valley Ethanol",
+        "Site": "Burley",
+        "State": "Idaho",
+        "PADD": 4,
+        "Cap_Mmgal": 60,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -113.8153,
+        "Latitude": 42.5213,
+        "emissions_mt_co2e": 44427,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.6631,
+          40.5534
+        ]
+      },
+      "properties": {
+        "OBJECTID": 592,
+        "Company": "Alto Pekin LLC Dry Mill",
+        "Site": "Pekin",
+        "State": "Illinois",
+        "PADD": 2,
+        "Cap_Mmgal": 63,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -89.6631,
+        "Latitude": 40.5534,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.6631,
+          40.5534
+        ]
+      },
+      "properties": {
+        "OBJECTID": 593,
+        "Company": "Alto Pekin LLC Wet Mill",
+        "Site": "Pekin",
+        "State": "Illinois",
+        "PADD": 2,
+        "Cap_Mmgal": 100,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -89.6631,
+        "Latitude": 40.5534,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -99.3062,
+          39.7608
+        ]
+      },
+      "properties": {
+        "OBJECTID": 594,
+        "Company": "Amber Wave",
+        "Site": "Phillipsburg",
+        "State": "Kansas",
+        "PADD": 2,
+        "Cap_Mmgal": 50,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -99.3062,
+        "Latitude": 39.7608,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -100.7981,
+          37.1077
+        ]
+      },
+      "properties": {
+        "OBJECTID": 595,
+        "Company": "Arkalon Ethanol LLC",
+        "Site": "Liberal",
+        "State": "Kansas",
+        "PADD": 2,
+        "Cap_Mmgal": 110,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -100.7981,
+        "Latitude": 37.1077,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -88.7916,
+          43.0351
+        ]
+      },
+      "properties": {
+        "OBJECTID": 596,
+        "Company": "Aztalan Bio LLC",
+        "Site": "Jefferson",
+        "State": "Wisconsin",
+        "PADD": 3,
+        "Cap_Mmgal": 106,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -88.7916,
+        "Latitude": 43.0351,
+        "emissions_mt_co2e": 15063,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.6668,
+          42.5946
+        ]
+      },
+      "properties": {
+        "OBJECTID": 597,
+        "Company": "Badger State Ethanol LLC",
+        "Site": "Monroe",
+        "State": "Wisconsin",
+        "PADD": 2,
+        "Cap_Mmgal": 94,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -89.6668,
+        "Latitude": 42.5946,
+        "emissions_mt_co2e": 111351,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -91.9764,
+          45.049
+        ]
+      },
+      "properties": {
+        "OBJECTID": 598,
+        "Company": "Big River Resources Boyceville LLC",
+        "Site": "Boyceville",
+        "State": "Wisconsin",
+        "PADD": 2,
+        "Cap_Mmgal": 70,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -91.9764,
+        "Latitude": 45.049,
+        "emissions_mt_co2e": 87265,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -90.0271,
+          41.1642
+        ]
+      },
+      "properties": {
+        "OBJECTID": 599,
+        "Company": "Big River Resources Galva LLC",
+        "Site": "Galva",
+        "State": "Illinois",
+        "PADD": 2,
+        "Cap_Mmgal": 140,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -90.0271,
+        "Latitude": 41.1642,
+        "emissions_mt_co2e": 171305,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -91.2219,
+          40.8314
+        ]
+      },
+      "properties": {
+        "OBJECTID": 600,
+        "Company": "Big River Resources West Burlington LLC",
+        "Site": "West Burlington",
+        "State": "Iowa",
+        "PADD": 2,
+        "Cap_Mmgal": 130,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -91.2219,
+        "Latitude": 40.8314,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -91.1634,
+          42.4874
+        ]
+      },
+      "properties": {
+        "OBJECTID": 601,
+        "Company": "Big River United Energy LLC",
+        "Site": "Dyersville",
+        "State": "Iowa",
+        "PADD": 2,
+        "Cap_Mmgal": 140,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -91.1634,
+        "Latitude": 42.4874,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.607,
+          40.6776
+        ]
+      },
+      "properties": {
+        "OBJECTID": 602,
+        "Company": "Biourja Renewables LLC",
+        "Site": "Peoria ",
+        "State": "Illinois",
+        "PADD": 2,
+        "Cap_Mmgal": 61,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -89.607,
+        "Latitude": 40.6776,
+        "emissions_mt_co2e": 269843,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -101.1523,
+          47.3769
+        ]
+      },
+      "properties": {
+        "OBJECTID": 603,
+        "Company": "Blue Flint Ethanol LLC",
+        "Site": "Underwood",
+        "State": "North Dakota",
+        "PADD": 2,
+        "Cap_Mmgal": 76,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -101.1523,
+        "Latitude": 47.3769,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -100.8367,
+          37.9586
+        ]
+      },
+      "properties": {
+        "OBJECTID": 604,
+        "Company": "Bonanza Bioenergy LLC",
+        "Site": "Garden City",
+        "State": "Kansas",
+        "PADD": 2,
+        "Cap_Mmgal": 74,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -100.8367,
+        "Latitude": 37.9586,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -103.0789,
+          41.6435
+        ]
+      },
+      "properties": {
+        "OBJECTID": 605,
+        "Company": "Bridgeport Ethanol LLC",
+        "Site": "Bridgeport",
+        "State": "Nebraska",
+        "PADD": 2,
+        "Cap_Mmgal": 60,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -103.0789,
+        "Latitude": 41.6435,
+        "emissions_mt_co2e": 53788,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -94.8044,
+          45.137
+        ]
+      },
+      "properties": {
+        "OBJECTID": 606,
+        "Company": "Bushmills Ethanol Inc",
+        "Site": "Atwater",
+        "State": "Minnesota",
+        "PADD": 2,
+        "Cap_Mmgal": 90,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -94.8044,
+        "Latitude": 45.137,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -119.3039,
+          35.998
+        ]
+      },
+      "properties": {
+        "OBJECTID": 607,
+        "Company": "Calgren Renewable Fuels LLC",
+        "Site": "Pixley",
+        "State": "California",
+        "PADD": 5,
+        "Cap_Mmgal": 55,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -119.3039,
+        "Latitude": 35.998,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -85.0782,
+          42.7646
+        ]
+      },
+      "properties": {
+        "OBJECTID": 608,
+        "Company": "Carbon Green Bioenergy LLC",
+        "Site": "Lake Odessa",
+        "State": "Michigan",
+        "PADD": 2,
+        "Cap_Mmgal": 59,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -85.0782,
+        "Latitude": 42.7646,
+        "emissions_mt_co2e": 80586,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.8632,
+          40.1848
+        ]
+      },
+      "properties": {
+        "OBJECTID": 609,
+        "Company": "Cardinal Ethanol LLC",
+        "Site": "Union City",
+        "State": "Indiana",
+        "PADD": 2,
+        "Cap_Mmgal": 136,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -84.8632,
+        "Latitude": 40.1848,
+        "emissions_mt_co2e": 166670,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -96.1039,
+          41.5345
+        ]
+      },
+      "properties": {
+        "OBJECTID": 610,
+        "Company": "Cargill Inc",
+        "Site": "Blair",
+        "State": "Nebraska",
+        "PADD": 2,
+        "Cap_Mmgal": 210,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -96.1039,
+        "Latitude": 41.5345,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -92.6411,
+          41.1417
+        ]
+      },
+      "properties": {
+        "OBJECTID": 611,
+        "Company": "Cargill Inc",
+        "Site": "Eddyville",
+        "State": "Iowa",
+        "PADD": 2,
+        "Cap_Mmgal": 71,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -92.6411,
+        "Latitude": 41.1417,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -94.3138,
+          42.5091
+        ]
+      },
+      "properties": {
+        "OBJECTID": 612,
+        "Company": "Cargill Inc",
+        "Site": "Ft Dodge",
+        "State": "Iowa",
+        "PADD": 2,
+        "Cap_Mmgal": 130,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -94.3138,
+        "Latitude": 42.5091,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -81.8645,
+          40.2147
+        ]
+      },
+      "properties": {
+        "OBJECTID": 613,
+        "Company": "CE Acquisitions Co LLC",
+        "Site": "Coshocton",
+        "State": "Ohio",
+        "PADD": 2,
+        "Cap_Mmgal": 50,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -81.8645,
+        "Latitude": 40.2147,
+        "emissions_mt_co2e": 67135,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -85.7283,
+          40.5644
+        ]
+      },
+      "properties": {
+        "OBJECTID": 614,
+        "Company": "Central Indiana Ethanol",
+        "Site": "Marion",
+        "State": "Indiana",
+        "PADD": 2,
+        "Cap_Mmgal": 50,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -85.7283,
+        "Latitude": 40.5644,
+        "emissions_mt_co2e": 138983,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -98.3175,
+          40.5824
+        ]
+      },
+      "properties": {
+        "OBJECTID": 615,
+        "Company": "Chief Ethanol Fuels Inc",
+        "Site": "Hastings",
+        "State": "Nebraska",
+        "PADD": 2,
+        "Cap_Mmgal": 70,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -98.3175,
+        "Latitude": 40.5824,
+        "emissions_mt_co2e": 121111,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -99.7225,
+          40.7669
+        ]
+      },
+      "properties": {
+        "OBJECTID": 616,
+        "Company": "Chief Ethanol Fuels Inc",
+        "Site": "Lexington",
+        "State": "Nebraska",
+        "PADD": 2,
+        "Cap_Mmgal": 52,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -99.7225,
+        "Latitude": 40.7669,
+        "emissions_mt_co2e": 71539,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -95.6374,
+          45.3256
+        ]
+      },
+      "properties": {
+        "OBJECTID": 617,
+        "Company": "Chippewa Valley Ethanol Co LLLP",
+        "Site": "Benson",
+        "State": "Minnesota",
+        "PADD": 2,
+        "Cap_Mmgal": 50,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -95.6374,
+        "Latitude": 45.3256,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -97.3846,
+          42.0677
+        ]
+      },
+      "properties": {
+        "OBJECTID": 618,
+        "Company": "CIE Norfolk GNS LLC",
+        "Site": "Norfolk",
+        "State": "Nebraska",
+        "PADD": 2,
+        "Cap_Mmgal": 60,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -97.3846,
+        "Latitude": 42.0677,
+        "emissions_mt_co2e": 61154,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -87.4126,
+          36.8145
+        ]
+      },
+      "properties": {
+        "OBJECTID": 619,
+        "Company": "Commonwealth Agri-Energy",
+        "Site": "Hopkinsville",
+        "State": "Kentucky",
+        "PADD": 2,
+        "Cap_Mmgal": 49,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -87.4126,
+        "Latitude": 36.8145,
+        "emissions_mt_co2e": 64909,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -93.9118,
+          42.7338
+        ]
+      },
+      "properties": {
+        "OBJECTID": 620,
+        "Company": "Corn LP",
+        "Site": "Goldfield",
+        "State": "Iowa",
+        "PADD": 2,
+        "Cap_Mmgal": 80,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -93.9118,
+        "Latitude": 42.7338,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -96.9575,
+          43.9739
+        ]
+      },
+      "properties": {
+        "OBJECTID": 621,
+        "Company": "Dakota Ethanol LLC",
+        "Site": "Wentworth",
+        "State": "South Dakota",
+        "PADD": 2,
+        "Cap_Mmgal": 100,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -96.9575,
+        "Latitude": 43.9739,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -98.5004,
+          46.9258
+        ]
+      },
+      "properties": {
+        "OBJECTID": 622,
+        "Company": "Dakota Spirit Agenergy",
+        "Site": "Spiritwood",
+        "State": "North Dakota",
+        "PADD": 2,
+        "Cap_Mmgal": 80,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -98.5004,
+        "Latitude": 46.9258,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -95.9119,
+          45.5747
+        ]
+      },
+      "properties": {
+        "OBJECTID": 623,
+        "Company": "Denco II LLC",
+        "Site": "Morris",
+        "State": "Minnesota",
+        "PADD": 2,
+        "Cap_Mmgal": 30,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -95.9119,
+        "Latitude": 45.5747,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.1006,
+          43.5382
+        ]
+      },
+      "properties": {
+        "OBJECTID": 624,
+        "Company": "Didion Ethanol LLC",
+        "Site": "Johnson Creek",
+        "State": "Wisconsin",
+        "PADD": 2,
+        "Cap_Mmgal": 54,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -89.1006,
+        "Latitude": 43.5382,
+        "emissions_mt_co2e": 15063,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -82.1707,
+          36.5613
+        ]
+      },
+      "properties": {
+        "OBJECTID": 625,
+        "Company": "Dynamic Recycling LLC",
+        "Site": "Bristol",
+        "State": "Tennessee",
+        "PADD": 2,
+        "Cap_Mmgal": 4,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -82.1707,
+        "Latitude": 36.5613,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -96.5477,
+          40.4858
+        ]
+      },
+      "properties": {
+        "OBJECTID": 626,
+        "Company": "E Energy Adams LLC",
+        "Site": "Adams",
+        "State": "Nebraska",
+        "PADD": 2,
+        "Cap_Mmgal": 101,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -96.5477,
+        "Latitude": 40.4858,
+        "emissions_mt_co2e": 118294,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -95.2403,
+          38.272
+        ]
+      },
+      "properties": {
+        "OBJECTID": 627,
+        "Company": "East Kansas Agri-Energy LLC",
+        "Site": "Garnett",
+        "State": "Kansas",
+        "PADD": 2,
+        "Cap_Mmgal": 48,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -95.2403,
+        "Latitude": 38.272,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -95.031,
+          41.421
+        ]
+      },
+      "properties": {
+        "OBJECTID": 628,
+        "Company": "Elite Octane LLC",
+        "Site": "Atlantic",
+        "State": "Iowa",
+        "PADD": 2,
+        "Cap_Mmgal": 175,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -95.031,
+        "Latitude": 41.421,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -88.6516,
+          43.981
+        ]
+      },
+      "properties": {
+        "OBJECTID": 629,
+        "Company": "Fox River Valley Ethanol LLC",
+        "Site": "Oshkosh",
+        "State": "Wisconsin",
+        "PADD": 2,
+        "Cap_Mmgal": 64,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -88.6516,
+        "Latitude": 43.981,
+        "emissions_mt_co2e": 55623,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -104.8598,
+          40.4571
+        ]
+      },
+      "properties": {
+        "OBJECTID": 630,
+        "Company": "Front Range Energy LLC",
+        "Site": "Windsor",
+        "State": "Colorado",
+        "PADD": 4,
+        "Cap_Mmgal": 46,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -104.8598,
+        "Latitude": 40.4571,
+        "emissions_mt_co2e": 40775,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -98.784,
+          45.4426
+        ]
+      },
+      "properties": {
+        "OBJECTID": 631,
+        "Company": "Glacial Lakes Energy",
+        "Site": "Mina",
+        "State": "South Dakota",
+        "PADD": 2,
+        "Cap_Mmgal": 162,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -98.784,
+        "Latitude": 45.4426,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -97.1137,
+          44.8769
+        ]
+      },
+      "properties": {
+        "OBJECTID": 632,
+        "Company": "Glacial Lakes Energy",
+        "Site": "Watertown",
+        "State": "South Dakota",
+        "PADD": 2,
+        "Cap_Mmgal": 148,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -97.1137,
+        "Latitude": 44.8769,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -93.2297,
+          43.1166
+        ]
+      },
+      "properties": {
+        "OBJECTID": 633,
+        "Company": "Golden Grain Energy LLC",
+        "Site": "Mason City",
+        "State": "Iowa",
+        "PADD": 2,
+        "Cap_Mmgal": 140,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -93.2297,
+        "Latitude": 43.1166,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -95.3681,
+          40.1897
+        ]
+      },
+      "properties": {
+        "OBJECTID": 634,
+        "Company": "Golden Triangle Energy LLC",
+        "Site": "Craig",
+        "State": "Missouri",
+        "PADD": 2,
+        "Cap_Mmgal": 21,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -95.3681,
+        "Latitude": 40.1897,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -91.0632,
+          41.4003
+        ]
+      },
+      "properties": {
+        "OBJECTID": 635,
+        "Company": "Grain Processing Corp",
+        "Site": "Muscatine",
+        "State": "Iowa",
+        "PADD": 2,
+        "Cap_Mmgal": 83,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -91.0632,
+        "Latitude": 41.4003,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -87.2223,
+          38.6362
+        ]
+      },
+      "properties": {
+        "OBJECTID": 636,
+        "Company": "Grain Processing Corp",
+        "Site": "Washington",
+        "State": "Indiana",
+        "PADD": 2,
+        "Cap_Mmgal": 37,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -87.2223,
+        "Latitude": 38.6362,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -95.4869,
+          44.8
+        ]
+      },
+      "properties": {
+        "OBJECTID": 637,
+        "Company": "Granite Falls Energy LLC",
+        "Site": "Granite Falls",
+        "State": "Minnesota",
+        "PADD": 2,
+        "Cap_Mmgal": 63,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -95.4869,
+        "Latitude": 44.8,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -98.9281,
+          41.6056
+        ]
+      },
+      "properties": {
+        "OBJECTID": 638,
+        "Company": "Green America Biofuels Ord LLC",
+        "Site": "Ord",
+        "State": "Nebraska",
+        "PADD": 2,
+        "Cap_Mmgal": 68,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -98.9281,
+        "Latitude": 41.6056,
+        "emissions_mt_co2e": 84243,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -97.9763,
+          41.1116
+        ]
+      },
+      "properties": {
+        "OBJECTID": 639,
+        "Company": "Green Plains Central City LLC",
+        "Site": "Central City",
+        "State": "Nebraska",
+        "PADD": 2,
+        "Cap_Mmgal": 135,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -97.9763,
+        "Latitude": 41.1116,
+        "emissions_mt_co2e": 149930,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -94.4987,
+          43.6649
+        ]
+      },
+      "properties": {
+        "OBJECTID": 640,
+        "Company": "Green Plains Fairmont LLC",
+        "Site": "Fairmont",
+        "State": "Minnesota",
+        "PADD": 2,
+        "Cap_Mmgal": 123,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -94.4987,
+        "Latitude": 43.6649,
+        "emissions_mt_co2e": 164763,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -90.1804,
+          38.6839
+        ]
+      },
+      "properties": {
+        "OBJECTID": 641,
+        "Company": "Green Plains Madison LLC",
+        "Site": "Madison",
+        "State": "Illinois",
+        "PADD": 2,
+        "Cap_Mmgal": 100,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -90.1804,
+        "Latitude": 38.6839,
+        "emissions_mt_co2e": 146050,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -87.7257,
+          37.9084
+        ]
+      },
+      "properties": {
+        "OBJECTID": 642,
+        "Company": "Green Plains Mount Vernon LLC",
+        "Site": "Mount Vernon",
+        "State": "Indiana",
+        "PADD": 2,
+        "Cap_Mmgal": 135,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -87.7257,
+        "Latitude": 37.9084,
+        "emissions_mt_co2e": 133621,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.1495,
+          36.2828
+        ]
+      },
+      "properties": {
+        "OBJECTID": 643,
+        "Company": "Green Plains Obion LLC",
+        "Site": "Obion",
+        "State": "Tennessee",
+        "PADD": 2,
+        "Cap_Mmgal": 135,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -89.1495,
+        "Latitude": 36.2828,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -96.1317,
+          46.3129
+        ]
+      },
+      "properties": {
+        "OBJECTID": 644,
+        "Company": "Green Plains Otter Tail LLC",
+        "Site": "Fergus Falls",
+        "State": "Minnesota",
+        "PADD": 2,
+        "Cap_Mmgal": 67,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -96.1317,
+        "Latitude": 46.3129,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -95.3962,
+          40.7572
+        ]
+      },
+      "properties": {
+        "OBJECTID": 645,
+        "Company": "Green Plains Shenandoah LLC",
+        "Site": "Shenandoah",
+        "State": "Iowa",
+        "PADD": 2,
+        "Cap_Mmgal": 100,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -95.3962,
+        "Latitude": 40.7572,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -94.9602,
+          43.4324
+        ]
+      },
+      "properties": {
+        "OBJECTID": 646,
+        "Company": "Green Plains Superior",
+        "Site": "Superior",
+        "State": "Iowa",
+        "PADD": 2,
+        "Cap_Mmgal": 69,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -94.9602,
+        "Latitude": 43.4324,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -98.6074,
+          40.8156
+        ]
+      },
+      "properties": {
+        "OBJECTID": 647,
+        "Company": "Green Plains Wood River LLC",
+        "Site": "Wood River",
+        "State": "Nebraska",
+        "PADD": 2,
+        "Cap_Mmgal": 124,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -98.6074,
+        "Latitude": 40.8156,
+        "emissions_mt_co2e": 116859,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -97.5447,
+          40.8963
+        ]
+      },
+      "properties": {
+        "OBJECTID": 648,
+        "Company": "Green Plains York LLC",
+        "Site": "York",
+        "State": "Nebraska",
+        "PADD": 2,
+        "Cap_Mmgal": 60,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -97.5447,
+        "Latitude": 40.8963,
+        "emissions_mt_co2e": 86449,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -94.1517,
+          43.7623
+        ]
+      },
+      "properties": {
+        "OBJECTID": 649,
+        "Company": "Greenfield Global Corn Plus LLC",
+        "Site": "Winnebago",
+        "State": "Minnesota",
+        "PADD": 2,
+        "Cap_Mmgal": 43,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -94.1517,
+        "Latitude": 43.7623,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -93.6779,
+          44.1124
+        ]
+      },
+      "properties": {
+        "OBJECTID": 650,
+        "Company": "Guardian Energy LLC",
+        "Site": "Janesville",
+        "State": "Minnesota",
+        "PADD": 2,
+        "Cap_Mmgal": 164,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -93.6779,
+        "Latitude": 44.1124,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.078,
+          40.7067
+        ]
+      },
+      "properties": {
+        "OBJECTID": 651,
+        "Company": "Guardian Lima LLC",
+        "Site": "Lima",
+        "State": "Ohio",
+        "PADD": 2,
+        "Cap_Mmgal": 84,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -84.078,
+        "Latitude": 40.7067,
+        "emissions_mt_co2e": 98695,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -96.874,
+          46.07
+        ]
+      },
+      "properties": {
+        "OBJECTID": 652,
+        "Company": "Hankinson Renewable Energy LLC",
+        "Site": "Hankinson",
+        "State": "North Dakota",
+        "PADD": 2,
+        "Cap_Mmgal": 157,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -96.874,
+        "Latitude": 46.07,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -94.341,
+          44.5415
+        ]
+      },
+      "properties": {
+        "OBJECTID": 653,
+        "Company": "Heartland Corn Products",
+        "Site": "Heartland",
+        "State": "Minnesota",
+        "PADD": 2,
+        "Cap_Mmgal": 148,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -94.341,
+        "Latitude": 44.5415,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -102.3111,
+          34.849
+        ]
+      },
+      "properties": {
+        "OBJECTID": 654,
+        "Company": "Hereford Ethanol Partners LP",
+        "Site": "Hereford",
+        "State": "Texas",
+        "PADD": 3,
+        "Cap_Mmgal": 120,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -102.3111,
+        "Latitude": 34.849,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -95.2884,
+          43.8074
+        ]
+      },
+      "properties": {
+        "OBJECTID": 655,
+        "Company": "Heron Lake Bioenergy LLC",
+        "Site": "Heron Lake",
+        "State": "Minnesota",
+        "PADD": 2,
+        "Cap_Mmgal": 69,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -95.2884,
+        "Latitude": 43.8074,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -102.2655,
+          33.5925
+        ]
+      },
+      "properties": {
+        "OBJECTID": 656,
+        "Company": "HET Levelland LLC",
+        "Site": "Levelland",
+        "State": "Texas",
+        "PADD": 3,
+        "Cap_Mmgal": 50,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -102.2655,
+        "Latitude": 33.5925,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -95.2985,
+          44.2307
+        ]
+      },
+      "properties": {
+        "OBJECTID": 657,
+        "Company": "Highwater Ethanol LLC",
+        "Site": "Highwater",
+        "State": "Minnesota",
+        "PADD": 2,
+        "Cap_Mmgal": 72,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -95.2985,
+        "Latitude": 44.2307,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -92.2056,
+          43.0729
+        ]
+      },
+      "properties": {
+        "OBJECTID": 658,
+        "Company": "Homeland Energy Solutions LLC",
+        "Site": "Lawler",
+        "State": "Iowa",
+        "PADD": 2,
+        "Cap_Mmgal": 196,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -92.2056,
+        "Latitude": 43.0729,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -98.5455,
+          45.459
+        ]
+      },
+      "properties": {
+        "OBJECTID": 659,
+        "Company": "Hub City Energy LLC",
+        "Site": "Aberdeen",
+        "State": "South Dakota",
+        "PADD": 2,
+        "Cap_Mmgal": 70,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -98.5455,
+        "Latitude": 45.459,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -98.2549,
+          44.3739
+        ]
+      },
+      "properties": {
+        "OBJECTID": 660,
+        "Company": "Huron Energy LLC",
+        "Site": "Huron",
+        "State": "South Dakota",
+        "PADD": 2,
+        "Cap_Mmgal": 60,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -98.2549,
+        "Latitude": 44.3739,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -97.7428,
+          42.3511
+        ]
+      },
+      "properties": {
+        "OBJECTID": 661,
+        "Company": "Husker Ag LLC",
+        "Site": "Plainview",
+        "State": "Nebraska",
+        "PADD": 2,
+        "Cap_Mmgal": 109,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -97.7428,
+        "Latitude": 42.3511,
+        "emissions_mt_co2e": 99897,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -94.8466,
+          39.7381
+        ]
+      },
+      "properties": {
+        "OBJECTID": 662,
+        "Company": "ICM Biofuels LLC",
+        "Site": "Saint Joseph",
+        "State": "Missouri",
+        "PADD": 2,
+        "Cap_Mmgal": 50,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -94.8466,
+        "Latitude": 39.7381,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.0337,
+          41.8932
+        ]
+      },
+      "properties": {
+        "OBJECTID": 663,
+        "Company": "Illionis River Energy LLC",
+        "Site": "Rochelle",
+        "State": "Illinois",
+        "PADD": 2,
+        "Cap_Mmgal": 138,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -89.0337,
+        "Latitude": 41.8932,
+        "emissions_mt_co2e": 192857,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -87.0605,
+          40.932
+        ]
+      },
+      "properties": {
+        "OBJECTID": 664,
+        "Company": "Iroquois Bio-Energy Co LLC",
+        "Site": "Rensselaer",
+        "State": "Indiana",
+        "PADD": 2,
+        "Cap_Mmgal": 60,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -87.0605,
+        "Latitude": 40.932,
+        "emissions_mt_co2e": 80876,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -98.194,
+          38.2873
+        ]
+      },
+      "properties": {
+        "OBJECTID": 665,
+        "Company": "Kansas Ethanol LLC",
+        "Site": "Lyons",
+        "State": "Kansas",
+        "PADD": 2,
+        "Cap_Mmgal": 80,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -98.194,
+        "Latitude": 38.2873,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -99.0781,
+          40.4822
+        ]
+      },
+      "properties": {
+        "OBJECTID": 666,
+        "Company": "Kappa Ethanol LLC",
+        "Site": "Minden",
+        "State": "Nebraska",
+        "PADD": 2,
+        "Cap_Mmgal": 87,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -99.0781,
+        "Latitude": 40.4822,
+        "emissions_mt_co2e": 73391,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -98.8707,
+          41.0204
+        ]
+      },
+      "properties": {
+        "OBJECTID": 667,
+        "Company": "Kappa Ethanol Ravenna LLC",
+        "Site": "Ravenna",
+        "State": "Nebraska",
+        "PADD": 2,
+        "Cap_Mmgal": 138,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -98.8707,
+        "Latitude": 41.0204,
+        "emissions_mt_co2e": 186225,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -98.0476,
+          40.8699
+        ]
+      },
+      "properties": {
+        "OBJECTID": 668,
+        "Company": "Kappa Partners Aurora LLC",
+        "Site": "Aurora",
+        "State": "Nebraska",
+        "PADD": 2,
+        "Cap_Mmgal": 110,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -98.0476,
+        "Latitude": 40.8699,
+        "emissions_mt_co2e": 103041,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -87.6268,
+          39.0061
+        ]
+      },
+      "properties": {
+        "OBJECTID": 669,
+        "Company": "Lincolnland Agri-Energy LLC",
+        "Site": "Palestine",
+        "State": "Illinois",
+        "PADD": 2,
+        "Cap_Mmgal": 68,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -87.6268,
+        "Latitude": 39.0061,
+        "emissions_mt_co2e": 65217,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -93.5127,
+          42.0231
+        ]
+      },
+      "properties": {
+        "OBJECTID": 670,
+        "Company": "Lincolnway Energy LLC",
+        "Site": "Nevada",
+        "State": "Iowa",
+        "PADD": 2,
+        "Cap_Mmgal": 90,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -93.5127,
+        "Latitude": 42.0231,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -95.7599,
+          42.8212
+        ]
+      },
+      "properties": {
+        "OBJECTID": 671,
+        "Company": "Little Sioux Corn Processors LLLP",
+        "Site": "Little Sioux",
+        "State": "Iowa",
+        "PADD": 2,
+        "Cap_Mmgal": 165,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -95.7599,
+        "Latitude": 42.8212,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -94.2386,
+          42.0542
+        ]
+      },
+      "properties": {
+        "OBJECTID": 672,
+        "Company": "Louis Dreyfus Co",
+        "Site": "Grand Junction",
+        "State": "Iowa",
+        "PADD": 2,
+        "Cap_Mmgal": 122,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -94.2386,
+        "Latitude": 42.0542,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.3147,
+          41.2779
+        ]
+      },
+      "properties": {
+        "OBJECTID": 673,
+        "Company": "Marquis Energy LLC",
+        "Site": "Hennepin",
+        "State": "Illinois",
+        "PADD": 2,
+        "Cap_Mmgal": 400,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -89.3147,
+        "Latitude": 41.2779,
+        "emissions_mt_co2e": 505124,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -90.076,
+          43.9905
+        ]
+      },
+      "properties": {
+        "OBJECTID": 674,
+        "Company": "Marquis Energy Wisconsin LLC",
+        "Site": "Necedah",
+        "State": "Wisconsin",
+        "PADD": 2,
+        "Cap_Mmgal": 106,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -90.076,
+        "Latitude": 43.9905,
+        "emissions_mt_co2e": 136084,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -82.4929,
+          42.8849
+        ]
+      },
+      "properties": {
+        "OBJECTID": 675,
+        "Company": "Marysville Ethanol LLC",
+        "Site": "Marysville",
+        "State": "Michigan",
+        "PADD": 2,
+        "Cap_Mmgal": 60,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -82.4929,
+        "Latitude": 42.8849,
+        "emissions_mt_co2e": 83939,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -95.134,
+          39.5606
+        ]
+      },
+      "properties": {
+        "OBJECTID": 676,
+        "Company": "MGP Ingridents Inc",
+        "Site": "Atchison",
+        "State": "Kansas",
+        "PADD": 2,
+        "Cap_Mmgal": 6,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -95.134,
+        "Latitude": 39.5606,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -101.5342,
+          40.5286
+        ]
+      },
+      "properties": {
+        "OBJECTID": 677,
+        "Company": "Mid America Agri Products LLC",
+        "Site": "Madrid",
+        "State": "Nebraska",
+        "PADD": 2,
+        "Cap_Mmgal": 50,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -101.5342,
+        "Latitude": 40.5286,
+        "emissions_mt_co2e": 48377,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -93.3841,
+          39.1945
+        ]
+      },
+      "properties": {
+        "OBJECTID": 678,
+        "Company": "Mid-Missouri Energy LLC",
+        "Site": "Malta Bend",
+        "State": "Missouri",
+        "PADD": 2,
+        "Cap_Mmgal": 60,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -93.3841,
+        "Latitude": 39.1945,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -101.0929,
+          41.1621
+        ]
+      },
+      "properties": {
+        "OBJECTID": 679,
+        "Company": "Midwest Renewable Energy LLC",
+        "Site": "Sutherland",
+        "State": "Nebraska",
+        "PADD": 2,
+        "Cap_Mmgal": 28,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -101.0929,
+        "Latitude": 41.1621,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -100.1597,
+          40.2802
+        ]
+      },
+      "properties": {
+        "OBJECTID": 680,
+        "Company": "Nebraska Corn Processing LLC",
+        "Site": "Cambridge",
+        "State": "Nebraska",
+        "PADD": 2,
+        "Cap_Mmgal": 54,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -100.1597,
+        "Latitude": 40.2802,
+        "emissions_mt_co2e": 51969,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -97.8212,
+          39.7864
+        ]
+      },
+      "properties": {
+        "OBJECTID": 681,
+        "Company": "Nesika Energy LLC",
+        "Site": "Scandia",
+        "State": "Kansas",
+        "PADD": 2,
+        "Cap_Mmgal": 12,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -97.8212,
+        "Latitude": 39.7864,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -97.2689,
+          43.4364
+        ]
+      },
+      "properties": {
+        "OBJECTID": 682,
+        "Company": "Nugen Energy LLC",
+        "Site": "Marion",
+        "State": "South Dakota",
+        "PADD": 2,
+        "Cap_Mmgal": 150,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -97.2689,
+        "Latitude": 43.4364,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -88.3967,
+          40.4699
+        ]
+      },
+      "properties": {
+        "OBJECTID": 683,
+        "Company": "One Earth Energy LLC",
+        "Site": "Gibson City",
+        "State": "Illinois",
+        "PADD": 2,
+        "Cap_Mmgal": 150,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -88.3967,
+        "Latitude": 40.4699,
+        "emissions_mt_co2e": 184415,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -117.5374,
+          34.0984
+        ]
+      },
+      "properties": {
+        "OBJECTID": 684,
+        "Company": "Parallel Products",
+        "Site": "Rancho Cucamonga",
+        "State": "California",
+        "PADD": 5,
+        "Cap_Mmgal": 3,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -117.5374,
+        "Latitude": 34.0984,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -85.7859,
+          38.2175
+        ]
+      },
+      "properties": {
+        "OBJECTID": 685,
+        "Company": "Parallel Products Inc",
+        "Site": "Louisville",
+        "State": "Kentucky",
+        "PADD": 2,
+        "Cap_Mmgal": 6,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -85.7859,
+        "Latitude": 38.2175,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.8757,
+          41.3954
+        ]
+      },
+      "properties": {
+        "OBJECTID": 686,
+        "Company": "Patriot Renewable Fuels LLC",
+        "Site": "Annawan",
+        "State": "Illinois",
+        "PADD": 2,
+        "Cap_Mmgal": 130,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -89.8757,
+        "Latitude": 41.3954,
+        "emissions_mt_co2e": 180851,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -78.4293,
+          41.0307
+        ]
+      },
+      "properties": {
+        "OBJECTID": 687,
+        "Company": "Pennsylvania Grain Processing LLC",
+        "Site": "Clearfield",
+        "State": "Pennsylvania",
+        "PADD": 1,
+        "Cap_Mmgal": 128,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -78.4293,
+        "Latitude": 41.0307,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -93.0572,
+          42.4593
+        ]
+      },
+      "properties": {
+        "OBJECTID": 688,
+        "Company": "Pine Lake Corn Processors",
+        "Site": "Pine Lake",
+        "State": "Iowa",
+        "PADD": 2,
+        "Cap_Mmgal": 87,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -93.0572,
+        "Latitude": 42.4593,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -101.6271,
+          34.179
+        ]
+      },
+      "properties": {
+        "OBJECTID": 689,
+        "Company": "Plainview Bioenergy LLC",
+        "Site": "Plainview",
+        "State": "Texas",
+        "PADD": 3,
+        "Cap_Mmgal": 130,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -101.6271,
+        "Latitude": 34.179,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -96.25,
+          42.7309
+        ]
+      },
+      "properties": {
+        "OBJECTID": 690,
+        "Company": "Plymouth Energy LLC",
+        "Site": "Merrill",
+        "State": "Iowa",
+        "PADD": 2,
+        "Cap_Mmgal": 55,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -96.25,
+        "Latitude": 42.7309,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -96.5118,
+          45.2978
+        ]
+      },
+      "properties": {
+        "OBJECTID": 691,
+        "Company": "Poet Biorefining- Big Stone LLC",
+        "Site": "Big Stone",
+        "State": "South Dakota",
+        "PADD": 2,
+        "Cap_Mmgal": 105,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -96.5118,
+        "Latitude": 45.2978,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -96.9643,
+          43.3716
+        ]
+      },
+      "properties": {
+        "OBJECTID": 692,
+        "Company": "Poet Biorefining- Chancellor LLC",
+        "Site": "Chancellor",
+        "State": "South Dakota",
+        "PADD": 2,
+        "Cap_Mmgal": 125,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -96.9643,
+        "Latitude": 43.3716,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -98.1372,
+          45.4539
+        ]
+      },
+      "properties": {
+        "OBJECTID": 693,
+        "Company": "Poet Biorefining- Groton LLC",
+        "Site": "Groton",
+        "State": "South Dakota",
+        "PADD": 2,
+        "Cap_Mmgal": 68,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -98.1372,
+        "Latitude": 45.4539,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -96.4801,
+          43.0955
+        ]
+      },
+      "properties": {
+        "OBJECTID": 694,
+        "Company": "Poet Biorefining- Hudson",
+        "Site": "Sioux River",
+        "State": "South Dakota",
+        "PADD": 2,
+        "Cap_Mmgal": 80,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -96.4801,
+        "Latitude": 43.0955,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -98.1047,
+          43.8034
+        ]
+      },
+      "properties": {
+        "OBJECTID": 695,
+        "Company": "Poet Biorefining- Mitchell LLC",
+        "Site": "Mitchell",
+        "State": "South Dakota",
+        "PADD": 2,
+        "Cap_Mmgal": 86,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -98.1047,
+        "Latitude": 43.8034,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -85.6548,
+          40.2968
+        ]
+      },
+      "properties": {
+        "OBJECTID": 696,
+        "Company": "Poet Biorefining-Alexandria LLC",
+        "Site": "Alexandria",
+        "State": "Indiana",
+        "PADD": 2,
+        "Cap_Mmgal": 90,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -85.6548,
+        "Latitude": 40.2968,
+        "emissions_mt_co2e": 138337,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -95.059,
+          43.9025
+        ]
+      },
+      "properties": {
+        "OBJECTID": 697,
+        "Company": "Poet Biorefining-Bingham Lake LLC",
+        "Site": "Bringham Lake",
+        "State": "Minnesota",
+        "PADD": 2,
+        "Cap_Mmgal": 35,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -95.059,
+        "Latitude": 43.9025,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -97.6014,
+          40.6114
+        ]
+      },
+      "properties": {
+        "OBJECTID": 698,
+        "Company": "Poet Biorefining-Fairmont",
+        "Site": "Fairmont",
+        "State": "Nebraska",
+        "PADD": 2,
+        "Cap_Mmgal": 128,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -97.6014,
+        "Latitude": 40.6114,
+        "emissions_mt_co2e": 164763,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -83.3777,
+          41.1723
+        ]
+      },
+      "properties": {
+        "OBJECTID": 699,
+        "Company": "Poet Biorefining-Fostoria LLC",
+        "Site": "Fostoria",
+        "State": "Ohio",
+        "PADD": 2,
+        "Cap_Mmgal": 90,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -83.3777,
+        "Latitude": 41.1723,
+        "emissions_mt_co2e": 120280,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -93.302,
+          43.5762
+        ]
+      },
+      "properties": {
+        "OBJECTID": 700,
+        "Company": "Poet Biorefining--Glenville LLC",
+        "Site": "Albert Lea",
+        "State": "Minnesota",
+        "PADD": 2,
+        "Cap_Mmgal": 48,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -93.302,
+        "Latitude": 43.5762,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -91.6405,
+          39.2499
+        ]
+      },
+      "properties": {
+        "OBJECTID": 701,
+        "Company": "Poet Biorefining-Laddonia LLC",
+        "Site": "Laddonia",
+        "State": "Missouri",
+        "PADD": 2,
+        "Cap_Mmgal": 80,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -91.6405,
+        "Latitude": 39.2499,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -94.2759,
+          44.101
+        ]
+      },
+      "properties": {
+        "OBJECTID": 702,
+        "Company": "Poet Biorefining--Lake Crystal LLC",
+        "Site": "Lake Crystal",
+        "State": "Minnesota",
+        "PADD": 2,
+        "Cap_Mmgal": 68,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -94.2759,
+        "Latitude": 44.101,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -83.9692,
+          41.1212
+        ]
+      },
+      "properties": {
+        "OBJECTID": 703,
+        "Company": "Poet Biorefining-Leipsic LLC",
+        "Site": "Leipsic",
+        "State": "Ohio",
+        "PADD": 2,
+        "Cap_Mmgal": 90,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -83.9692,
+        "Latitude": 41.1212,
+        "emissions_mt_co2e": 127985,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -92.3834,
+          39.75
+        ]
+      },
+      "properties": {
+        "OBJECTID": 704,
+        "Company": "Poet Biorefining-Macon LLC",
+        "Site": "Macon",
+        "State": "Missouri",
+        "PADD": 2,
+        "Cap_Mmgal": 55,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -92.3834,
+        "Latitude": 39.75,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -83.1573,
+          40.6245
+        ]
+      },
+      "properties": {
+        "OBJECTID": 705,
+        "Company": "Poet Biorefining-Marion",
+        "Site": "Marion",
+        "State": "Ohio",
+        "PADD": 2,
+        "Cap_Mmgal": 162,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -83.1573,
+        "Latitude": 40.6245,
+        "emissions_mt_co2e": 205275,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -85.7896,
+          40.9422
+        ]
+      },
+      "properties": {
+        "OBJECTID": 706,
+        "Company": "Poet Biorefining-North Manchester",
+        "Site": "North Manchester",
+        "State": "Indiana",
+        "PADD": 2,
+        "Cap_Mmgal": 90,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -85.7896,
+        "Latitude": 40.9422,
+        "emissions_mt_co2e": 123005,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -85.8214,
+          39.5648
+        ]
+      },
+      "properties": {
+        "OBJECTID": 707,
+        "Company": "Poet Biorefining-Portland LLC",
+        "Site": "Portland",
+        "State": "Indiana",
+        "PADD": 2,
+        "Cap_Mmgal": 90,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -85.8214,
+        "Latitude": 39.5648,
+        "emissions_mt_co2e": 115876,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -92.0914,
+          43.6866
+        ]
+      },
+      "properties": {
+        "OBJECTID": 708,
+        "Company": "Poet Biorefining--Preston LLC",
+        "Site": "Preston",
+        "State": "Minnesota",
+        "PADD": 2,
+        "Cap_Mmgal": 55,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -92.0914,
+        "Latitude": 43.6866,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -85.8214,
+          39.5648
+        ]
+      },
+      "properties": {
+        "OBJECTID": 709,
+        "Company": "Poet Biorefining-Shelbyville",
+        "Site": "Shelbyville",
+        "State": "Indiana",
+        "PADD": 2,
+        "Cap_Mmgal": 94,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -85.8214,
+        "Latitude": 39.5648,
+        "emissions_mt_co2e": 111870,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -95.2486,
+          42.3134
+        ]
+      },
+      "properties": {
+        "OBJECTID": 710,
+        "Company": "Poet Biorefinning-Arthur LLC",
+        "Site": "Arthur",
+        "State": "Iowa",
+        "PADD": 2,
+        "Cap_Mmgal": 132,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -95.2486,
+        "Latitude": 42.3134,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -95.8087,
+          43.2723
+        ]
+      },
+      "properties": {
+        "OBJECTID": 711,
+        "Company": "Poet Biorefinning-Ashton LLC",
+        "Site": "Ashton",
+        "State": "Iowa",
+        "PADD": 2,
+        "Cap_Mmgal": 68,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -95.8087,
+        "Latitude": 43.2723,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -83.4122,
+          43.4716
+        ]
+      },
+      "properties": {
+        "OBJECTID": 712,
+        "Company": "Poet Biorefinning-Caro",
+        "Site": "Caro",
+        "State": "Michigan",
+        "PADD": 2,
+        "Cap_Mmgal": 80,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -83.4122,
+        "Latitude": 43.4716,
+        "emissions_mt_co2e": 105804,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -94.6287,
+          41.8609
+        ]
+      },
+      "properties": {
+        "OBJECTID": 713,
+        "Company": "Poet Biorefinning-Coon Rapids",
+        "Site": "Coon Rapids",
+        "State": "Iowa",
+        "PADD": 2,
+        "Cap_Mmgal": 65,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -94.6287,
+        "Latitude": 41.8609,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -94.7954,
+          40.9676
+        ]
+      },
+      "properties": {
+        "OBJECTID": 714,
+        "Company": "Poet Biorefinning-Corning LLC",
+        "Site": "Corning",
+        "State": "Iowa",
+        "PADD": 2,
+        "Cap_Mmgal": 90,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -94.7954,
+        "Latitude": 40.9676,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -94.6554,
+          43.0975
+        ]
+      },
+      "properties": {
+        "OBJECTID": 715,
+        "Company": "Poet Biorefinning-Emmetsburg LLC",
+        "Site": "Emmetsburg",
+        "State": "Iowa",
+        "PADD": 2,
+        "Cap_Mmgal": 68,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -94.6554,
+        "Latitude": 43.0975,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -92.0445,
+          42.6382
+        ]
+      },
+      "properties": {
+        "OBJECTID": 716,
+        "Company": "Poet Biorefinning-Fairbank",
+        "Site": "Fairbank",
+        "State": "Iowa",
+        "PADD": 2,
+        "Cap_Mmgal": 132,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -92.0445,
+        "Latitude": 42.6382,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -94.2884,
+          42.3253
+        ]
+      },
+      "properties": {
+        "OBJECTID": 717,
+        "Company": "Poet Biorefinning-Gowrie LLC",
+        "Site": "Gowrie",
+        "State": "Iowa",
+        "PADD": 2,
+        "Cap_Mmgal": 90,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -94.2884,
+        "Latitude": 42.3253,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -93.3886,
+          43.2901
+        ]
+      },
+      "properties": {
+        "OBJECTID": 718,
+        "Company": "Poet Biorefinning-Hanlontown LLC",
+        "Site": "Hanlontown",
+        "State": "Iowa",
+        "PADD": 2,
+        "Cap_Mmgal": 80,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -93.3886,
+        "Latitude": 43.2901,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -93.2825,
+          42.5072
+        ]
+      },
+      "properties": {
+        "OBJECTID": 719,
+        "Company": "Poet Biorefinning-Iowa Falls LLC",
+        "Site": "Iowa Falls",
+        "State": "Iowa",
+        "PADD": 2,
+        "Cap_Mmgal": 112,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -93.2825,
+        "Latitude": 42.5072,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -93.661,
+          42.325
+        ]
+      },
+      "properties": {
+        "OBJECTID": 720,
+        "Company": "Poet Biorefinning-Jewell LLC",
+        "Site": "Jewell",
+        "State": "Iowa",
+        "PADD": 2,
+        "Cap_Mmgal": 90,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -93.661,
+        "Latitude": 42.325,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -94.3759,
+          41.5254
+        ]
+      },
+      "properties": {
+        "OBJECTID": 721,
+        "Company": "Poet Biorefinning-Menlo",
+        "Site": "Menlo",
+        "State": "Iowa",
+        "PADD": 2,
+        "Cap_Mmgal": 132,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -94.3759,
+        "Latitude": 41.5254,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -92.6173,
+          42.7373
+        ]
+      },
+      "properties": {
+        "OBJECTID": 722,
+        "Company": "Poet Biorefinning-Shell Rock LLC",
+        "Site": "Shell Rock",
+        "State": "Iowa",
+        "PADD": 2,
+        "Cap_Mmgal": 128,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -92.6173,
+        "Latitude": 42.7373,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -97.7273,
+          43.1468
+        ]
+      },
+      "properties": {
+        "OBJECTID": 723,
+        "Company": "Poet Research Center",
+        "Site": "Scotland",
+        "State": "South Dakota",
+        "PADD": 2,
+        "Cap_Mmgal": 12,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -97.7273,
+        "Latitude": 43.1468,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -98.7104,
+          37.6839
+        ]
+      },
+      "properties": {
+        "OBJECTID": 724,
+        "Company": "Pratt Energy LLC",
+        "Site": "Pratt",
+        "State": "Kansas",
+        "PADD": 2,
+        "Cap_Mmgal": 55,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -98.7104,
+        "Latitude": 37.6839,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -98.4,
+          38.899
+        ]
+      },
+      "properties": {
+        "OBJECTID": 725,
+        "Company": "Purefield Ingridents LLC",
+        "Site": "Russell",
+        "State": "Kansas",
+        "PADD": 2,
+        "Cap_Mmgal": 55,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -98.4,
+        "Latitude": 38.899,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -95.4146,
+          42.4768
+        ]
+      },
+      "properties": {
+        "OBJECTID": 726,
+        "Company": "Quad County Corn Processors Coop",
+        "Site": "Quad",
+        "State": "Iowa",
+        "PADD": 2,
+        "Cap_Mmgal": 38,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -95.4146,
+        "Latitude": 42.4768,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -96.724,
+          45.8734
+        ]
+      },
+      "properties": {
+        "OBJECTID": 727,
+        "Company": "Red River Energy LLC",
+        "Site": "Rosholt",
+        "State": "South Dakota",
+        "PADD": 2,
+        "Cap_Mmgal": 36,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -96.724,
+        "Latitude": 45.8734,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -102.2965,
+          46.8787
+        ]
+      },
+      "properties": {
+        "OBJECTID": 728,
+        "Company": "Red Trail Energy LLC",
+        "Site": "Red Trail",
+        "State": "North Dakota",
+        "PADD": 2,
+        "Cap_Mmgal": 65,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -102.2965,
+        "Latitude": 46.8787,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -98.5008,
+          44.9177
+        ]
+      },
+      "properties": {
+        "OBJECTID": 729,
+        "Company": "Redfield Energy LLC",
+        "Site": "Redfield",
+        "State": "South Dakota",
+        "PADD": 2,
+        "Cap_Mmgal": 65,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -98.5008,
+        "Latitude": 44.9177,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -100.8855,
+          37.8813
+        ]
+      },
+      "properties": {
+        "OBJECTID": 730,
+        "Company": "Reeve Agri Energy Inc",
+        "Site": "Garden City",
+        "State": "Kansas",
+        "PADD": 2,
+        "Cap_Mmgal": 20,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -100.8855,
+        "Latitude": 37.8813,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -100.0622,
+          44.6935
+        ]
+      },
+      "properties": {
+        "OBJECTID": 731,
+        "Company": "Ringneck Energy & Feed LLC",
+        "Site": "Onida",
+        "State": "South Dakota",
+        "PADD": 2,
+        "Cap_Mmgal": 80,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -100.0622,
+        "Latitude": 44.6935,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -98.9612,
+          42.5212
+        ]
+      },
+      "properties": {
+        "OBJECTID": 732,
+        "Company": "Sandhills Renewable Energy LLC",
+        "Site": "Atkinson",
+        "State": "Nebraska",
+        "PADD": 2,
+        "Cap_Mmgal": 53,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -98.9612,
+        "Latitude": 42.5212,
+        "emissions_mt_co2e": 68479,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -93.4512,
+          39.3645
+        ]
+      },
+      "properties": {
+        "OBJECTID": 733,
+        "Company": "Show Me Ethanol",
+        "Site": "Carrolton",
+        "State": "Missouri",
+        "PADD": 2,
+        "Cap_Mmgal": 66,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -93.4512,
+        "Latitude": 39.3645,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -96.2343,
+          43.0859
+        ]
+      },
+      "properties": {
+        "OBJECTID": 734,
+        "Company": "Siouxland Energy Cooperative",
+        "Site": "Sioux Center",
+        "State": "Iowa",
+        "PADD": 2,
+        "Cap_Mmgal": 65,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -96.2343,
+        "Latitude": 43.0859,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -96.5923,
+          42.452
+        ]
+      },
+      "properties": {
+        "OBJECTID": 735,
+        "Company": "Siouxland Ethnaol LLC",
+        "Site": "Jackson",
+        "State": "Nebraska",
+        "PADD": 2,
+        "Cap_Mmgal": 100,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -96.5923,
+        "Latitude": 42.452,
+        "emissions_mt_co2e": 105130,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -95.8239,
+          41.1602
+        ]
+      },
+      "properties": {
+        "OBJECTID": 736,
+        "Company": "Sothwest Iowa Renewable",
+        "Site": "Council Bluffs",
+        "State": "Iowa",
+        "PADD": 2,
+        "Cap_Mmgal": 147,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -95.8239,
+        "Latitude": 41.1602,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -86.2932,
+          41.6539
+        ]
+      },
+      "properties": {
+        "OBJECTID": 737,
+        "Company": "Southbend Ethanol LLC",
+        "Site": "Southbend",
+        "State": "Indiana",
+        "PADD": 2,
+        "Cap_Mmgal": 100,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -86.2932,
+        "Latitude": 41.6539,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -103.1911,
+          40.6364
+        ]
+      },
+      "properties": {
+        "OBJECTID": 738,
+        "Company": "Sterling Ethanol LLC",
+        "Site": "Sterling",
+        "State": "Colorado",
+        "PADD": 4,
+        "Cap_Mmgal": 60,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -103.1911,
+        "Latitude": 40.6364,
+        "emissions_mt_co2e": 54556,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.3212,
+          35.7335
+        ]
+      },
+      "properties": {
+        "OBJECTID": 739,
+        "Company": "Tate & Lyle",
+        "Site": "Loudon",
+        "State": "Tennessee",
+        "PADD": 2,
+        "Cap_Mmgal": 110,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -84.3212,
+        "Latitude": 35.7335,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -97.2616,
+          46.8979
+        ]
+      },
+      "properties": {
+        "OBJECTID": 740,
+        "Company": "Tharaldson Ethanol",
+        "Site": "Casselton",
+        "State": "North Dakota",
+        "PADD": 2,
+        "Cap_Mmgal": 165,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -97.2616,
+        "Latitude": 46.8979,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.7874,
+          42.2574
+        ]
+      },
+      "properties": {
+        "OBJECTID": 741,
+        "Company": "The Andersons Marathon Holdings LLC",
+        "Site": "Albion",
+        "State": "Michigan",
+        "PADD": 2,
+        "Cap_Mmgal": 147,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -84.7874,
+        "Latitude": 42.2574,
+        "emissions_mt_co2e": 206858,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -86.4376,
+          40.7184
+        ]
+      },
+      "properties": {
+        "OBJECTID": 742,
+        "Company": "The Andersons Marathon Holdings LLC",
+        "Site": "Clymers",
+        "State": "Indiana",
+        "PADD": 2,
+        "Cap_Mmgal": 140,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -86.4376,
+        "Latitude": 40.7184,
+        "emissions_mt_co2e": 191801,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -95.3988,
+          41.9894
+        ]
+      },
+      "properties": {
+        "OBJECTID": 743,
+        "Company": "The Andersons Marathon Holdings LLC",
+        "Site": "Denison",
+        "State": "Iowa",
+        "PADD": 2,
+        "Cap_Mmgal": 62,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -95.3988,
+        "Latitude": 41.9894,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.59,
+          40.0778
+        ]
+      },
+      "properties": {
+        "OBJECTID": 744,
+        "Company": "The Andersons Marathon Holdings LLC",
+        "Site": "Greenville",
+        "State": "Ohio",
+        "PADD": 2,
+        "Cap_Mmgal": 154,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -84.59,
+        "Latitude": 40.0778,
+        "emissions_mt_co2e": 197846,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -100.9749,
+          40.1926
+        ]
+      },
+      "properties": {
+        "OBJECTID": 745,
+        "Company": "Trenton Agri Products LLC",
+        "Site": "Trenton",
+        "State": "Nebraska",
+        "PADD": 2,
+        "Cap_Mmgal": 55,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -100.9749,
+        "Latitude": 40.1926,
+        "emissions_mt_co2e": 48700,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -88.9178,
+          42.7634
+        ]
+      },
+      "properties": {
+        "OBJECTID": 746,
+        "Company": "United Ethanol LLC",
+        "Site": "Milton",
+        "State": "Wisconsin",
+        "PADD": 2,
+        "Cap_Mmgal": 61,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -88.9178,
+        "Latitude": 42.7634,
+        "emissions_mt_co2e": 96346,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.0631,
+          43.5705
+        ]
+      },
+      "properties": {
+        "OBJECTID": 747,
+        "Company": "United Wisconsin Grain Producers LLC",
+        "Site": "Friesland",
+        "State": "Wisconsin",
+        "PADD": 2,
+        "Cap_Mmgal": 71,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -89.0631,
+        "Latitude": 43.5705,
+        "emissions_mt_co2e": 86983,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -97.9828,
+          41.6837
+        ]
+      },
+      "properties": {
+        "OBJECTID": 748,
+        "Company": "Valero Renewable Fuels",
+        "Site": "Albion",
+        "State": "Nebraska",
+        "PADD": 2,
+        "Cap_Mmgal": 135,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -97.9828,
+        "Latitude": 41.6837,
+        "emissions_mt_co2e": 188635,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -94.9416,
+          42.7778
+        ]
+      },
+      "properties": {
+        "OBJECTID": 749,
+        "Company": "Valero Renewable Fuels LLC",
+        "Site": "Albert City",
+        "State": "Iowa",
+        "PADD": 2,
+        "Cap_Mmgal": 135,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -94.9416,
+        "Latitude": 42.7778,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -96.6889,
+          44.2929
+        ]
+      },
+      "properties": {
+        "OBJECTID": 750,
+        "Company": "Valero Renewable Fuels LLC",
+        "Site": "Aurora",
+        "State": "South Dakota",
+        "PADD": 2,
+        "Cap_Mmgal": 140,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -96.6889,
+        "Latitude": 44.2929,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -83.3926,
+          39.5968
+        ]
+      },
+      "properties": {
+        "OBJECTID": 751,
+        "Company": "Valero Renewable Fuels LLC",
+        "Site": "Bloomingburg",
+        "State": "Ohio",
+        "PADD": 2,
+        "Cap_Mmgal": 135,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -83.3926,
+        "Latitude": 39.5968,
+        "emissions_mt_co2e": 196764,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -85.2031,
+          40.7215
+        ]
+      },
+      "properties": {
+        "OBJECTID": 752,
+        "Company": "Valero Renewable Fuels LLC",
+        "Site": "Bluffton",
+        "State": "Indiana",
+        "PADD": 2,
+        "Cap_Mmgal": 118,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -85.2031,
+        "Latitude": 40.7215,
+        "emissions_mt_co2e": 180313,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -92.7423,
+          43.0973
+        ]
+      },
+      "properties": {
+        "OBJECTID": 753,
+        "Company": "Valero Renewable Fuels LLC",
+        "Site": "Charles City",
+        "State": "Iowa",
+        "PADD": 2,
+        "Cap_Mmgal": 140,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -92.7423,
+        "Latitude": 43.0973,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -94.3051,
+          42.5114
+        ]
+      },
+      "properties": {
+        "OBJECTID": 754,
+        "Company": "Valero Renewable Fuels LLC",
+        "Site": "Ft Dodge",
+        "State": "Iowa",
+        "PADD": 2,
+        "Cap_Mmgal": 140,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -94.3051,
+        "Latitude": 42.5114,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -95.5013,
+          43.1755
+        ]
+      },
+      "properties": {
+        "OBJECTID": 755,
+        "Company": "Valero Renewable Fuels LLC",
+        "Site": "Hartley",
+        "State": "Iowa",
+        "PADD": 2,
+        "Cap_Mmgal": 140,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -95.5013,
+        "Latitude": 43.1755,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -94.1442,
+          43.384
+        ]
+      },
+      "properties": {
+        "OBJECTID": 756,
+        "Company": "Valero Renewable Fuels LLC",
+        "Site": "Lakota",
+        "State": "Iowa",
+        "PADD": 2,
+        "Cap_Mmgal": 110,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -94.1442,
+        "Latitude": 43.384,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -86.9108,
+          40.1978
+        ]
+      },
+      "properties": {
+        "OBJECTID": 757,
+        "Company": "Valero Renewable Fuels LLC",
+        "Site": "Linden",
+        "State": "Indiana",
+        "PADD": 2,
+        "Cap_Mmgal": 135,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -86.9108,
+        "Latitude": 40.1978,
+        "emissions_mt_co2e": 211216,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -87.8726,
+          37.9347
+        ]
+      },
+      "properties": {
+        "OBJECTID": 758,
+        "Company": "Valero Renewable Fuels LLC",
+        "Site": "Mt Vernon",
+        "State": "Indiana",
+        "PADD": 2,
+        "Cap_Mmgal": 100,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -87.8726,
+        "Latitude": 37.9347,
+        "emissions_mt_co2e": 177595,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -94.589,
+          43.6627
+        ]
+      },
+      "properties": {
+        "OBJECTID": 759,
+        "Company": "Valero Renewable Fuels LLC",
+        "Site": "Welcome",
+        "State": "Minnesota",
+        "PADD": 2,
+        "Cap_Mmgal": 140,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -94.589,
+        "Latitude": 43.6627,
+        "emissions_mt_co2e": 188635,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -91.6888,
+          41.9156
+        ]
+      },
+      "properties": {
+        "OBJECTID": 760,
+        "Company": "VCP Corn Processing",
+        "Site": "Cedar Rapids Dry Mill",
+        "State": "Iowa",
+        "PADD": 2,
+        "Cap_Mmgal": 300,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -91.6888,
+        "Latitude": 41.9156,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -97.2896,
+          41.419
+        ]
+      },
+      "properties": {
+        "OBJECTID": 761,
+        "Company": "VCP Corn Processing",
+        "Site": "Columbus",
+        "State": "Nebraska",
+        "PADD": 2,
+        "Cap_Mmgal": 313,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -97.2896,
+        "Latitude": 41.419,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -78.3664,
+          43.2114
+        ]
+      },
+      "properties": {
+        "OBJECTID": 762,
+        "Company": "Western New York Energy LLC",
+        "Site": "Medina",
+        "State": "New York",
+        "PADD": 1,
+        "Cap_Mmgal": 62,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -78.3664,
+        "Latitude": 43.2114,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -100.7377,
+          39.1223
+        ]
+      },
+      "properties": {
+        "OBJECTID": 763,
+        "Company": "Western Plains Energy LLC",
+        "Site": "Oakley",
+        "State": "Kansas",
+        "PADD": 2,
+        "Cap_Mmgal": 52,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -100.7377,
+        "Latitude": 39.1223,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -102.3679,
+          34.8286
+        ]
+      },
+      "properties": {
+        "OBJECTID": 764,
+        "Company": "White Energy Hereford LLC",
+        "Site": "Hereford",
+        "State": "Texas",
+        "PADD": 3,
+        "Cap_Mmgal": 130,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -102.3679,
+        "Latitude": 34.8286,
+        "emissions_mt_co2e": null,
+        "emissions_source": null
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -102.6776,
+          40.1243
+        ]
+      },
+      "properties": {
+        "OBJECTID": 765,
+        "Company": "Yuma Ethanol LLC",
+        "Site": "Yuma",
+        "State": "Colorado",
+        "PADD": 4,
+        "Cap_Mmgal": 60,
+        "Source": "Form EIA-819, Monthly Report of Biofuels, Fuels from Non-Biogenic Wastes, Fuel Oxygenates, Isooctane, and Isooctene",
+        "Period": "As of January 1, 2024",
+        "Longitude": -102.6776,
+        "Latitude": 40.1243,
+        "emissions_mt_co2e": 54450,
+        "emissions_source": "EPA FLIGHT"
+      },
+      "bpd_metadata": {
+        "county": "Ethanol Plants",
+        "state": "hifld",
+        "date": 1756003774.565475,
+        "job_date": 1756003774
+      }
+    }
+  ]
+}

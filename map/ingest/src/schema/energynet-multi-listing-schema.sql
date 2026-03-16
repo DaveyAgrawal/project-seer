@@ -16,18 +16,20 @@ ADD COLUMN IF NOT EXISTS last_scraped_at TIMESTAMPTZ DEFAULT NOW(),
 ADD COLUMN IF NOT EXISTS is_processed BOOLEAN DEFAULT false;
 
 -- Add unique constraint on sale_group to prevent duplicates
-ALTER TABLE energynet_listings 
-ADD CONSTRAINT IF NOT EXISTS energynet_listings_sale_group_unique 
-UNIQUE (sale_group);
+DO $$ BEGIN
+  ALTER TABLE energynet_listings ADD CONSTRAINT energynet_listings_sale_group_unique UNIQUE (sale_group);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 -- Update existing listing_id constraint to allow multiple listings
 ALTER TABLE energynet_listings 
 DROP CONSTRAINT IF EXISTS energynet_listings_listing_id_key;
 
 -- Add composite unique constraint
-ALTER TABLE energynet_listings 
-ADD CONSTRAINT IF NOT EXISTS energynet_listings_composite_unique 
-UNIQUE (sale_group, listing_id);
+DO $$ BEGIN
+  ALTER TABLE energynet_listings ADD CONSTRAINT energynet_listings_composite_unique UNIQUE (sale_group, listing_id);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 -- Enhanced indexes for multi-listing queries
 CREATE INDEX IF NOT EXISTS energynet_listings_region_idx ON energynet_listings(region);
@@ -201,7 +203,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Update dataset registrations for multi-listing support
-DELETE FROM dataset_registry WHERE id IN ('energynet-parcels-low', 'energynet-parcels-medium', 'energynet-parcels-high');
+DELETE FROM dataset_registry WHERE layer_name IN ('energynet-parcels-low', 'energynet-parcels-medium', 'energynet-parcels-high');
 
 SELECT register_dataset(
   'energynet-parcels-low',

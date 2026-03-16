@@ -4,8 +4,26 @@ import compression from 'compression';
 import { Pool } from 'pg';
 import { config } from 'dotenv';
 import path from 'path';
-import { MultiListingScraper } from '../../ingest/dist/multi-listing-scraper';
-import { DatacenterScraper } from '../../ingest/dist/datacenter-scraper';
+
+// Lazy-load scrapers to avoid Playwright import timeout at startup
+let MultiListingScraper: any = null;
+let DatacenterScraper: any = null;
+
+async function getMultiListingScraper() {
+  if (!MultiListingScraper) {
+    const module = await import('../../ingest/dist/multi-listing-scraper');
+    MultiListingScraper = module.MultiListingScraper;
+  }
+  return MultiListingScraper;
+}
+
+async function getDatacenterScraper() {
+  if (!DatacenterScraper) {
+    const module = await import('../../ingest/dist/datacenter-scraper');
+    DatacenterScraper = module.DatacenterScraper;
+  }
+  return DatacenterScraper;
+}
 
 // Load environment variables
 config();
@@ -106,6 +124,11 @@ class GeospatialWebServer {
     this.app.post('/api/scrape-update', this.scrapeUpdate.bind(this));
     this.app.get('/api/datacenters', this.getDatacenters.bind(this));
     this.app.post('/api/scrape-datacenters', this.scrapeDatacenters.bind(this));
+    this.app.get('/api/ccus-sites', this.getCCUSSites.bind(this));
+    this.app.get('/api/emitters', this.getEmitters.bind(this));
+    this.app.get('/api/emitters/categories', this.getEmitterCategories.bind(this));
+    this.app.get('/api/ethanol-plants', this.getEthanolPlants.bind(this));
+    this.app.get('/api/geology', this.getGeology.bind(this));
     this.app.get('/api/generate-cache/:dataSource', this.generateCacheData.bind(this));
     this.app.post('/api/save-cache/:dataSource', this.saveCacheData.bind(this));
     this.app.post('/api/apply-schema', this.applySchema.bind(this));
@@ -397,7 +420,8 @@ class GeospatialWebServer {
       // Send initial progress
       sendProgress({ status: 'starting', message: 'Initializing scraper...' });
 
-      const scraper = new MultiListingScraper();
+      const ScraperClass = await getMultiListingScraper();
+      const scraper = new ScraperClass();
       
       try {
         await scraper.initialize();
@@ -633,6 +657,233 @@ class GeospatialWebServer {
     }
   }
 
+  private async getCCUSSites(req: express.Request, res: express.Response): Promise<void> {
+    try {
+      console.log('🏭 Fetching CCUS sites...');
+
+      const result = await this.pool.query(`
+        SELECT
+          id,
+          project_name,
+          entities,
+          capture_storage_details,
+          country,
+          location,
+          state,
+          sector_classification,
+          sector_description,
+          subsector_classification,
+          subsector_description,
+          latitude,
+          longitude,
+          visualized_capacity,
+          capacity,
+          storage_classification,
+          storage_description,
+          year_announced,
+          year_operational,
+          status,
+          notes,
+          month_announced,
+          reference,
+          ST_AsGeoJSON(geom) as geometry
+        FROM ccus_sites
+        WHERE latitude IS NOT NULL AND longitude IS NOT NULL
+        ORDER BY project_name
+      `);
+
+      const features = result.rows.map(row => ({
+        type: 'Feature',
+        id: row.id,
+        properties: {
+          id: row.id,
+          project_name: row.project_name,
+          entities: row.entities,
+          capture_storage_details: row.capture_storage_details,
+          country: row.country,
+          location: row.location,
+          state: row.state,
+          sector_classification: row.sector_classification,
+          sector_description: row.sector_description,
+          subsector_classification: row.subsector_classification,
+          subsector_description: row.subsector_description,
+          visualized_capacity: row.visualized_capacity,
+          capacity: row.capacity,
+          storage_classification: row.storage_classification,
+          storage_description: row.storage_description,
+          year_announced: row.year_announced,
+          year_operational: row.year_operational,
+          status: row.status,
+          notes: row.notes,
+          month_announced: row.month_announced,
+          reference: row.reference
+        },
+        geometry: JSON.parse(row.geometry)
+      }));
+
+      const geojson = {
+        type: 'FeatureCollection',
+        features,
+        metadata: {
+          total_sites: features.length,
+          total_capacity: result.rows.reduce((sum, row) => sum + (row.capacity || 0), 0),
+          generated: new Date().toISOString(),
+          data_type: 'ccus_sites'
+        }
+      };
+
+      console.log(`✅ Returning ${features.length} CCUS sites`);
+      res.json(geojson);
+
+    } catch (error) {
+      console.error('❌ Error fetching CCUS sites:', error);
+      res.status(500).json({ error: 'Failed to fetch CCUS sites' });
+    }
+  }
+
+  private async getEmitters(req: express.Request, res: express.Response): Promise<void> {
+    try {
+      console.log('🏭 Fetching point source emitters...');
+
+      const result = await this.pool.query(`
+        SELECT
+          id,
+          facility_id,
+          frs_id,
+          facility_name,
+          city,
+          state,
+          zip_code,
+          address,
+          county,
+          latitude,
+          longitude,
+          primary_naics_code,
+          industry_type_subparts,
+          industry_type_sectors,
+          total_emissions_2023,
+          ST_AsGeoJSON(geom) as geometry
+        FROM point_source_emitters
+        WHERE latitude IS NOT NULL AND longitude IS NOT NULL
+        ORDER BY total_emissions_2023 DESC NULLS LAST
+      `);
+
+      const features = result.rows.map(row => ({
+        type: 'Feature',
+        id: row.id,
+        properties: {
+          id: row.id,
+          facility_id: row.facility_id,
+          frs_id: row.frs_id,
+          facility_name: row.facility_name,
+          city: row.city,
+          state: row.state,
+          zip_code: row.zip_code,
+          address: row.address,
+          county: row.county,
+          primary_naics_code: row.primary_naics_code,
+          industry_type_subparts: row.industry_type_subparts,
+          industry_type_sectors: row.industry_type_sectors,
+          total_emissions_2023: row.total_emissions_2023
+        },
+        geometry: JSON.parse(row.geometry)
+      }));
+
+      // Get emissions stats for slider
+      const statsResult = await this.pool.query(`
+        SELECT 
+          MIN(total_emissions_2023) as min_emissions,
+          MAX(total_emissions_2023) as max_emissions
+        FROM point_source_emitters
+        WHERE total_emissions_2023 IS NOT NULL
+      `);
+
+      const geojson = {
+        type: 'FeatureCollection',
+        features,
+        metadata: {
+          total_emitters: features.length,
+          min_emissions: statsResult.rows[0]?.min_emissions || 0,
+          max_emissions: statsResult.rows[0]?.max_emissions || 0,
+          generated: new Date().toISOString(),
+          data_type: 'point_source_emitters'
+        }
+      };
+
+      console.log(`✅ Returning ${features.length} point source emitters`);
+      res.json(geojson);
+
+    } catch (error) {
+      console.error('❌ Error fetching emitters:', error);
+      res.status(500).json({ error: 'Failed to fetch emitters' });
+    }
+  }
+
+  private async getEmitterCategories(req: express.Request, res: express.Response): Promise<void> {
+    try {
+      const result = await this.pool.query(`
+        SELECT 
+          industry_type_sectors as category,
+          COUNT(*) as count
+        FROM point_source_emitters
+        WHERE industry_type_sectors IS NOT NULL
+        GROUP BY industry_type_sectors
+        ORDER BY count DESC
+      `);
+
+      res.json({
+        categories: result.rows,
+        total: result.rows.reduce((sum, r) => sum + parseInt(r.count), 0)
+      });
+
+    } catch (error) {
+      console.error('❌ Error fetching emitter categories:', error);
+      res.status(500).json({ error: 'Failed to fetch emitter categories' });
+    }
+  }
+
+  private async getEthanolPlants(req: express.Request, res: express.Response): Promise<void> {
+    try {
+      console.log('🌽 Fetching ethanol plants...');
+
+      const fs = require('fs');
+      const ethanolPath = path.join(__dirname, '../public/data/ethanol_plants_with_emissions.geojson');
+      
+      const data = JSON.parse(fs.readFileSync(ethanolPath, 'utf-8'));
+      
+      console.log(`✅ Returning ${data.features?.length || 0} ethanol plants`);
+      res.json(data);
+
+    } catch (error) {
+      console.error('❌ Error fetching ethanol plants:', error);
+      res.status(500).json({ error: 'Failed to fetch ethanol plants' });
+    }
+  }
+
+  private async getGeology(req: express.Request, res: express.Response): Promise<void> {
+    try {
+      console.log('🪨 Fetching geology data...');
+
+      const fs = require('fs');
+      const geologyPath = path.join(__dirname, '../public/data/geology_simplified.geojson');
+      
+      if (!fs.existsSync(geologyPath)) {
+        console.error('❌ Geology data file not found:', geologyPath);
+        res.status(404).json({ error: 'Geology data not found. Run process_geology.py first.' });
+        return;
+      }
+      
+      const data = JSON.parse(fs.readFileSync(geologyPath, 'utf-8'));
+      
+      console.log(`✅ Returning ${data.features?.length || 0} geology cells`);
+      res.json(data);
+
+    } catch (error) {
+      console.error('❌ Error fetching geology data:', error);
+      res.status(500).json({ error: 'Failed to fetch geology data' });
+    }
+  }
+
   private async scrapeDatacenters(req: express.Request, res: express.Response): Promise<void> {
     try {
       console.log('🔄 Starting datacenter scraper...');
@@ -653,7 +904,8 @@ class GeospatialWebServer {
       // Send initial progress
       sendProgress({ status: 'starting', message: 'Initializing datacenter scraper...' });
 
-      const scraper = new DatacenterScraper(true);
+      const ScraperClass = await getDatacenterScraper();
+      const scraper = new ScraperClass(true);
 
       try {
         await scraper.initialize();

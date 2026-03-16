@@ -43,6 +43,7 @@
             position: absolute;
             top: 20px;
             left: 20px;
+            bottom: 20px;
             background: rgba(255, 255, 255, 0.95);
             padding: 15px;
             border-radius: 8px;
@@ -51,6 +52,7 @@
             min-width: 300px;
             max-width: 350px;
             z-index: 1000;
+            overflow-y: auto;
         }
 
         .overlay-header {
@@ -339,10 +341,42 @@
         </div>
         
         <div class="layer-control">
+            <h4><i class="fas fa-fire"></i> Geothermal Resources</h4>
+            <div class="control-group">
+                <div class="checkbox-wrapper">
+                    <input type="checkbox" id="mesh-toggle">
+                    <label for="mesh-toggle">Show geothermal temperature map</label>
+                </div>
+                <div class="slider-wrapper">
+                    <label for="mesh-opacity">Opacity: <span id="mesh-opacity-value">70%</span></label>
+                    <input type="range" id="mesh-opacity" class="slider" min="0" max="100" value="70">
+                </div>
+                <div style="margin-top: 8px;">
+                    <label style="font-size: 12px; color: #666;">Depth:</label>
+                    <select id="depth-filter" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; background: white; margin-top: 4px;">
+                        <option value="1000">1,000m</option>
+                        <option value="1500">1,500m</option>
+                        <option value="2000">2,000m</option>
+                        <option value="2500">2,500m</option>
+                        <option value="3000" selected>3,000m</option>
+                        <option value="3500">3,500m</option>
+                        <option value="4000">4,000m</option>
+                        <option value="4500">4,500m</option>
+                        <option value="5000">5,000m</option>
+                        <option value="5500">5,500m</option>
+                        <option value="6000">6,000m</option>
+                        <option value="6500">6,500m</option>
+                        <option value="7000">7,000m</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="layer-control">
             <h4><i class="fas fa-bolt"></i> Transmission Lines</h4>
             <div class="control-group">
                 <div class="checkbox-wrapper">
-                    <input type="checkbox" id="transmission-toggle" checked>
+                    <input type="checkbox" id="transmission-toggle">
                     <label for="transmission-toggle">Show transmission lines</label>
                 </div>
                 <div class="slider-wrapper">
@@ -375,7 +409,7 @@
             <h4><i class="fas fa-server"></i> Data Centers (US Only)</h4>
             <div class="control-group">
                 <div class="checkbox-wrapper">
-                    <input type="checkbox" id="datacenter-toggle" checked>
+                    <input type="checkbox" id="datacenter-toggle">
                     <label for="datacenter-toggle">Show data centers</label>
                 </div>
                 <div class="button-wrapper">
@@ -390,38 +424,293 @@
         </div>
 
         <div class="layer-control">
-            <h4><i class="fas fa-border-all"></i> Hexagon Mesh</h4>
+            <h4><i class="fas fa-bullseye"></i> Optimal Site Finder</h4>
             <div class="control-group">
                 <div class="checkbox-wrapper">
-                    <input type="checkbox" id="mesh-toggle">
-                    <label for="mesh-toggle">Show hexagon mesh</label>
+                    <input type="checkbox" id="optimal-sites-toggle">
+                    <label for="optimal-sites-toggle">Show optimal sites</label>
                 </div>
-                <div class="slider-wrapper">
-                    <label for="mesh-opacity">Opacity: <span id="mesh-opacity-value">70%</span></label>
-                    <input type="range" id="mesh-opacity" class="slider" min="0" max="100" value="70">
+                <div style="margin-left: 20px; margin-top: 8px; font-size: 12px; color: #666;">
+                    <p style="margin: 0 0 8px 0;">Finds locations with highest emissions + best geothermal resources</p>
+                    <div style="margin-top: 8px; padding: 8px; background: #f5f5f5; border-radius: 4px;">
+                        <div style="font-weight: bold; margin-bottom: 6px;">Data Sources:</div>
+                        <div class="checkbox-wrapper" style="margin-bottom: 4px;">
+                            <input type="checkbox" id="optimal-use-ethanol" checked>
+                            <label for="optimal-use-ethanol" style="color: #D4A017;">🌽 Ethanol Facilities</label>
+                        </div>
+                        <div class="checkbox-wrapper" style="margin-bottom: 4px;">
+                            <input type="checkbox" id="optimal-use-emitters" checked>
+                            <label for="optimal-use-emitters" style="color: #F44336;">🏭 Point Source Emitters</label>
+                        </div>
+                    </div>
+                    <div class="slider-wrapper" style="margin-top: 8px;">
+                        <label for="optimal-depth">Depth for geothermal: <span id="optimal-depth-value">3000</span>m</label>
+                        <input type="range" id="optimal-depth" class="slider" min="1000" max="7000" value="3000" step="500">
+                    </div>
+                    <div class="slider-wrapper" style="margin-top: 8px;">
+                        <label for="optimal-count">Show top: <span id="optimal-count-value">10</span> sites</label>
+                        <input type="range" id="optimal-count" class="slider" min="5" max="25" value="10" step="5">
+                    </div>
+                </div>
+                <div class="stats">
+                    <small id="optimal-sites-count">Check box to find optimal sites</small>
                 </div>
             </div>
         </div>
-
 
         <div class="layer-control">
-            <h4><i class="fas fa-thermometer-half"></i> Temperature Depth Filter</h4>
+            <h4><i class="fas fa-seedling"></i> Ethanol Facilities</h4>
             <div class="control-group">
-                <div style="margin-bottom: 8px;">
-                    <select id="depth-filter" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; background: white;">
-                        <option value="2000">2,000m</option>
-                        <option value="3000" selected>3,000m</option>
-                        <option value="4000">4,000m</option>
-                        <option value="5000">5,000m</option>
-                        <option value="6000">6,000m</option>
-                        <option value="7000">7,000m</option>
-                    </select>
+                <div class="checkbox-wrapper">
+                    <input type="checkbox" id="ethanol-toggle">
+                    <label for="ethanol-toggle">Show ethanol plants</label>
                 </div>
-                <div style="font-size: 11px; color: #888; margin-top: 4px;">
-                    Select depth for geothermal temperature display
+                <div class="stats">
+                    <small id="ethanol-count">Loading...</small>
                 </div>
             </div>
         </div>
+
+        <div class="layer-control">
+            <h4><i class="fas fa-mountain"></i> Geology (Depth to HDR)</h4>
+            <div class="control-group">
+                <div class="checkbox-wrapper">
+                    <input type="checkbox" id="geology-toggle">
+                    <label for="geology-toggle">Show depth to basement</label>
+                </div>
+                <div class="slider-wrapper" style="margin-top: 8px;">
+                    <label for="geology-min-depth" style="font-size: 11px;">Min depth: <span id="geology-min-depth-value">200</span>m</label>
+                    <input type="range" id="geology-min-depth" min="0" max="4000" step="100" value="200" style="width: 100px;">
+                </div>
+                <div class="stats">
+                    <small id="geology-count">Loading...</small>
+                </div>
+                <div class="slider-wrapper" style="margin-top: 8px;">
+                    <label for="geology-opacity" style="font-size: 11px;">Opacity:</label>
+                    <input type="range" id="geology-opacity" min="0.1" max="1" step="0.1" value="0.6" style="width: 100px;">
+                </div>
+                <div class="geology-legend" style="margin-top: 10px; font-size: 11px;">
+                    <div style="display: flex; align-items: center; margin-bottom: 4px;">
+                        <span style="display: inline-block; width: 16px; height: 12px; background: linear-gradient(to right, #1B5E20, #4CAF50, #8BC34A, #FFEB3B, #FF9800, #FF5722, #B71C1C); border-radius: 2px; margin-right: 6px;"></span>
+                        <span>Depth to hot dry rock</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; color: #666; font-size: 10px;">
+                        <span>Shallow (favorable)</span>
+                        <span>12000m+ (deep)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="layer-control">
+            <h4><i class="fas fa-smog"></i> Point Source Emitters</h4>
+            <div class="control-group">
+                <div class="checkbox-wrapper">
+                    <input type="checkbox" id="emitters-toggle">
+                    <label for="emitters-toggle">Show point source emitters</label>
+                </div>
+                <div class="emitters-subtoggle" style="margin-left: 20px; margin-top: 8px; font-size: 12px;">
+                    <div class="checkbox-wrapper" style="margin-bottom: 4px;">
+                        <input type="checkbox" id="emitter-power-plants">
+                        <label for="emitter-power-plants" style="color: #F44336;">● Power Plants</label>
+                    </div>
+                    <div class="checkbox-wrapper" style="margin-bottom: 4px;">
+                        <input type="checkbox" id="emitter-petroleum">
+                        <label for="emitter-petroleum" style="color: #FF9800;">● Petroleum & Natural Gas</label>
+                    </div>
+                    <div class="checkbox-wrapper" style="margin-bottom: 4px;">
+                        <input type="checkbox" id="emitter-waste">
+                        <label for="emitter-waste" style="color: #795548;">● Waste</label>
+                    </div>
+                    <div class="checkbox-wrapper" style="margin-bottom: 4px;">
+                        <input type="checkbox" id="emitter-chemicals">
+                        <label for="emitter-chemicals" style="color: #9C27B0;">● Chemicals</label>
+                    </div>
+                    <div class="checkbox-wrapper" style="margin-bottom: 4px;">
+                        <input type="checkbox" id="emitter-minerals">
+                        <label for="emitter-minerals" style="color: #607D8B;">● Minerals</label>
+                    </div>
+                    <div class="checkbox-wrapper" style="margin-bottom: 4px;">
+                        <input type="checkbox" id="emitter-metals">
+                        <label for="emitter-metals" style="color: #455A64;">● Metals</label>
+                    </div>
+                    <div class="checkbox-wrapper" style="margin-bottom: 4px;">
+                        <input type="checkbox" id="emitter-other">
+                        <label for="emitter-other" style="color: #9E9E9E;">● Other</label>
+                    </div>
+                </div>
+                <div class="slider-wrapper" style="margin-top: 10px;">
+                    <label for="emissions-slider">Min Emissions: <span id="emissions-value">0</span> metric tons CO₂e</label>
+                    <input type="range" id="emissions-slider" class="slider" min="0" max="1000000" value="0" step="10000">
+                </div>
+                <div class="stats">
+                    <small id="emitters-count">Loading...</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="layer-control">
+            <h4><i class="fas fa-industry"></i> CCUS Sites</h4>
+            <div class="control-group">
+                <div class="checkbox-wrapper">
+                    <input type="checkbox" id="ccus-toggle">
+                    <label for="ccus-toggle">Show CCUS sites</label>
+                </div>
+                <div class="ccus-subtoggle" style="margin-left: 20px; margin-top: 8px; font-size: 12px;">
+                    <div class="checkbox-wrapper" style="margin-bottom: 4px;">
+                        <input type="checkbox" id="ccus-saline">
+                        <label for="ccus-saline" style="color: #4CAF50;">● Dedicated Saline Storage</label>
+                    </div>
+                    <div class="checkbox-wrapper" style="margin-bottom: 4px;">
+                        <input type="checkbox" id="ccus-eor">
+                        <label for="ccus-eor" style="color: #FF9800;">● Enhanced Oil Recovery</label>
+                    </div>
+                    <div class="checkbox-wrapper" style="margin-bottom: 4px;">
+                        <input type="checkbox" id="ccus-utilization">
+                        <label for="ccus-utilization" style="color: #9C27B0;">● Utilization</label>
+                    </div>
+                    <div class="checkbox-wrapper" style="margin-bottom: 4px;">
+                        <input type="checkbox" id="ccus-other">
+                        <label for="ccus-other" style="color: #607D8B;">● Other/Unavailable</label>
+                    </div>
+                </div>
+                <div class="stats">
+                    <small id="ccus-count">Loading...</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="layer-control">
+            <h4><i class="fas fa-layer-group"></i> EGS Technology Comparison</h4>
+            <div class="control-group">
+                <p style="margin: 0 0 8px 0; font-size: 11px; color: #666;">Compare viable regions at different depths:</p>
+                
+                <!-- Conventional EGS Layer -->
+                <div style="background: #FFFDE7; border: 1px solid #FFD54F; border-radius: 6px; padding: 8px; margin-bottom: 8px;">
+                    <div class="checkbox-wrapper" style="margin-bottom: 4px;">
+                        <input type="checkbox" id="compare-conventional">
+                        <label for="compare-conventional" style="font-weight: bold; color: #F9A825;">Conventional EGS</label>
+                    </div>
+                    <div style="margin-left: 20px; font-size: 11px; color: #666;">
+                        <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+                            <div style="width: 12px; height: 12px; background: #FFD54F; border: 2px solid #F9A825; border-radius: 2px;"></div>
+                            <span>Min Temp: <input type="number" id="compare-conventional-temp" value="200" min="100" max="400" style="width: 50px; padding: 2px 4px; font-size: 10px; border: 1px solid #ddd; border-radius: 3px;">°C</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+                            <span style="margin-left: 18px;">Depth: <input type="number" id="compare-conventional-depth" value="4000" min="1000" max="10000" step="500" style="width: 60px; padding: 2px 4px; font-size: 10px; border: 1px solid #ddd; border-radius: 3px;">m</span>
+                        </div>
+                        <div style="margin-top: 4px;">
+                            <label style="font-size: 10px;">Max Basement: <span id="compare-conventional-basement-value">6000</span>m</label>
+                            <input type="range" id="compare-conventional-basement" min="1000" max="12000" step="500" value="6000" style="width: 100%; height: 4px;">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- CO₂-EGS Layer -->
+                <div style="background: #E8F5E9; border: 1px solid #66BB6A; border-radius: 6px; padding: 8px; margin-bottom: 8px;">
+                    <div class="checkbox-wrapper" style="margin-bottom: 4px;">
+                        <input type="checkbox" id="compare-co2egs">
+                        <label for="compare-co2egs" style="font-weight: bold; color: #43A047;">CO₂-EGS Expanded</label>
+                    </div>
+                    <div style="margin-left: 20px; font-size: 11px; color: #666;">
+                        <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+                            <div style="width: 12px; height: 12px; background: #66BB6A; border: 2px solid #43A047; border-radius: 2px;"></div>
+                            <span>Min Temp: <input type="number" id="compare-co2egs-temp" value="150" min="100" max="400" style="width: 50px; padding: 2px 4px; font-size: 10px; border: 1px solid #ddd; border-radius: 3px;">°C</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+                            <span style="margin-left: 18px;">Depth: <input type="number" id="compare-co2egs-depth" value="5000" min="1000" max="10000" step="500" style="width: 60px; padding: 2px 4px; font-size: 10px; border: 1px solid #ddd; border-radius: 3px;">m</span>
+                        </div>
+                        <div style="margin-top: 4px;">
+                            <label style="font-size: 10px;">Max Basement: <span id="compare-co2egs-basement-value">6000</span>m</label>
+                            <input type="range" id="compare-co2egs-basement" min="1000" max="12000" step="500" value="6000" style="width: 100%; height: 4px;">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Quick Actions -->
+                <div style="display: flex; gap: 4px; margin-bottom: 8px;">
+                    <button id="compare-show-both" style="flex: 1; padding: 6px; font-size: 10px; border: 1px solid #9C27B0; background: #F3E5F5; border-radius: 4px; cursor: pointer; font-weight: bold;">
+                        Show Both
+                    </button>
+                    <button id="compare-clear" style="flex: 1; padding: 6px; font-size: 10px; border: 1px solid #9E9E9E; background: #FAFAFA; border-radius: 4px; cursor: pointer;">
+                        Clear All
+                    </button>
+                </div>
+                
+                <!-- Legend -->
+                <div style="background: #f5f5f5; border-radius: 4px; padding: 8px; font-size: 10px;">
+                    <div style="font-weight: bold; margin-bottom: 4px;">Overlay Legend:</div>
+                    <div style="display: flex; flex-direction: column; gap: 3px;">
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <div style="width: 16px; height: 8px; background: #FFD54F; border-radius: 2px;"></div>
+                            <span id="compare-legend-conventional">Conventional EGS viable</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <div style="width: 16px; height: 8px; background: #81C784; border-radius: 2px;"></div>
+                            <span id="compare-legend-co2egs">CO₂-EGS viable</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Stats -->
+                <div class="stats" style="margin-top: 8px;">
+                    <small id="compare-stats">Enable layers to see comparison stats</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- CO2-EGS Resource Potential - COMMENTED OUT (replaced by EGS Technology Comparison)
+        <div class="layer-control">
+            <h4><i class="fas fa-fire-alt"></i> CO₂-EGS Resource Potential</h4>
+            <div class="control-group">
+                <div class="checkbox-wrapper">
+                    <input type="checkbox" id="co2egs-toggle">
+                    <label for="co2egs-toggle">Show EGS resource zones</label>
+                </div>
+                <div style="margin-left: 20px; margin-top: 8px; font-size: 11px; color: #666;">
+                    <p style="margin: 0 0 6px 0;">View mode:</p>
+                    <select id="co2egs-view-mode" style="width: 100%; padding: 4px; border: 1px solid #ddd; border-radius: 4px; font-size: 11px; margin-bottom: 8px;">
+                        <option value="all">CO₂-EGS Viable (150°C+)</option>
+                        <option value="water-egs">Water-Based EGS Only (200°C+)</option>
+                        <option value="comparison">Compare: CO₂-EGS vs Water-Based</option>
+                    </select>
+                    <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 6px;">
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <div style="width: 14px; height: 14px; background: #00BCD4; border-radius: 2px;"></div>
+                            <span><strong>CO₂-EGS Viable</strong> (150°C+)</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <div style="width: 14px; height: 14px; background: #FFC107; border-radius: 2px;"></div>
+                            <span><strong>Conventional-EGS and CO₂-EGS Viable</strong> (200°C+)</span>
+                        </div>
+                    </div>
+                    <div style="font-size: 10px; color: #888; margin-top: 6px; line-height: 1.3;">
+                        CO₂-EGS: 150°C+ • Water-Based: 200°C+
+                    </div>
+                    <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #ddd;">
+                        <p style="margin: 0 0 4px 0; font-weight: bold;">Quick Depth View:</p>
+                        <div style="display: flex; gap: 4px;">
+                            <button id="depth-3000" class="depth-btn" style="flex: 1; padding: 4px 8px; font-size: 10px; border: 1px solid #00BCD4; background: white; border-radius: 3px; cursor: pointer;">3,000m</button>
+                            <button id="depth-4000" class="depth-btn" style="flex: 1; padding: 4px 8px; font-size: 10px; border: 1px solid #FFC107; background: white; border-radius: 3px; cursor: pointer;">4,000m</button>
+                            <button id="depth-5000" class="depth-btn" style="flex: 1; padding: 4px 8px; font-size: 10px; border: 1px solid #FF5722; background: white; border-radius: 3px; cursor: pointer;">5,000m</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="slider-wrapper" style="margin-top: 10px;">
+                    <label for="co2egs-opacity">Opacity: <span id="co2egs-opacity-value">70%</span></label>
+                    <input type="range" id="co2egs-opacity" class="slider" min="0" max="100" value="70">
+                </div>
+                <div class="slider-wrapper" style="margin-top: 10px;">
+                    <label for="co2egs-max-basement-depth">Max Depth to Basement: <span id="co2egs-max-basement-depth-value">6000</span>m</label>
+                    <input type="range" id="co2egs-max-basement-depth" class="slider" min="1000" max="12000" step="500" value="6000">
+                    <div style="font-size: 10px; color: #888; margin-top: 2px;">Filter out areas where basement is too deep to drill</div>
+                </div>
+                <div class="stats" style="margin-top: 8px;">
+                    <small id="co2egs-stats">Select depth and enable to view resource potential</small>
+                </div>
+            </div>
+        </div>
+        -->
 
         <div class="legend" id="legend">
             <h4><i class="fas fa-list"></i> Legend</h4>
@@ -456,23 +745,23 @@
             <div id="geothermal-legend" style="margin-top: 10px;">
                 <div class="legend-item">
                     <div class="legend-circle" style="background: #F44336;"></div>
-                    <span>Very Hot (300°F+)</span>
+                    <span>Very Hot (149°C+)</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-circle" style="background: #FF9800;"></div>
-                    <span>Hot (260-300°F)</span>
+                    <span>Hot (127-149°C)</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-circle" style="background: #FFEB3B;"></div>
-                    <span>Warm (220-260°F)</span>
+                    <span>Warm (104-127°C)</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-circle" style="background: #4CAF50;"></div>
-                    <span>Moderate (180-220°F)</span>
+                    <span>Moderate (82-104°C)</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-circle" style="background: #2196F3;"></div>
-                    <span>Cool (150-180°F)</span>
+                    <span>Cool (66-82°C)</span>
                 </div>
             </div>
         </div>

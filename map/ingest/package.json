@@ -21,20 +21,21 @@
     "geoingest": "dist/ingest.js"
   },
   "dependencies": {
-    "@turf/turf": "^6.5.0",
+    "@turf/turf": "^5.1.6",
     "adm-zip": "^0.5.10",
     "cheerio": "^1.0.0-rc.12",
     "commander": "^11.1.0",
     "csv-parser": "^3.0.0",
     "dotenv": "^16.3.1",
-    "node-fetch": "^3.3.2",
+    "node-fetch": "^2.7.0",
     "pg": "^8.11.3",
     "pg-copy-streams": "^6.0.5",
     "playwright": "^1.40.0",
     "puppeteer": "^21.5.0",
     "shapefile": "^0.6.6",
     "stream-json": "^1.8.0",
-    "wellknown": "^0.5.0"
+    "wellknown": "^0.5.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@types/adm-zip": "^0.5.0",

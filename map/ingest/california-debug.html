@@ -1,0 +1,511 @@
+<!DOCTYPE html><html lang="en" class="" data-theme-mode="dark"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="preconnect" href="//fonts.googleapis.com">
+    <link rel="preconnect" href="//fonts.gstatic.com" crossorigin="">
+
+    <title>Efficient Markets</title>
+<meta name="robots" content="max-image-preview:large">
+	<style>img:is([sizes="auto" i], [sizes^="auto," i]) { contain-intrinsic-size: 3000px 1500px }</style>
+	        <script>
+        (function() {
+            // Detect EfficientMarkets mobile app by user agent
+            if (navigator.userAgent && navigator.userAgent.indexOf('EfficientMarkets-MobileApp') !== -1) {
+                // Hide background video immediately
+                document.addEventListener('DOMContentLoaded', function() {
+                    var bgVideo = document.getElementById('background-video');
+                    if (bgVideo) {
+                        bgVideo.style.display = 'none';
+                    }
+                });
+
+                // Also set AWB to treat as mobile device if AWB is loaded
+                if (typeof window.AWB !== 'undefined') {
+                    window.AWB.isMobile = true;
+                    window.AWB.disableVideo = true;
+                }
+            }
+        })();
+        </script>
+        <link rel="dns-prefetch" href="//efficientmarkets-prod-www.azurewebsites.net">
+<link rel="dns-prefetch" href="//fonts.googleapis.com">
+<script type="text/javascript">
+/* <![CDATA[ */
+window._wpemojiSettings = {"baseUrl":"https:\/\/s.w.org\/images\/core\/emoji\/15.1.0\/72x72\/","ext":".png","svgUrl":"https:\/\/s.w.org\/images\/core\/emoji\/15.1.0\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/efficientmarkets-prod-www.azurewebsites.net\/wp-includes\/js\/wp-emoji-release.min.js?ver=6.8.1"}};
+/*! This file is auto-generated */
+!function(i,n){var o,s,e;function c(e){try{var t={supportTests:e,timestamp:(new Date).valueOf()};sessionStorage.setItem(o,JSON.stringify(t))}catch(e){}}function p(e,t,n){e.clearRect(0,0,e.canvas.width,e.canvas.height),e.fillText(t,0,0);var t=new Uint32Array(e.getImageData(0,0,e.canvas.width,e.canvas.height).data),r=(e.clearRect(0,0,e.canvas.width,e.canvas.height),e.fillText(n,0,0),new Uint32Array(e.getImageData(0,0,e.canvas.width,e.canvas.height).data));return t.every(function(e,t){return e===r[t]})}function u(e,t,n){switch(t){case"flag":return n(e,"\ud83c\udff3\ufe0f\u200d\u26a7\ufe0f","\ud83c\udff3\ufe0f\u200b\u26a7\ufe0f")?!1:!n(e,"\ud83c\uddfa\ud83c\uddf3","\ud83c\uddfa\u200b\ud83c\uddf3")&&!n(e,"\ud83c\udff4\udb40\udc67\udb40\udc62\udb40\udc65\udb40\udc6e\udb40\udc67\udb40\udc7f","\ud83c\udff4\u200b\udb40\udc67\u200b\udb40\udc62\u200b\udb40\udc65\u200b\udb40\udc6e\u200b\udb40\udc67\u200b\udb40\udc7f");case"emoji":return!n(e,"\ud83d\udc26\u200d\ud83d\udd25","\ud83d\udc26\u200b\ud83d\udd25")}return!1}function f(e,t,n){var r="undefined"!=typeof WorkerGlobalScope&&self instanceof WorkerGlobalScope?new OffscreenCanvas(300,150):i.createElement("canvas"),a=r.getContext("2d",{willReadFrequently:!0}),o=(a.textBaseline="top",a.font="600 32px Arial",{});return e.forEach(function(e){o[e]=t(a,e,n)}),o}function t(e){var t=i.createElement("script");t.src=e,t.defer=!0,i.head.appendChild(t)}"undefined"!=typeof Promise&&(o="wpEmojiSettingsSupports",s=["flag","emoji"],n.supports={everything:!0,everythingExceptFlag:!0},e=new Promise(function(e){i.addEventListener("DOMContentLoaded",e,{once:!0})}),new Promise(function(t){var n=function(){try{var e=JSON.parse(sessionStorage.getItem(o));if("object"==typeof e&&"number"==typeof e.timestamp&&(new Date).valueOf()<e.timestamp+604800&&"object"==typeof e.supportTests)return e.supportTests}catch(e){}return null}();if(!n){if("undefined"!=typeof Worker&&"undefined"!=typeof OffscreenCanvas&&"undefined"!=typeof URL&&URL.createObjectURL&&"undefined"!=typeof Blob)try{var e="postMessage("+f.toString()+"("+[JSON.stringify(s),u.toString(),p.toString()].join(",")+"));",r=new Blob([e],{type:"text/javascript"}),a=new Worker(URL.createObjectURL(r),{name:"wpTestEmojiSupports"});return void(a.onmessage=function(e){c(n=e.data),a.terminate(),t(n)})}catch(e){}c(n=f(s,u,p))}t(n)}).then(function(e){for(var t in e)n.supports[t]=e[t],n.supports.everything=n.supports.everything&&n.supports[t],"flag"!==t&&(n.supports.everythingExceptFlag=n.supports.everythingExceptFlag&&n.supports[t]);n.supports.everythingExceptFlag=n.supports.everythingExceptFlag&&!n.supports.flag,n.DOMReady=!1,n.readyCallback=function(){n.DOMReady=!0}}).then(function(){return e}).then(function(){var e;n.supports.everything||(n.readyCallback(),(e=n.source||{}).concatemoji?t(e.concatemoji):e.wpemoji&&e.twemoji&&(t(e.twemoji),t(e.wpemoji)))}))}((window,document),window._wpemojiSettings);
+/* ]]> */
+</script>
+<style id="wp-emoji-styles-inline-css" type="text/css">
+
+	img.wp-smiley, img.emoji {
+		display: inline !important;
+		border: none !important;
+		box-shadow: none !important;
+		height: 1em !important;
+		width: 1em !important;
+		margin: 0 0.07em !important;
+		vertical-align: -0.1em !important;
+		background: none !important;
+		padding: 0 !important;
+	}
+</style>
+<link rel="stylesheet" id="wp-block-library-css" href="/wp-includes/css/dist/block-library/style.min.css?ver=6.8.1" type="text/css" media="all">
+<style id="classic-theme-styles-inline-css" type="text/css">
+/*! This file is auto-generated */
+.wp-block-button__link{color:#fff;background-color:#32373c;border-radius:9999px;box-shadow:none;text-decoration:none;padding:calc(.667em + 2px) calc(1.333em + 2px);font-size:1.125em}.wp-block-file__button{background:#32373c;color:#fff;text-decoration:none}
+</style>
+<link rel="stylesheet" id="awb-css" href="/wp-content/plugins/advanced-backgrounds/assets/awb/awb.min.css?ver=1.12.8" type="text/css" media="all">
+<style id="global-styles-inline-css" type="text/css">
+:root{--wp--preset--aspect-ratio--square: 1;--wp--preset--aspect-ratio--4-3: 4/3;--wp--preset--aspect-ratio--3-4: 3/4;--wp--preset--aspect-ratio--3-2: 3/2;--wp--preset--aspect-ratio--2-3: 2/3;--wp--preset--aspect-ratio--16-9: 16/9;--wp--preset--aspect-ratio--9-16: 9/16;--wp--preset--color--black: #000000;--wp--preset--color--cyan-bluish-gray: #abb8c3;--wp--preset--color--white: #ffffff;--wp--preset--color--pale-pink: #f78da7;--wp--preset--color--vivid-red: #cf2e2e;--wp--preset--color--luminous-vivid-orange: #ff6900;--wp--preset--color--luminous-vivid-amber: #fcb900;--wp--preset--color--light-green-cyan: #7bdcb5;--wp--preset--color--vivid-green-cyan: #00d084;--wp--preset--color--pale-cyan-blue: #8ed1fc;--wp--preset--color--vivid-cyan-blue: #0693e3;--wp--preset--color--vivid-purple: #9b51e0;--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple: linear-gradient(135deg,rgba(6,147,227,1) 0%,rgb(155,81,224) 100%);--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan: linear-gradient(135deg,rgb(122,220,180) 0%,rgb(0,208,130) 100%);--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange: linear-gradient(135deg,rgba(252,185,0,1) 0%,rgba(255,105,0,1) 100%);--wp--preset--gradient--luminous-vivid-orange-to-vivid-red: linear-gradient(135deg,rgba(255,105,0,1) 0%,rgb(207,46,46) 100%);--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray: linear-gradient(135deg,rgb(238,238,238) 0%,rgb(169,184,195) 100%);--wp--preset--gradient--cool-to-warm-spectrum: linear-gradient(135deg,rgb(74,234,220) 0%,rgb(151,120,209) 20%,rgb(207,42,186) 40%,rgb(238,44,130) 60%,rgb(251,105,98) 80%,rgb(254,248,76) 100%);--wp--preset--gradient--blush-light-purple: linear-gradient(135deg,rgb(255,206,236) 0%,rgb(152,150,240) 100%);--wp--preset--gradient--blush-bordeaux: linear-gradient(135deg,rgb(254,205,165) 0%,rgb(254,45,45) 50%,rgb(107,0,62) 100%);--wp--preset--gradient--luminous-dusk: linear-gradient(135deg,rgb(255,203,112) 0%,rgb(199,81,192) 50%,rgb(65,88,208) 100%);--wp--preset--gradient--pale-ocean: linear-gradient(135deg,rgb(255,245,203) 0%,rgb(182,227,212) 50%,rgb(51,167,181) 100%);--wp--preset--gradient--electric-grass: linear-gradient(135deg,rgb(202,248,128) 0%,rgb(113,206,126) 100%);--wp--preset--gradient--midnight: linear-gradient(135deg,rgb(2,3,129) 0%,rgb(40,116,252) 100%);--wp--preset--font-size--small: 13px;--wp--preset--font-size--medium: 20px;--wp--preset--font-size--large: 36px;--wp--preset--font-size--x-large: 42px;--wp--preset--spacing--20: 0.44rem;--wp--preset--spacing--30: 0.67rem;--wp--preset--spacing--40: 1rem;--wp--preset--spacing--50: 1.5rem;--wp--preset--spacing--60: 2.25rem;--wp--preset--spacing--70: 3.38rem;--wp--preset--spacing--80: 5.06rem;--wp--preset--shadow--natural: 6px 6px 9px rgba(0, 0, 0, 0.2);--wp--preset--shadow--deep: 12px 12px 50px rgba(0, 0, 0, 0.4);--wp--preset--shadow--sharp: 6px 6px 0px rgba(0, 0, 0, 0.2);--wp--preset--shadow--outlined: 6px 6px 0px -3px rgba(255, 255, 255, 1), 6px 6px rgba(0, 0, 0, 1);--wp--preset--shadow--crisp: 6px 6px 0px rgba(0, 0, 0, 1);}:where(.is-layout-flex){gap: 0.5em;}:where(.is-layout-grid){gap: 0.5em;}body .is-layout-flex{display: flex;}.is-layout-flex{flex-wrap: wrap;align-items: center;}.is-layout-flex > :is(*, div){margin: 0;}body .is-layout-grid{display: grid;}.is-layout-grid > :is(*, div){margin: 0;}:where(.wp-block-columns.is-layout-flex){gap: 2em;}:where(.wp-block-columns.is-layout-grid){gap: 2em;}:where(.wp-block-post-template.is-layout-flex){gap: 1.25em;}:where(.wp-block-post-template.is-layout-grid){gap: 1.25em;}.has-black-color{color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-color{color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-color{color: var(--wp--preset--color--white) !important;}.has-pale-pink-color{color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-color{color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-color{color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-color{color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-color{color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-color{color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-color{color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-color{color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-color{color: var(--wp--preset--color--vivid-purple) !important;}.has-black-background-color{background-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-background-color{background-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-background-color{background-color: var(--wp--preset--color--white) !important;}.has-pale-pink-background-color{background-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-background-color{background-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-background-color{background-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-background-color{background-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-background-color{background-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-background-color{background-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-background-color{background-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-background-color{background-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-background-color{background-color: var(--wp--preset--color--vivid-purple) !important;}.has-black-border-color{border-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-border-color{border-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-border-color{border-color: var(--wp--preset--color--white) !important;}.has-pale-pink-border-color{border-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-border-color{border-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-border-color{border-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-border-color{border-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-border-color{border-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-border-color{border-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-border-color{border-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-border-color{border-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-border-color{border-color: var(--wp--preset--color--vivid-purple) !important;}.has-vivid-cyan-blue-to-vivid-purple-gradient-background{background: var(--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple) !important;}.has-light-green-cyan-to-vivid-green-cyan-gradient-background{background: var(--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan) !important;}.has-luminous-vivid-amber-to-luminous-vivid-orange-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange) !important;}.has-luminous-vivid-orange-to-vivid-red-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-orange-to-vivid-red) !important;}.has-very-light-gray-to-cyan-bluish-gray-gradient-background{background: var(--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray) !important;}.has-cool-to-warm-spectrum-gradient-background{background: var(--wp--preset--gradient--cool-to-warm-spectrum) !important;}.has-blush-light-purple-gradient-background{background: var(--wp--preset--gradient--blush-light-purple) !important;}.has-blush-bordeaux-gradient-background{background: var(--wp--preset--gradient--blush-bordeaux) !important;}.has-luminous-dusk-gradient-background{background: var(--wp--preset--gradient--luminous-dusk) !important;}.has-pale-ocean-gradient-background{background: var(--wp--preset--gradient--pale-ocean) !important;}.has-electric-grass-gradient-background{background: var(--wp--preset--gradient--electric-grass) !important;}.has-midnight-gradient-background{background: var(--wp--preset--gradient--midnight) !important;}.has-small-font-size{font-size: var(--wp--preset--font-size--small) !important;}.has-medium-font-size{font-size: var(--wp--preset--font-size--medium) !important;}.has-large-font-size{font-size: var(--wp--preset--font-size--large) !important;}.has-x-large-font-size{font-size: var(--wp--preset--font-size--x-large) !important;}
+:where(.wp-block-post-template.is-layout-flex){gap: 1.25em;}:where(.wp-block-post-template.is-layout-grid){gap: 1.25em;}
+:where(.wp-block-columns.is-layout-flex){gap: 2em;}:where(.wp-block-columns.is-layout-grid){gap: 2em;}
+:root :where(.wp-block-pullquote){font-size: 1.5em;line-height: 1.6;}
+</style>
+<link rel="stylesheet" id="reactpress-css" href="/wp-content/plugins/reactpress/public/css/reactpress-public.css?ver=3.4.0" type="text/css" media="all">
+<link rel="stylesheet" id="google-fonts-css" href="//fonts.googleapis.com/css2?family=DM+Sans%3Aital%2Copsz%2Cwght%400%2C9..40%2C100..1000%3B1%2C9..40%2C100..1000&amp;display=swap&amp;ver=6.8.1" type="text/css" media="all">
+<link rel="stylesheet" id="slickslider-styles-css" href="/wp-content/themes/efficientmarkets/css/slick-slider.css?ver=6.8.1" type="text/css" media="all">
+<link rel="stylesheet" id="bootstrap-styles-css" href="/wp-content/themes/efficientmarkets/css/bootstrap.min.css?ver=6.8.1" type="text/css" media="all">
+<link rel="stylesheet" id="fontawesome-styles-css" href="/wp-content/themes/efficientmarkets/css/fontawesome/css/all.min.css?ver=6.8.1" type="text/css" media="all">
+<link rel="stylesheet" id="main-styles-css" href="/wp-content/themes/efficientmarkets/style.css?ver=6.8.1" type="text/css" media="all">
+<link rel="stylesheet" id="global-variables-css" href="/wp-content/themes/efficientmarkets/css/global.css?ver=6.8.1" type="text/css" media="all">
+<script type="text/javascript" src="/wp-includes/js/jquery/jquery.min.js?ver=3.7.1" id="jquery-core-js"></script>
+<script type="text/javascript" src="/wp-includes/js/jquery/jquery-migrate.min.js?ver=3.4.1" id="jquery-migrate-js"></script>
+<script type="text/javascript" src="/wp-content/plugins/reactpress/public/js/reactpress-public.js?ver=3.4.0" id="reactpress-js"></script>
+<link rel="https://api.w.org/" href="/wp-json/"><link rel="alternate" title="JSON" type="application/json" href="/wp-json/wp/v2/pages/6"><link rel="EditURI" type="application/rsd+xml" title="RSD" href="/xmlrpc.php?rsd">
+<meta name="generator" content="WordPress 6.8.1"><meta name="projectnami:version" content="3.8.1">
+<link rel="canonical" href="/">
+<link rel="shortlink" href="/">
+<link rel="alternate" title="oEmbed (JSON)" type="application/json+oembed" href="/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fefficientmarkets-prod-www.azurewebsites.net%2F">
+<link rel="alternate" title="oEmbed (XML)" type="text/xml+oembed" href="/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fefficientmarkets-prod-www.azurewebsites.net%2F&amp;format=xml">
+
+		<!-- GA Google Analytics @ https://m0n.co/ga -->
+		<script async="" src="https://www.googletagmanager.com/gtag/js?id=G-DGY9CKDT2M"></script>
+		<script>
+			window.dataLayer = window.dataLayer || [];
+			function gtag(){dataLayer.push(arguments);}
+			gtag('js', new Date());
+			gtag('config', 'G-DGY9CKDT2M');
+		</script>
+
+	<link rel="icon" href="/wp-content/uploads/2026/01/cropped-favicon-32x32.png" sizes="32x32">
+<link rel="icon" href="/wp-content/uploads/2026/01/cropped-favicon-192x192.png" sizes="192x192">
+<link rel="apple-touch-icon" href="/wp-content/uploads/2026/01/cropped-favicon-180x180.png">
+<meta name="msapplication-TileImage" content="/wp-content/uploads/2026/01/cropped-favicon-270x270.png">
+</head>
+<body class="home wp-singular page-template-default page page-id-6 wp-theme-efficientmarkets remove-footer-line em-thememode-dark">
+  <a href="#main" class="skip-to-main-content-link button" tabindex="0">Skip to main content</a>
+
+        <div id="background-video">
+        <div class="nk-awb "><div class="nk-awb-wrap nk-awb-rendered" data-awb-type="video" data-awb-image-background-size="cover" data-awb-image-background-position="50% 50%" data-awb-video="mp4:/wp-content/uploads/2025/12/background-video-dark.mp4" data-awb-video-start-time="0" data-awb-video-end-time="0" data-awb-video-volume="0" data-awb-video-always-play="true" data-awb-video-mobile="false"><div class="nk-awb-inner"><div id="jarallax-container-0" class="jarallax-container" style="position: absolute; top: 0px; left: 0px; width: 100%; height: 100%; overflow: hidden; z-index: -100; clip-path: polygon(0px 0px, 100% 0px, 100% 100%, 0px 100%);"><div style="background-position: 50% 50%; background-size: cover; background-repeat: no-repeat; background-image: none; position: absolute; top: 0px; left: 0px; width: 1280px; height: 720px; overflow: hidden; pointer-events: none; transform-style: preserve-3d; backface-visibility: hidden; margin-top: 0px; transform: translate3d(0px, 0px, 0px);"></div><video loop="" playsinline="" webkit-playsinline="" tabindex="-1" aria-hidden="true" id="VideoWorker-0" poster="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="jarallax-video jarallax-video-local" style="position: absolute; inset: 0px; width: 100%; height: 100%; max-width: none; max-height: none; pointer-events: none; transform-style: preserve-3d; backface-visibility: hidden; margin: 0px; z-index: -1;"><source src="/wp-content/uploads/2025/12/background-video-dark.mp4" type="video/mp4"></video></div></div></div></div>    </div>
+    <header id="header">
+        <div class="wrapper">
+            <div id="logo">
+                <a href="/" aria-label="Efficient Markets" tabindex="0">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="131" height="16" viewBox="0 0 131 16" fill="none">
+                        <title>Efficient Markets</title>
+                        <path class="logo-text-color-switcher" d="M127.976 5.40039C129.668 5.40046 130.881 6.34677 130.881 7.72656H129.173C129.173 7.20121 128.678 6.84082 127.959 6.84082C127.24 6.84093 126.791 7.15594 126.791 7.62109C126.791 8.95694 131 8.22167 131 10.9521C131 12.4381 129.816 13.4141 128.034 13.4141C126.252 13.414 124.979 12.4233 124.979 10.9824H126.687C126.687 11.5678 127.242 11.958 128.051 11.958C128.8 11.9579 129.294 11.6129 129.294 11.1328C129.294 9.75197 125.1 10.517 125.1 7.80176C125.1 6.31577 126.283 5.40039 127.976 5.40039ZM56.3066 5.39941C58.6279 5.39941 60.3963 7.12568 60.3965 9.4209C60.3965 9.63102 60.3815 9.85664 60.3516 10.0518H54.0293C54.284 11.1625 55.1832 11.8984 56.3809 11.8984C57.2648 11.8984 58.0284 11.5072 58.418 10.9219H60.2764C59.662 12.4079 58.1635 13.4131 56.3516 13.4131C53.9853 13.413 52.2324 11.6866 52.2324 9.40625C52.2325 7.1259 53.9853 5.39947 56.3066 5.39941ZM93.9688 5.39941C95.0925 5.39946 96.0212 5.8803 96.6494 6.67578V5.58008H98.3281V13.2324H96.6494V12.1367C96.0201 12.9322 95.0914 13.413 93.9688 13.4131C91.8111 13.4131 90.209 11.6867 90.209 9.40625C90.209 7.12586 91.8122 5.39941 93.9688 5.39941ZM115.601 5.39941C117.922 5.39941 119.69 7.12568 119.69 9.4209C119.69 9.63103 119.675 9.85663 119.646 10.0518H113.323C113.578 11.1625 114.477 11.8984 115.675 11.8984C116.559 11.8984 117.323 11.5073 117.713 10.9219H119.57C118.956 12.4079 117.457 13.4131 115.646 13.4131C113.279 13.4129 111.526 11.6866 111.526 9.40625C111.526 7.12597 113.279 5.39958 115.601 5.39941ZM44.7861 5.39941C46.779 5.39941 48.3514 6.66082 48.666 8.46094H46.8828C46.6131 7.60537 45.7891 7.01953 44.7852 7.01953C43.4367 7.01959 42.419 8.05544 42.4189 9.40625C42.4189 10.7571 43.4377 11.7919 44.7852 11.792C45.7891 11.792 46.6131 11.2062 46.8828 10.3506H48.666C48.3514 12.1518 46.7779 13.4121 44.7861 13.4121C42.4498 13.412 40.6973 11.6856 40.6973 9.40527C40.6978 7.12543 42.4502 5.39952 44.7861 5.39941ZM31.4541 3.88477H30.6748C29.9106 3.88477 29.4609 4.32018 29.4609 5.05566V5.58105H31.709V5.58008H32.9971V4.85938C32.9971 3.23832 33.9563 2.33887 35.7383 2.33887H36.667V3.88477H35.8877C35.1238 3.88492 34.6748 4.32031 34.6748 5.05566V5.58105H36.5625V7.1123H34.6748V13.2354H32.9961V7.1123L32.9971 7.11133H32.0283V7.1123H29.4609V13.2354H27.7832V7.1123L27.7842 7.11133H26.4951V5.58008H27.7842V4.85938C27.7842 3.23832 28.7434 2.33887 30.5254 2.33887H31.4541V3.88477ZM106.538 9.0918L109.878 5.58105H112.006L108.726 8.9873L112.126 13.2334H109.968L107.556 10.2178L106.537 11.2832V13.2354H104.858V2.42871H106.538V9.0918ZM25.7461 4.56055H20.8027V7.18555H25.252V8.86719H20.8027V11.5527H25.8213V13.2334H19.0195V2.87891H25.7461V4.56055ZM72.0225 5.58008H73.9102V7.11133H72.0225V10.6074C72.0226 11.2827 72.4423 11.6875 73.1465 11.6875H73.9102V13.2334H72.9062C71.2433 13.2333 70.3457 12.3927 70.3457 10.8779L70.3447 10.877V7.11133H69.0557V5.58008H69.835C70.2245 5.58008 70.4346 5.36974 70.4346 4.97949V3.50879H72.0225V5.58008ZM83.5264 8.74707L86.9258 2.87891H89.1289V13.2334H87.3457V5.47461L84.0205 11.2373H83.002L79.6914 5.47461V13.2324H77.9082V2.87891H80.126L83.5264 8.74707ZM122.643 5.58008H124.53V7.11133H122.643V10.6074C122.643 11.2826 123.062 11.6873 123.766 11.6875H124.53V13.2334H123.526C121.863 13.2334 120.965 12.3929 120.965 10.8779L120.964 10.877V7.11133H119.676V5.58008H120.455C120.844 5.57991 121.054 5.36959 121.054 4.97949V3.50879H122.643V5.58008ZM39.7393 13.2324H38.0605V5.58008H39.7393V13.2324ZM51.2744 13.2324H49.5957V5.58008H51.2744V13.2324ZM65.5195 5.39941C67.3326 5.39941 68.5449 6.60089 68.5449 8.41602V13.2324H66.8672V8.9707C66.867 7.80012 66.1175 7.01953 64.9639 7.01953C63.7504 7.01967 62.9414 7.81535 62.9414 9.00098V13.2324H61.2637V5.58008H62.9434V6.55566C63.5577 5.8052 64.4418 5.39945 65.5195 5.39941ZM104.23 7.18555H103.961C102.343 7.18555 101.399 8.10186 101.399 9.51172V13.2324H99.7217V5.58008H101.399V6.85547C101.999 5.98498 102.883 5.45996 103.961 5.45996H104.23V7.18555ZM94.2979 7.01953C92.9506 7.01972 91.9317 8.05552 91.9316 9.40625C91.9316 10.757 92.9356 11.7918 94.2979 11.792C95.6603 11.792 96.6494 10.7561 96.6494 9.40625C96.6494 8.0554 95.6453 7.01953 94.2979 7.01953ZM56.3076 6.91504C55.17 6.91512 54.3146 7.60526 54.0449 8.6709H58.5996C58.3449 7.6202 57.4453 6.91504 56.3076 6.91504ZM115.601 6.91504C114.463 6.91517 113.608 7.6053 113.338 8.6709H117.893C117.638 7.6202 116.738 6.91504 115.601 6.91504ZM38.8994 2.21875C39.4987 2.21875 39.9784 2.6689 39.9785 3.28418C39.9785 3.89959 39.5138 4.35059 38.8994 4.35059C38.2853 4.35037 37.8359 3.88444 37.8359 3.28418C37.8361 2.66905 38.3004 2.21897 38.8994 2.21875ZM50.4355 2.21875C51.0347 2.2189 51.5135 2.66901 51.5137 3.28418C51.5137 3.89948 51.0497 4.35044 50.4355 4.35059C49.8212 4.35059 49.3711 3.88458 49.3711 3.28418C49.3712 2.6689 49.8363 2.21875 50.4355 2.21875Z" fill="#111921"></path>
+                        <path d="M13.0684 14.1699C12.6628 14.5065 12.2307 14.7977 11.7812 15.041L8.75098 12.0059V15.9639C8.24391 16.0121 7.73363 16.0121 7.22656 15.9639V12.0059L4.19434 15.043C3.74379 14.7996 3.31195 14.5104 2.90527 14.1738L7.98828 9.08203H7.98926L13.0684 14.1699ZM6.9082 7.99902L1.8252 13.0908L1.82422 13.0918C1.48923 12.6855 1.199 12.252 0.956055 11.8018L3.98926 8.76367H0.0361328C-0.0120294 8.25548 -0.0120294 7.74355 0.0361328 7.23535H3.98926L0.958008 4.19824C1.20093 3.74802 1.48918 3.31448 1.8252 2.9082L6.9082 7.99902ZM14.1475 2.91016C14.4835 3.31751 14.7727 3.74987 15.0156 4.20117L15.0146 4.2002L11.9824 7.2373H15.9336C15.9818 7.7455 15.9818 8.25743 15.9336 8.76562H11.9824L15.0127 11.8008C14.7697 12.2511 14.4806 12.6845 14.1445 13.0908L9.06445 8.00195L14.1475 2.91016ZM7.22168 0.0361328C7.72899 -0.0121134 8.23976 -0.0121134 8.74707 0.0361328V3.99805L11.7803 0.958984C12.2298 1.20235 12.6618 1.49247 13.0674 1.8291L7.98535 6.91992V6.92188L2.90234 1.83008C3.30794 1.49346 3.73998 1.20235 4.18945 0.958984L7.22168 3.99707V0.0361328Z" fill="#E91D2D"></path>
+                    </svg>                </a>
+            </div>
+            <div id="main-navigation">
+                <nav id="main-menu" class="menu-main-menu-container" tabindex="-1"><ul id="menu-main-menu" class="menu"><li id="menu-item-15" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-has-children menu-item-15 menu-item-id-15"><a href="https://app.efficientmarkets.com" tabindex="0"><span class="menu-item-text">Listings</span></a>
+<ul class="sub-menu">
+	<li id="menu-item-302" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-302 menu-item-id-302"><a href="https://app.efficientmarkets.com" tabindex="0"><span class="menu-item-text">All Property Listings</span></a></li>
+	<li id="menu-item-289" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-289 menu-item-id-289"><a href="https://app.efficientmarkets.com/indigo-listings" tabindex="0"><span class="menu-item-text">Indigo Energy Advisors</span></a></li>
+	<li id="menu-item-288" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-288 menu-item-id-288"><a href="https://app.efficientmarkets.com/oil-gas-listings" tabindex="0"><span class="menu-item-text">Oil &amp; Gas</span></a></li>
+	<li id="menu-item-290" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-290 menu-item-id-290"><a href="https://app.efficientmarkets.com/government-listings" tabindex="0"><span class="menu-item-text">Government</span></a></li>
+	<li id="menu-item-292" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-292 menu-item-id-292"><a href="https://app.efficientmarkets.com/alternative-energy-listings" tabindex="0"><span class="menu-item-text">Alternative Energy</span></a></li>
+	<li id="menu-item-291" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-291 menu-item-id-291"><a href="https://app.efficientmarkets.com/real-estate-listings" tabindex="0"><span class="menu-item-text">Real Estate</span></a></li>
+</ul>
+</li>
+<li id="menu-item-283" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-283 menu-item-id-255"><a href="/getting-started/account-creation/" tabindex="0"><span class="menu-item-text">Getting Started</span></a>
+<ul class="sub-menu">
+	<li id="menu-item-284" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-284 menu-item-id-255"><a href="/getting-started/account-creation/" tabindex="0"><span class="menu-item-text">Account Creation</span></a></li>
+	<li id="menu-item-285" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-285 menu-item-id-257"><a href="/getting-started/government-offerings-participation/" tabindex="0"><span class="menu-item-text">Government Offerings Participation</span></a></li>
+	<li id="menu-item-286" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-286 menu-item-id-266"><a href="/getting-started/quick-start-guide/" tabindex="0"><span class="menu-item-text">Quick Start Guide</span></a></li>
+	<li id="menu-item-287" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-287 menu-item-id-271"><a href="/getting-started/transaction-resources/" tabindex="0"><span class="menu-item-text">Transaction Resources</span></a></li>
+</ul>
+</li>
+<li id="menu-item-17" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-17 menu-item-id-13"><a href="/about/" tabindex="0"><span class="menu-item-text">About Us</span></a>
+<ul class="sub-menu">
+	<li id="menu-item-42" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-42 menu-item-id-33"><a href="/about/why-efficient-markets/" tabindex="0"><span class="menu-item-text">Why Efficient Markets</span></a></li>
+	<li id="menu-item-41" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-41 menu-item-id-36"><a href="/about/history-of-efficient-markets/" tabindex="0"><span class="menu-item-text">History of Efficient Markets</span></a></li>
+	<li id="menu-item-653" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-653 menu-item-id-626"><a href="/about/notable-transactions/" tabindex="0"><span class="menu-item-text">Notable Transactions</span></a></li>
+	<li id="menu-item-1511" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1511 menu-item-id-1486"><a href="/about/government-sales-results/" tabindex="0"><span class="menu-item-text">Government Results</span></a></li>
+	<li id="menu-item-40" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-40 menu-item-id-38"><a href="/about/our-team/" tabindex="0"><span class="menu-item-text">Our Team</span></a></li>
+</ul>
+</li>
+<li id="menu-item-306" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-306 menu-item-id-303"><a href="/news/" tabindex="0"><span class="menu-item-text">News &amp; Insights</span></a></li>
+<li id="menu-item-642" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-642 menu-item-id-588"><a href="/help/" tabindex="0"><span class="menu-item-text">Help</span></a>
+<ul class="sub-menu">
+	<li id="menu-item-591" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-591 menu-item-id-412"><a href="/help/frequently-asked-questions/" tabindex="0"><span class="menu-item-text">FAQ</span></a></li>
+	<li id="menu-item-1326" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1326 menu-item-id-1323"><a href="/help/contact-us/" tabindex="0"><span class="menu-item-text">Contact Us</span></a></li>
+	<li id="menu-item-592" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-592 menu-item-id-592"><a href="https://app.efficientmarkets.com/login" tabindex="0"><span class="menu-item-text">Password Recovery</span></a></li>
+</ul>
+</li>
+</ul></nav>                <nav id="login-menu">
+                    <ul class="menu">
+                        <li class="menu-item">
+                            <a href="https://app.efficientmarkets.com/login" tabindex="0">
+                                <span class="menu-item-text">
+                                    Login
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="16" viewBox="0 0 18 16" fill="none">
+                                        <path d="M7.06641 13.75L12.1289 8.60714C12.4594 8.27143 12.4594 7.72857 12.1289 7.39643L7.06641 2.25C6.82383 2.00357 6.46172 1.93214 6.14531 2.06428C5.82891 2.19643 5.625 2.51071 5.625 2.85714V5.71428H1.6875C0.755859 5.71428 0 6.48214 0 7.42857V8.57143C0 9.51786 0.755859 10.2857 1.6875 10.2857H5.625V13.1429C5.625 13.4893 5.82891 13.8036 6.14531 13.9357C6.46172 14.0679 6.82383 13.9929 7.06641 13.75ZM6.75 3.54643L11.134 8L6.75 12.4536V9.71429C6.75 9.4 6.49687 9.14286 6.1875 9.14286H1.6875C1.37812 9.14286 1.125 8.88571 1.125 8.57143V7.42857C1.125 7.11429 1.37812 6.85714 1.6875 6.85714H6.1875C6.49687 6.85714 6.75 6.6 6.75 6.28571V3.54643ZM11.8125 1.14286H14.625C15.866 1.14286 16.875 2.16786 16.875 3.42857V12.5714C16.875 13.8321 15.866 14.8571 14.625 14.8571H11.8125C11.5031 14.8571 11.25 15.1143 11.25 15.4286C11.25 15.7429 11.5031 16 11.8125 16H14.625C16.4883 16 18 14.4643 18 12.5714V3.42857C18 1.53571 16.4883 0 14.625 0H11.8125C11.5031 0 11.25 0.257142 11.25 0.571428C11.25 0.885714 11.5031 1.14286 11.8125 1.14286Z" fill="#192736"></path>
+                                    </svg>
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+                <nav id="theme-switcher">
+                    <a href="#" id="toggle-theme" data-theme-color="dark" aria-label="Toggle Theme Color" tabindex="0">Toggle Theme Color</a>
+                </nav>
+                <button id="navicon" tabindex="0"><span class="navicon"></span></button>
+            </div>
+        </div>
+    </header>    
+            <div id="site-notifications">
+        <div class="notification-item">
+            <div class="wrapper">
+                <div class="row">
+                    <div class="col">
+                        <div class="notification-title">EnergyNet's Evolution to Efficient Markets as the One Marketplace</div>
+                    </div>
+                    <div class="col">
+                        <a href="/energynets-evolution-to-efficient-markets-as-the-one-marketplace/" tabindex="0">View insight</a>                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <main id="main">
+                    <section id="page-6" class="entry-content post-6 page type-page status-publish hentry">
+            <div class="wrapper">
+
+                <div classname="page-introduction"><h1>The leading marketplace for streamlined and competitive real asset transactions</h1>
+</div>    
+                <div class="row homepage-grid-columns">
+                    <div class="col homepage-grid-map-column">
+                        <div class="property-map">
+                            <div class="property-map-wrapper">
+                                <iframe src="https://app.efficientmarkets.com/public-map" title="Efficient Markets Property Map"></iframe>                            </div>
+                        </div>
+                        <div class="homepage-stats-and-news">
+                            <div class="proven-results">
+                                <div class="panel panel-solid">
+                                    <div class="panel-body">
+                                        <div class="panel-title">Proven Results</div>
+                                                                                                                        <div class="row proven-results-row proven-results-total-5">
+                                                                                        <div class="col">
+                                                <div class="stat">
+                                                    <div class="stat-number">$12B+</div>
+                                                    <div class="stat-description">Cumulative Closed Transactions</div>
+                                                </div>
+                                            </div>
+                                                                                        <div class="col">
+                                                <div class="stat">
+                                                    <div class="stat-number">135K+</div>
+                                                    <div class="stat-description">Successful Transactions Completed</div>
+                                                </div>
+                                            </div>
+                                                                                        <div class="col">
+                                                <div class="stat">
+                                                    <div class="stat-number">84%</div>
+                                                    <div class="stat-description">Transaction Sales Success Rate</div>
+                                                </div>
+                                            </div>
+                                                                                        <div class="col">
+                                                <div class="stat">
+                                                    <div class="stat-number">54K+</div>
+                                                    <div class="stat-description">Registered, Financially Accredited Buyers</div>
+                                                </div>
+                                            </div>
+                                                                                        <div class="col">
+                                                <div class="stat">
+                                                    <div class="stat-number">$30B+</div>
+                                                    <div class="stat-description">Verified Aggregate Buying Power</div>
+                                                </div>
+                                            </div>
+                                                                                    </div>
+                                                                            </div>
+                                </div>
+                            </div>
+                            <div class="featured-listings-and-news">
+                                                                                                <div class="row featured-boxes-total-2">
+                                                                                                            <div class="col">
+                                        <div class="listings-panel">
+                                            <a href="https://app.efficientmarkets.com/detail/135061" class="panel-body" tabindex="0">
+                                                <span class="bg">
+                                                    <img width="1024" height="576" src="/wp-content/uploads/2026/01/AdobeStock_1750399963-1024x576.jpeg" class="attachment-large size-large" alt="" decoding="async" fetchpriority="high" srcset="/wp-content/uploads/2026/01/AdobeStock_1750399963-1024x576.jpeg 1024w, /wp-content/uploads/2026/01/AdobeStock_1750399963-300x169.jpeg 300w, /wp-content/uploads/2026/01/AdobeStock_1750399963-768x432.jpeg 768w, /wp-content/uploads/2026/01/AdobeStock_1750399963-1536x864.jpeg 1536w, /wp-content/uploads/2026/01/AdobeStock_1750399963-2048x1152.jpeg 2048w, /wp-content/uploads/2026/01/AdobeStock_1750399963-500x281.jpeg 500w, /wp-content/uploads/2026/01/AdobeStock_1750399963-800x450.jpeg 800w, /wp-content/uploads/2026/01/AdobeStock_1750399963-1280x720.jpeg 1280w, /wp-content/uploads/2026/01/AdobeStock_1750399963-1920x1080.jpeg 1920w" sizes="(max-width: 1024px) 100vw, 1024px">                                                </span>
+                                                <span class="panel-content">
+                                                    <span class="panel-category">Indigo Featured Listing</span>                                                    <span class="panel-title">MCJV Holdings, LLC<br>Core Southwest Appalachia<br>MI/RI Opportunity</span>                                                </span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                                                                                            <div class="col">
+                                        <div class="listings-panel">
+                                            <a href="/mobile-app/" class="panel-body" tabindex="0">
+                                                <span class="bg">
+                                                    <img width="1024" height="606" src="/wp-content/uploads/2026/01/App-home-page-scaled-e1769093101318-1024x606.png" class="attachment-large size-large" alt="" decoding="async" srcset="/wp-content/uploads/2026/01/App-home-page-scaled-e1769093101318-1024x606.png 1024w, /wp-content/uploads/2026/01/App-home-page-scaled-e1769093101318-300x178.png 300w, /wp-content/uploads/2026/01/App-home-page-scaled-e1769093101318-768x455.png 768w, /wp-content/uploads/2026/01/App-home-page-scaled-e1769093101318-500x296.png 500w, /wp-content/uploads/2026/01/App-home-page-scaled-e1769093101318-800x474.png 800w, /wp-content/uploads/2026/01/App-home-page-scaled-e1769093101318.png 1182w" sizes="(max-width: 1024px) 100vw, 1024px">                                                </span>
+                                                <span class="panel-content">
+                                                    <span class="panel-category">Mobile App</span>                                                    <span class="panel-title">Download the Efficient Markets mobile app today!</span>                                                </span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                                                    </div>
+                                                            </div>
+                        </div>
+                    </div>
+                    <div class="col homepage-grid-macros-column">
+                        <div class="panel">
+                            <div class="panel-body">
+                                <div class="homepage-grid-macros-top">
+                                    <div class="panel-title">Key Macro Indicators</div>
+                                    <div id="key-macro-indicators"><div class="key-macro-indicators">    <div class="key-macro-indicator-update"></div>    <div class="key-macro-indicator-table"><div class="key-macro-indicator-row macro-change-negative">            <div class="row">                <div class="col macro-title">WTI</div>                <div class="col macro-price">$64.33</div>                <div class="col macro-change">-1.09</div>                <div class="col macro-percentage">-1.67%</div>            </div>        </div><div class="key-macro-indicator-row macro-change-positive">            <div class="row">                <div class="col macro-title">Brent</div>                <div class="col macro-price">$70.71</div>                <div class="col macro-change">+2.31</div>                <div class="col macro-percentage">+3.38%</div>            </div>        </div><div class="key-macro-indicator-row macro-change-positive">            <div class="row">                <div class="col macro-title">LLS</div>                <div class="col macro-price">$66.93</div>                <div class="col macro-change">2.22</div>                <div class="col macro-percentage">+3.43%</div>            </div>        </div><div class="key-macro-indicator-row macro-change-positive">            <div class="row">                <div class="col macro-title">Henry Hub</div>                <div class="col macro-price">$3.87</div>                <div class="col macro-change">+0.138</div>                <div class="col macro-percentage">+3.70%</div>            </div>        </div><div class="key-macro-indicator-row macro-change-negative">            <div class="row">                <div class="col macro-title">Dutch TTF (LNG)</div>                <div class="col macro-price">$13.60</div>                <div class="col macro-change">-0.027</div>                <div class="col macro-percentage">-0.20%</div>            </div>        </div><div class="key-macro-indicator-row macro-change-positive">            <div class="row">                <div class="col macro-title">JKM (LNG)</div>                <div class="col macro-price">$11.46</div>                <div class="col macro-change">+0.175</div>                <div class="col macro-percentage">+1.55%</div>            </div>        </div><div class="key-macro-indicator-row macro-change-positive">            <div class="row">                <div class="col macro-title">Coal</div>                <div class="col macro-price">$60.08</div>                <div class="col macro-change">+1.32</div>                <div class="col macro-percentage">+2.25%</div>            </div>        </div><div class="key-macro-indicator-row macro-change-positive">            <div class="row">                <div class="col macro-title">Lumber</div>                <div class="col macro-price">$600</div>                <div class="col macro-change">+2.50</div>                <div class="col macro-percentage">+0.42%</div>            </div>        </div><div class="key-macro-indicator-row macro-change-unchanged">            <div class="row">                <div class="col macro-title">Steel</div>                <div class="col macro-price">$972</div>                <div class="col macro-change">0.00</div>                <div class="col macro-percentage">0.00%</div>            </div>        </div><div class="key-macro-indicator-row macro-change-positive">            <div class="row">                <div class="col macro-title">Gold</div>                <div class="col macro-price">$5318.40</div>                <div class="col macro-change">+14.80</div>                <div class="col macro-percentage">+0.28%</div>            </div>        </div><div class="key-macro-indicator-row macro-change-positive">            <div class="row">                <div class="col macro-title">Silver</div>                <div class="col macro-price">$114.037</div>                <div class="col macro-change">+0.875</div>                <div class="col macro-percentage">+0.77%</div>            </div>        </div><div class="key-macro-indicator-row macro-change-positive">            <div class="row">                <div class="col macro-title">Copper</div>                <div class="col macro-price">$6.1755</div>                <div class="col macro-change">+0.2775</div>                <div class="col macro-percentage">+4.70%</div>            </div>        </div><div class="key-macro-indicator-row macro-change-negative">            <div class="row">                <div class="col macro-title">Aluminum</div>                <div class="col macro-price">$3202.56</div>                <div class="col macro-change">-45.38</div>                <div class="col macro-percentage">-1.40%</div>            </div>        </div><div class="key-macro-indicator-row macro-change-unchanged">            <div class="row">                <div class="col macro-title">Cobalt</div>                <div class="col macro-price">$25.62</div>                <div class="col macro-change">0.00</div>                <div class="col macro-percentage">0.00%</div>            </div>        </div><div class="key-macro-indicator-row macro-change-unchanged">            <div class="row">                <div class="col macro-title">Lithium</div>                <div class="col macro-price">$18.20</div>                <div class="col macro-change">0.00</div>                <div class="col macro-percentage">0.00%</div>            </div>        </div>    </div></div></div>
+                                    <script src="https://www.tickertech.com/efficient" async=""></script>
+                                    <div class="homepage-grid-macros-bottom">
+                                        <p class="footnotes mt-5">All Quotes Delayed. <a href="/ticker-technologies-disclaimer/" tabindex="0">Full Disclaimer</a></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                
+                                                <div class="featured-headlines">
+                    <div class="row">
+                                                                        <div class="col-lg-3 col-sm-6">
+                            <div class="listings-panel">
+                                <a href="/energynets-evolution-to-efficient-markets-as-the-one-marketplace/" class="panel-body" tabindex="0">
+                                    <span class="bg">
+                                                                            </span>
+                                    <span class="panel-content">
+                                        <span class="panel-category">
+                                            <span>News</span>                                        </span>
+                                        <span class="panel-title">EnergyNet’s Evolution to Efficient Markets as the One Marketplace</span>
+                                    </span>
+                                </a>
+                            </div>
+                        </div>
+                                                                        <div class="col-lg-3 col-sm-6">
+                            <div class="listings-panel">
+                                <a href="/326mm-in-bonus-bids-and-a-record-218k-per-acre-define-the-january-6-2026-blm-new-mexico-lease-sale/" class="panel-body" tabindex="0">
+                                    <span class="bg">
+                                                                            </span>
+                                    <span class="panel-content">
+                                        <span class="panel-category">
+                                            <span>News</span>                                        </span>
+                                        <span class="panel-title">$326MM in Bonus Bids and a Record $218K per Acre Define the January 6, 2026 BLM New Mexico Lease Sale</span>
+                                    </span>
+                                </a>
+                            </div>
+                        </div>
+                                                                        <div class="col-lg-3 col-sm-6">
+                            <div class="listings-panel">
+                                <a href="/blm-utah-delivers-a-record-64-2mm-federal-oil-and-gas-lease-sale/" class="panel-body" tabindex="0">
+                                    <span class="bg">
+                                                                            </span>
+                                    <span class="panel-content">
+                                        <span class="panel-category">
+                                            <span>News</span>                                        </span>
+                                        <span class="panel-title">BLM Utah Delivers a Record $64.2MM Federal Oil and Gas Lease Sale</span>
+                                    </span>
+                                </a>
+                            </div>
+                        </div>
+                                                                        <div class="col-lg-3 col-sm-6">
+                            <div class="listings-panel">
+                                <a href="/new-mexico-unlocks-strategic-potash-area-acreage-in-july-and-august-oil-and-gas-lease-sales/" class="panel-body" tabindex="0">
+                                    <span class="bg">
+                                                                            </span>
+                                    <span class="panel-content">
+                                        <span class="panel-category">
+                                            <span>News</span>                                        </span>
+                                        <span class="panel-title">New Mexico Unlocks Strategic Potash Area Acreage in July and August Oil and Gas Lease Sales</span>
+                                    </span>
+                                </a>
+                            </div>
+                        </div>
+                                            </div>
+                </div>
+                
+                <div class="property-listings">
+                    <div class="panel">
+                        <div class="panel-body">
+                            <div class="panel-title">Property Listing by Asset Class</div>
+                                                        <div class="property-listings-table">
+                                                                <div class="property-listing-item">
+                                    <div class="row">
+                                        <div class="col listing-content">
+                                            <div class="row">
+                                                <div class="col listing-title">
+                                                    <div class="listing-flex-wrap">Oil &amp; Gas</div>
+                                                </div>
+                                                <div class="col listing-description">
+                                                    <div class="listing-flex-wrap">Operated and non-operated working interests, leasehold, mineral, and royalty interests</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col listing-cta">
+                                            <div class="listing-flex-wrap">
+                                                <a href="https://app.efficientmarkets.com/oil-gas-listings" class="gradient-button" target="_blank" tabindex="0">View Listings</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                                                <div class="property-listing-item">
+                                    <div class="row">
+                                        <div class="col listing-content">
+                                            <div class="row">
+                                                <div class="col listing-title">
+                                                    <div class="listing-flex-wrap">Indigo Energy Advisors</div>
+                                                </div>
+                                                <div class="col listing-description">
+                                                    <div class="listing-flex-wrap">High-quality upstream, mineral, and midstream assets valued from $10 MM to $250 MM+</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col listing-cta">
+                                            <div class="listing-flex-wrap">
+                                                <a href="https://app.efficientmarkets.com/indigo-listings" class="gradient-button" target="_blank" tabindex="0">View Listings</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                                                <div class="property-listing-item">
+                                    <div class="row">
+                                        <div class="col listing-content">
+                                            <div class="row">
+                                                <div class="col listing-title">
+                                                    <div class="listing-flex-wrap">Government Resources</div>
+                                                </div>
+                                                <div class="col listing-description">
+                                                    <div class="listing-flex-wrap">Multi-commodity local, state, and federal natural resources and land offerings</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col listing-cta">
+                                            <div class="listing-flex-wrap">
+                                                <a href="https://app.efficientmarkets.com/government-listings" class="gradient-button" target="_blank" tabindex="0">View Listings</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                                                <div class="property-listing-item">
+                                    <div class="row">
+                                        <div class="col listing-content">
+                                            <div class="row">
+                                                <div class="col listing-title">
+                                                    <div class="listing-flex-wrap">Real Estate</div>
+                                                </div>
+                                                <div class="col listing-description">
+                                                    <div class="listing-flex-wrap">Commercial real estate and land offerings</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col listing-cta">
+                                            <div class="listing-flex-wrap">
+                                                <a href="https://app.efficientmarkets.com/real-estate-listings" class="gradient-button" target="_blank" tabindex="0">View Listings</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                                                <div class="property-listing-item">
+                                    <div class="row">
+                                        <div class="col listing-content">
+                                            <div class="row">
+                                                <div class="col listing-title">
+                                                    <div class="listing-flex-wrap">Alternative Energy</div>
+                                                </div>
+                                                <div class="col listing-description">
+                                                    <div class="listing-flex-wrap">Projects including solar, wind, geothermal, carbon capture, hydro, and battery storage</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col listing-cta">
+                                            <div class="listing-flex-wrap">
+                                                <a href="https://app.efficientmarkets.com/alternative-energy-listings" class="gradient-button" target="_blank" tabindex="0">View Listings</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                                                <div class="property-listing-item">
+                                    <div class="row">
+                                        <div class="col listing-content">
+                                            <div class="row">
+                                                <div class="col listing-title">
+                                                    <div class="listing-flex-wrap">AFEs</div>
+                                                </div>
+                                                <div class="col listing-description">
+                                                    <div class="listing-flex-wrap">Direct oil and gas wellbore exposure</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col listing-cta">
+                                            <div class="listing-flex-wrap">
+                                                <a href="https://app.efficientmarkets.com/afe-listings" class="gradient-button" target="_blank" tabindex="0">View Listings</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                                            </div>
+                                                    </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+                </main>
+
+    <footer id="footer">
+        <div class="wrapper">
+            <div class="footer-content">
+                <div id="footer-navigation">
+                    <div id="footer-logo">
+                        <a href="/" aria-label="Efficient Markets" tabindex="0">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="131" height="16" viewBox="0 0 131 16" fill="none">
+                                <title>Efficient Markets</title>
+                                <path class="logo-text-color-switcher" d="M127.976 5.40039C129.668 5.40046 130.881 6.34677 130.881 7.72656H129.173C129.173 7.20121 128.678 6.84082 127.959 6.84082C127.24 6.84093 126.791 7.15594 126.791 7.62109C126.791 8.95694 131 8.22167 131 10.9521C131 12.4381 129.816 13.4141 128.034 13.4141C126.252 13.414 124.979 12.4233 124.979 10.9824H126.687C126.687 11.5678 127.242 11.958 128.051 11.958C128.8 11.9579 129.294 11.6129 129.294 11.1328C129.294 9.75197 125.1 10.517 125.1 7.80176C125.1 6.31577 126.283 5.40039 127.976 5.40039ZM56.3066 5.39941C58.6279 5.39941 60.3963 7.12568 60.3965 9.4209C60.3965 9.63102 60.3815 9.85664 60.3516 10.0518H54.0293C54.284 11.1625 55.1832 11.8984 56.3809 11.8984C57.2648 11.8984 58.0284 11.5072 58.418 10.9219H60.2764C59.662 12.4079 58.1635 13.4131 56.3516 13.4131C53.9853 13.413 52.2324 11.6866 52.2324 9.40625C52.2325 7.1259 53.9853 5.39947 56.3066 5.39941ZM93.9688 5.39941C95.0925 5.39946 96.0212 5.8803 96.6494 6.67578V5.58008H98.3281V13.2324H96.6494V12.1367C96.0201 12.9322 95.0914 13.413 93.9688 13.4131C91.8111 13.4131 90.209 11.6867 90.209 9.40625C90.209 7.12586 91.8122 5.39941 93.9688 5.39941ZM115.601 5.39941C117.922 5.39941 119.69 7.12568 119.69 9.4209C119.69 9.63103 119.675 9.85663 119.646 10.0518H113.323C113.578 11.1625 114.477 11.8984 115.675 11.8984C116.559 11.8984 117.323 11.5073 117.713 10.9219H119.57C118.956 12.4079 117.457 13.4131 115.646 13.4131C113.279 13.4129 111.526 11.6866 111.526 9.40625C111.526 7.12597 113.279 5.39958 115.601 5.39941ZM44.7861 5.39941C46.779 5.39941 48.3514 6.66082 48.666 8.46094H46.8828C46.6131 7.60537 45.7891 7.01953 44.7852 7.01953C43.4367 7.01959 42.419 8.05544 42.4189 9.40625C42.4189 10.7571 43.4377 11.7919 44.7852 11.792C45.7891 11.792 46.6131 11.2062 46.8828 10.3506H48.666C48.3514 12.1518 46.7779 13.4121 44.7861 13.4121C42.4498 13.412 40.6973 11.6856 40.6973 9.40527C40.6978 7.12543 42.4502 5.39952 44.7861 5.39941ZM31.4541 3.88477H30.6748C29.9106 3.88477 29.4609 4.32018 29.4609 5.05566V5.58105H31.709V5.58008H32.9971V4.85938C32.9971 3.23832 33.9563 2.33887 35.7383 2.33887H36.667V3.88477H35.8877C35.1238 3.88492 34.6748 4.32031 34.6748 5.05566V5.58105H36.5625V7.1123H34.6748V13.2354H32.9961V7.1123L32.9971 7.11133H32.0283V7.1123H29.4609V13.2354H27.7832V7.1123L27.7842 7.11133H26.4951V5.58008H27.7842V4.85938C27.7842 3.23832 28.7434 2.33887 30.5254 2.33887H31.4541V3.88477ZM106.538 9.0918L109.878 5.58105H112.006L108.726 8.9873L112.126 13.2334H109.968L107.556 10.2178L106.537 11.2832V13.2354H104.858V2.42871H106.538V9.0918ZM25.7461 4.56055H20.8027V7.18555H25.252V8.86719H20.8027V11.5527H25.8213V13.2334H19.0195V2.87891H25.7461V4.56055ZM72.0225 5.58008H73.9102V7.11133H72.0225V10.6074C72.0226 11.2827 72.4423 11.6875 73.1465 11.6875H73.9102V13.2334H72.9062C71.2433 13.2333 70.3457 12.3927 70.3457 10.8779L70.3447 10.877V7.11133H69.0557V5.58008H69.835C70.2245 5.58008 70.4346 5.36974 70.4346 4.97949V3.50879H72.0225V5.58008ZM83.5264 8.74707L86.9258 2.87891H89.1289V13.2334H87.3457V5.47461L84.0205 11.2373H83.002L79.6914 5.47461V13.2324H77.9082V2.87891H80.126L83.5264 8.74707ZM122.643 5.58008H124.53V7.11133H122.643V10.6074C122.643 11.2826 123.062 11.6873 123.766 11.6875H124.53V13.2334H123.526C121.863 13.2334 120.965 12.3929 120.965 10.8779L120.964 10.877V7.11133H119.676V5.58008H120.455C120.844 5.57991 121.054 5.36959 121.054 4.97949V3.50879H122.643V5.58008ZM39.7393 13.2324H38.0605V5.58008H39.7393V13.2324ZM51.2744 13.2324H49.5957V5.58008H51.2744V13.2324ZM65.5195 5.39941C67.3326 5.39941 68.5449 6.60089 68.5449 8.41602V13.2324H66.8672V8.9707C66.867 7.80012 66.1175 7.01953 64.9639 7.01953C63.7504 7.01967 62.9414 7.81535 62.9414 9.00098V13.2324H61.2637V5.58008H62.9434V6.55566C63.5577 5.8052 64.4418 5.39945 65.5195 5.39941ZM104.23 7.18555H103.961C102.343 7.18555 101.399 8.10186 101.399 9.51172V13.2324H99.7217V5.58008H101.399V6.85547C101.999 5.98498 102.883 5.45996 103.961 5.45996H104.23V7.18555ZM94.2979 7.01953C92.9506 7.01972 91.9317 8.05552 91.9316 9.40625C91.9316 10.757 92.9356 11.7918 94.2979 11.792C95.6603 11.792 96.6494 10.7561 96.6494 9.40625C96.6494 8.0554 95.6453 7.01953 94.2979 7.01953ZM56.3076 6.91504C55.17 6.91512 54.3146 7.60526 54.0449 8.6709H58.5996C58.3449 7.6202 57.4453 6.91504 56.3076 6.91504ZM115.601 6.91504C114.463 6.91517 113.608 7.6053 113.338 8.6709H117.893C117.638 7.6202 116.738 6.91504 115.601 6.91504ZM38.8994 2.21875C39.4987 2.21875 39.9784 2.6689 39.9785 3.28418C39.9785 3.89959 39.5138 4.35059 38.8994 4.35059C38.2853 4.35037 37.8359 3.88444 37.8359 3.28418C37.8361 2.66905 38.3004 2.21897 38.8994 2.21875ZM50.4355 2.21875C51.0347 2.2189 51.5135 2.66901 51.5137 3.28418C51.5137 3.89948 51.0497 4.35044 50.4355 4.35059C49.8212 4.35059 49.3711 3.88458 49.3711 3.28418C49.3712 2.6689 49.8363 2.21875 50.4355 2.21875Z" fill="#111921"></path>
+                                <path d="M13.0684 14.1699C12.6628 14.5065 12.2307 14.7977 11.7812 15.041L8.75098 12.0059V15.9639C8.24391 16.0121 7.73363 16.0121 7.22656 15.9639V12.0059L4.19434 15.043C3.74379 14.7996 3.31195 14.5104 2.90527 14.1738L7.98828 9.08203H7.98926L13.0684 14.1699ZM6.9082 7.99902L1.8252 13.0908L1.82422 13.0918C1.48923 12.6855 1.199 12.252 0.956055 11.8018L3.98926 8.76367H0.0361328C-0.0120294 8.25548 -0.0120294 7.74355 0.0361328 7.23535H3.98926L0.958008 4.19824C1.20093 3.74802 1.48918 3.31448 1.8252 2.9082L6.9082 7.99902ZM14.1475 2.91016C14.4835 3.31751 14.7727 3.74987 15.0156 4.20117L15.0146 4.2002L11.9824 7.2373H15.9336C15.9818 7.7455 15.9818 8.25743 15.9336 8.76562H11.9824L15.0127 11.8008C14.7697 12.2511 14.4806 12.6845 14.1445 13.0908L9.06445 8.00195L14.1475 2.91016ZM7.22168 0.0361328C7.72899 -0.0121134 8.23976 -0.0121134 8.74707 0.0361328V3.99805L11.7803 0.958984C12.2298 1.20235 12.6618 1.49247 13.0674 1.8291L7.98535 6.91992V6.92188L2.90234 1.83008C3.30794 1.49346 3.73998 1.20235 4.18945 0.958984L7.22168 3.99707V0.0361328Z" fill="#E91D2D"></path>
+                            </svg>
+                        </a>
+                    </div>
+                    <nav id="footer-menu" class="menu-footer-menu-container"><ul id="menu-footer-menu" class="menu"><li id="menu-item-243" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-243 menu-item-id-220"><a href="/regulatory-disclosures/" tabindex="0"><span class="menu-item-text">Regulatory Disclosures</span></a></li>
+<li id="menu-item-244" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-244 menu-item-id-224"><a href="/accessibility-statement/" tabindex="0"><span class="menu-item-text">Accessibility Statement</span></a></li>
+<li id="menu-item-245" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-245 menu-item-id-226"><a href="/client-relationship-summary/" tabindex="0"><span class="menu-item-text">Client Relationship Summary</span></a></li>
+<li id="menu-item-246" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-246 menu-item-id-228"><a href="/terms-of-use/" tabindex="0"><span class="menu-item-text">Terms of Use</span></a></li>
+<li id="menu-item-419" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-privacy-policy menu-item-419 menu-item-id-3"><a rel="privacy-policy" href="/privacy-policy/" tabindex="0"><span class="menu-item-text">Privacy Policy</span></a></li>
+<li id="menu-item-247" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-247 menu-item-id-230"><a href="/tcpa-disclosure/" tabindex="0"><span class="menu-item-text">TCPA Disclosure</span></a></li>
+</ul></nav>                </div>
+                <div id="footer-disclaimer">
+                    <p>Copyright ©1999-2026 EnergyNet.com, LLC, All Rights Reserved</p>
+<p>EnergyNet.com, LLC is a registered broker-dealer, <a href="https://www.finra.org/" target="_blank" rel="noopener" tabindex="0">member FINRA/SIPC</a>. You may obtain information about SIPC, including the SIPC brochure, by contacting SIPC at (202) 371-8300. More information is available at <a href="https://brokercheck.finra.org/firm/summary/102100" target="_blank" rel="noopener" tabindex="0">BrokerCheck</a>.</p>
+<p>Disclaimer: The information contained in this website is for informational purposes only and is not intended, and should not be used or construed, as an offer to sell, or a solicitation of any offer to buy, any security. No such offer or solicitation may be made prior to the delivery of definitive offering documentation. The information in this website is not intended and should not be construed as investment, financial, or other advice.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <script type="speculationrules">
+{"prefetch":[{"source":"document","where":{"and":[{"href_matches":"\/*"},{"not":{"href_matches":["\/wp-*.php","\/wp-admin\/*","\/wp-content\/uploads\/*","\/wp-content\/*","\/wp-content\/plugins\/*","\/wp-content\/themes\/efficientmarkets\/*","\/*\\?(.+)"]}},{"not":{"selector_matches":"a[rel~=\"nofollow\"]"}},{"not":{"selector_matches":".no-prefetch, .no-prefetch a"}}]},"eagerness":"conservative"}]}
+</script>
+<script type="text/javascript" src="/wp-content/plugins/advanced-backgrounds/assets/vendor/jarallax/dist/jarallax.min.js?ver=2.2.1" id="jarallax-js"></script>
+<script type="text/javascript" src="/wp-content/plugins/advanced-backgrounds/assets/vendor/jarallax/dist/jarallax-video.min.js?ver=2.2.1" id="jarallax-video-js"></script>
+<script type="text/javascript" id="awb-js-extra">
+/* <![CDATA[ */
+var AWB = {"version":"1.12.8","settings":{"disable_parallax":[],"disable_video":[],"full_width_fallback":true}};
+/* ]]> */
+</script>
+<script type="text/javascript" src="/wp-content/plugins/advanced-backgrounds/assets/awb/awb.min.js?ver=1.12.8" id="awb-js"></script>
+<script type="text/javascript" src="/wp-content/themes/efficientmarkets/js/slick.min.js?ver=1.8.1" id="slickslider-scripts-js"></script>
+<script type="text/javascript" id="main-scripts-js-extra">
+/* <![CDATA[ */
+var ajax_objects = {"ajax_url":"https:\/\/efficientmarkets-prod-www.azurewebsites.net\/wp-admin\/admin-ajax.php"};
+/* ]]> */
+</script>
+<script type="text/javascript" src="/wp-content/themes/efficientmarkets/js/scripts.js?ver=1.0.0" id="main-scripts-js"></script>
+<script type="text/javascript" src="/wp-content/themes/efficientmarkets/js/accessibility-scripts.js?ver=1.0.0" id="accessibility-scripts-js"></script>
+
+</body></html>

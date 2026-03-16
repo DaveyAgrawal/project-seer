@@ -1,4 +1,4 @@
-import puppeteer, { Browser, Page } from 'puppeteer';
+import { chromium, Browser, Page } from 'playwright';
 import * as fs from 'fs';
 import * as path from 'path';
 import { EnergyNetProcessor, EnergyNetListing } from './energynet';
@@ -68,19 +68,8 @@ export class MultiListingScraper {
     await this.energyNetProcessor.initialize();
     
     // Launch browser with anti-detection measures for listing discovery
-    this.browser = await puppeteer.launch({
-      headless: 'new',
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
-        '--no-first-run',
-        '--no-default-browser-check',
-        '--disable-default-apps',
-        '--disable-extensions',
-        '--disable-plugins'
-      ]
+    this.browser = await chromium.launch({
+      headless: true
     });
     
     console.log('✅ Multi-Listing Scraper initialized');
@@ -187,40 +176,58 @@ export class MultiListingScraper {
     try {
       // Set random user agent
       const userAgent = this.userAgents[Math.floor(Math.random() * this.userAgents.length)];
-      await page.setUserAgent(userAgent);
+      await page.setExtraHTTPHeaders({ 'User-Agent': userAgent });
       
       // Navigate to main listings page
       console.log('🌐 Fetching main EnergyNet listings page...');
       await page.goto('https://www.energynet.com/govt_listing.pl', {
-        waitUntil: 'networkidle2',
-        timeout: 30000
+        waitUntil: 'networkidle',
+        timeout: 60000
       });
       
-      // Extract all active listings using corrected discovery logic
+      // Wait for content to load
+      await page.waitForTimeout(3000);
+      
+      // Debug: Save screenshot and HTML for inspection
+      const html = await page.content();
+      console.log(`📄 Page loaded, HTML length: ${html.length} characters`);
+      
+      // Try multiple selectors to find listings
       const discoveredListings = await page.evaluate(() => {
         const listings: any[] = [];
         
-        // Find all "View Listings" buttons - these are the key to each listing
-        const viewListingButtons = Array.from(document.querySelectorAll('a[href*="govt_listing.pl?sg="]'));
+        // New EnergyNet site uses /salegroup/XXXX format
+        const viewListingButtons = Array.from(document.querySelectorAll('a[href*="/salegroup/"]'));
+        
+        console.log(`Found ${viewListingButtons.length} salegroup links`);
         
         viewListingButtons.forEach((button: any, index: number) => {
           try {
-            // Get the sale group ID from the href
+            // Get the sale group ID from the new href format: /salegroup/6472
             const href = button.getAttribute('href');
-            const sgMatch = href.match(/sg=([^&]+)/);
+            const sgMatch = href.match(/\/salegroup\/(\d+)/);
             const saleGroup = sgMatch ? sgMatch[1] : `unknown-${index}`;
             
-            // Find the parent container for this listing
-            const container = button.closest('.row') || button.closest('div');
+            // Skip if we couldn't extract a valid ID
+            if (!sgMatch) return;
+            
+            // Find the parent card/container for this listing
+            const container = button.closest('.rounded-lg') || button.closest('.border') || button.closest('div');
             if (!container) return;
             
-            // Extract title from the lead paragraph
-            const titleElement = container.querySelector('p.fs-5.fw-semibold.lead');
-            const title = titleElement ? titleElement.textContent.trim() : 'Unknown Title';
+            // Extract title - try multiple selectors for new site structure
+            let title = 'Unknown Title';
+            const titleSelectors = ['h3', 'h2', '.font-semibold', 'p.text-lg', 'p.font-bold'];
+            for (const sel of titleSelectors) {
+              const el = container.querySelector(sel);
+              if (el && el.textContent && el.textContent.trim().length > 10) {
+                title = el.textContent.trim();
+                break;
+              }
+            }
             
-            // Extract parcel info from the byline
-            const bylineElement = container.querySelector('#byline_one, .text-secondary span');
-            const bylineText = bylineElement ? bylineElement.textContent.trim() : '';
+            // Extract any descriptive text
+            const bylineText = container.textContent?.substring(0, 200) || '';
             
             // Parse region/state from title
             let region = 'Unknown';
@@ -272,7 +279,7 @@ export class MultiListingScraper {
               region,
               listingType,
               agency,
-              url: `https://www.energynet.com/govt_listing.pl?sg=${saleGroup}`,
+              url: `https://www.energynet.com/salegroup/${saleGroup}`,
               status: 'active',
               byline: bylineText
             });
@@ -285,10 +292,23 @@ export class MultiListingScraper {
         return listings;
       });
       
-      // Add discovered listings to results
-      listings.push(...discoveredListings);
+      // Deduplicate by saleGroup (each listing may have multiple buttons)
+      const uniqueListings = new Map<string, any>();
+      discoveredListings.forEach((listing: any) => {
+        if (!uniqueListings.has(listing.saleGroup)) {
+          uniqueListings.set(listing.saleGroup, listing);
+        } else {
+          // Merge: prefer listing with better title
+          const existing = uniqueListings.get(listing.saleGroup);
+          if (listing.title !== 'Unknown Title' && existing.title === 'Unknown Title') {
+            uniqueListings.set(listing.saleGroup, listing);
+          }
+        }
+      });
       
-      console.log(`✅ Discovered ${listings.length} active listings`);
+      listings.push(...uniqueListings.values());
+      
+      console.log(`✅ Discovered ${listings.length} unique active listings`);
       
       return listings;
       

@@ -14,11 +14,28 @@ class GeospatialApp {
         
         // Layer visibility state
         this.layerState = {
-            transmissionLines: true,
+            transmissionLines: false,
             geothermalPoints: false,
             hexagonMesh: false,
-            energynetParcels: true,
-            datacenters: true
+            energynetParcels: false,
+            datacenters: false,
+            ccusSites: false,
+            ccusSaline: false,
+            ccusEOR: false,
+            ccusUtilization: false,
+            ccusOther: false,
+            emitters: false,
+            emitterPowerPlants: false,
+            emitterPetroleum: false,
+            emitterWaste: false,
+            emitterChemicals: false,
+            emitterMinerals: false,
+            emitterMetals: false,
+            emitterOther: false,
+            emitterMinEmissions: 0,
+            ethanolPlants: false,
+            optimalSites: false,
+            geology: false
         };
         
         // Mesh configuration (65 square miles per hexagon)
@@ -37,7 +54,10 @@ class GeospatialApp {
             geothermal: null,
             transmission: null,
             energynet: null,
-            datacenters: null
+            datacenters: null,
+            ccus: null,
+            emitters: null,
+            ethanol: null
         };
 
         // Track data source types for proper layer styling
@@ -272,6 +292,9 @@ class GeospatialApp {
 
         // Wait for map to load, then add data layers
         this.map.on('load', async () => {
+            // Load custom marker icons
+            await this.loadCustomIcons();
+            
             await this.addDataSources();
             this.addDataLayers();
             this.setupMapInteractions();
@@ -285,6 +308,41 @@ class GeospatialApp {
         
         // Add fullscreen control
         this.map.addControl(new maplibregl.FullscreenControl(), 'top-right');
+    }
+
+    // Load custom marker icons (diamond, square, triangle)
+    async loadCustomIcons() {
+        const icons = [
+            { name: 'diamond', path: '/icons/diamond.svg' },
+            { name: 'diamond-green', path: '/icons/diamond-green.svg' },
+            { name: 'diamond-orange', path: '/icons/diamond-orange.svg' },
+            { name: 'diamond-purple', path: '/icons/diamond-purple.svg' },
+            { name: 'diamond-blue', path: '/icons/diamond-blue.svg' },
+            { name: 'diamond-gray', path: '/icons/diamond-gray.svg' },
+            { name: 'square', path: '/icons/square.svg' },
+            { name: 'triangle', path: '/icons/triangle.svg' },
+            { name: 'square-cluster', path: '/icons/square-cluster.svg' },
+            { name: 'triangle-cluster', path: '/icons/triangle-cluster.svg' }
+        ];
+        
+        for (const icon of icons) {
+            try {
+                const img = new Image(24, 24);
+                img.src = icon.path;
+                await new Promise((resolve, reject) => {
+                    img.onload = () => {
+                        if (!this.map.hasImage(icon.name)) {
+                            this.map.addImage(icon.name, img);
+                            console.log(`✅ Loaded icon: ${icon.name}`);
+                        }
+                        resolve();
+                    };
+                    img.onerror = reject;
+                });
+            } catch (error) {
+                console.error(`❌ Failed to load icon ${icon.name}:`, error);
+            }
+        }
     }
 
     async addDataSources() {
@@ -347,18 +405,218 @@ class GeospatialApp {
         // Set initial layer visibility based on state
         this.toggleTransmissionLines(this.layerState.transmissionLines);
         
-        // Add EnergyNet land parcels layer
-        console.log('🏞️ Adding EnergyNet land parcels layer...');
+        // Add hexagon mesh layer FIRST (so it's at the bottom, under all point layers)
+        console.log('🕒 Starting hexagon mesh creation with sectioned geothermal data...');
+        this.addHexagonMeshLayer();
+
+        // Initialize comparison layers (Conventional @ 4km vs CO₂-EGS @ 5km)
+        console.log('🔄 Initializing EGS comparison layers...');
+        this.initComparisonLayers();
+
+        // Add EnergyNet parcels layer
+        console.log('🏞️ Adding EnergyNet parcels layer...');
         this.addEnergyNetParcelsLayer();
 
-        // Add Datacenter facilities layer
+        // Add Datacenter facilities layer (on top of hexagon mesh)
         console.log('🏢 Adding Datacenter facilities layer...');
         this.addDatacenterLayer();
 
-        // Add hexagon mesh layer with geothermal aggregation (no individual points needed)
-        console.log('🕒 Starting hexagon mesh creation with sectioned geothermal data...');
-        this.addHexagonMeshLayer();
+        // Add CCUS sites layer
+        console.log('🏭 Adding CCUS sites layer...');
+        this.addCCUSLayer();
+
+        // Add Point Source Emitters layer
+        console.log('🏭 Adding Point Source Emitters layer...');
+        this.addEmittersLayer();
+
+        // Add Ethanol Plants layer
+        console.log('🌽 Adding Ethanol Plants layer...');
+        this.addEthanolLayer();
+
+        // Add Geology layer
+        console.log('🪨 Adding Geology layer...');
+        this.addGeologyLayer();
+
+        // Add Optimal Sites layer
+        console.log('🎯 Adding Optimal Sites layer...');
+        this.addOptimalSitesLayer();
+
+        // Ensure proper layer ordering (hexagon mesh at bottom, points on top)
+        setTimeout(() => this.reorderLayers(), 2000);
         
+    }
+
+    // Look up geothermal data for a given coordinate by finding the containing hexagon
+    // If no hexagon contains the point, find the nearest hexagon with data
+    getGeothermalAtLocation(lng, lat) {
+        try {
+            const source = this.map.getSource('hexagon-mesh');
+            if (!source || !source._data) return null;
+            
+            const hexData = source._data;
+            if (!hexData || !hexData.features) return null;
+            
+            // First, try to find the hexagon that contains this point
+            for (const hex of hexData.features) {
+                if (!hex.geometry || !hex.geometry.coordinates) continue;
+                
+                // Check if point is inside polygon using ray casting
+                const coords = hex.geometry.coordinates[0]; // Outer ring
+                if (this.pointInPolygon([lng, lat], coords)) {
+                    // If this hexagon has data, return it
+                    if (hex.properties && hex.properties.avg_temperature_f !== null) {
+                        return { ...hex.properties, isNearest: false };
+                    }
+                    // Otherwise, fall through to find nearest with data
+                    break;
+                }
+            }
+            
+            // No hexagon contains the point or the containing hexagon has no data
+            // Find the nearest hexagon WITH geothermal data
+            let nearestHex = null;
+            let minDistance = Infinity;
+            
+            for (const hex of hexData.features) {
+                if (!hex.properties || hex.properties.avg_temperature_f === null) continue;
+                if (!hex.geometry || !hex.geometry.coordinates) continue;
+                
+                // Calculate centroid of hexagon
+                const coords = hex.geometry.coordinates[0];
+                let centroidLng = 0, centroidLat = 0;
+                for (let i = 0; i < coords.length - 1; i++) {
+                    centroidLng += coords[i][0];
+                    centroidLat += coords[i][1];
+                }
+                centroidLng /= (coords.length - 1);
+                centroidLat /= (coords.length - 1);
+                
+                // Calculate distance (simple Euclidean, good enough for nearby points)
+                const dist = Math.sqrt(Math.pow(lng - centroidLng, 2) + Math.pow(lat - centroidLat, 2));
+                
+                if (dist < minDistance) {
+                    minDistance = dist;
+                    nearestHex = hex;
+                }
+            }
+            
+            if (nearestHex) {
+                // Convert distance to approximate miles (1 degree ≈ 69 miles at equator)
+                const distMiles = Math.round(minDistance * 69);
+                return { 
+                    ...nearestHex.properties, 
+                    isNearest: true, 
+                    distanceMiles: distMiles 
+                };
+            }
+            
+            return null;
+        } catch (error) {
+            console.error('Error looking up geothermal data:', error);
+            return null;
+        }
+    }
+
+    // Ray casting algorithm to check if point is in polygon
+    pointInPolygon(point, polygon) {
+        const x = point[0], y = point[1];
+        let inside = false;
+        
+        for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+            const xi = polygon[i][0], yi = polygon[i][1];
+            const xj = polygon[j][0], yj = polygon[j][1];
+            
+            if (((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) {
+                inside = !inside;
+            }
+        }
+        return inside;
+    }
+
+    // Convert Fahrenheit to Celsius
+    fToC(fahrenheit) {
+        if (fahrenheit === null || fahrenheit === undefined) return null;
+        return Math.round(((fahrenheit - 32) * 5 / 9) * 10) / 10;
+    }
+
+    // Generate geothermal info HTML for popups
+    getGeothermalInfoHTML(lng, lat) {
+        const geoData = this.getGeothermalAtLocation(lng, lat);
+        const currentDepth = document.getElementById('depth-filter')?.value || 3000;
+        
+        if (!geoData || geoData.avg_temperature_f === null) {
+            return `
+                <div style="margin-top: 10px; padding: 10px; background: #F5F5F5; border-radius: 4px; border-left: 4px solid #9E9E9E;">
+                    <div style="font-weight: bold; color: #666; margin-bottom: 6px;">🌡️ Geothermal Resource</div>
+                    <div style="color: #999; font-size: 12px;">No geothermal data available at this location</div>
+                </div>
+            `;
+        }
+        
+        const tempColor = this.getTemperatureColor(geoData.avg_temperature_f);
+        const avgTempC = this.fToC(geoData.avg_temperature_f);
+        const minTempC = this.fToC(geoData.min_temperature_f);
+        const maxTempC = this.fToC(geoData.max_temperature_f);
+        
+        // Show indicator if this is from the nearest hexagon rather than the containing one
+        const nearestIndicator = geoData.isNearest 
+            ? `<div style="font-size: 11px; color: #FF6F00; margin-bottom: 6px; font-style: italic;">📍 Nearest data (~${geoData.distanceMiles} miles away)</div>` 
+            : '';
+        
+        return `
+            <div style="margin-top: 10px; padding: 10px; background: linear-gradient(135deg, #FFF3E0, #FFECB3); border-radius: 4px; border-left: 4px solid ${tempColor};">
+                <div style="font-weight: bold; color: #E65100; margin-bottom: 8px;">🌡️ Geothermal Resource (${currentDepth}m depth)</div>
+                ${nearestIndicator}
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; font-size: 12px;">
+                    <div><span style="color: #666;">Avg Temp:</span> <span style="font-weight: bold; color: ${tempColor};">${avgTempC}°C</span></div>
+                    <div><span style="color: #666;">Data Points:</span> <span style="font-weight: bold;">${geoData.point_count || 'N/A'}</span></div>
+                    ${minTempC !== null ? `<div><span style="color: #666;">Min:</span> ${minTempC}°C</div>` : ''}
+                    ${maxTempC !== null ? `<div><span style="color: #666;">Max:</span> ${maxTempC}°C</div>` : ''}
+                    ${geoData.avg_depth_m ? `<div><span style="color: #666;">Avg Depth:</span> ${Math.round(geoData.avg_depth_m)}m</div>` : ''}
+                </div>
+            </div>
+        `;
+    }
+
+    reorderLayers() {
+        console.log('🔄 Reordering layers...');
+        
+        // Mesh layers should be at the bottom (rendered first)
+        const meshLayers = [
+            'geology-fill',             // Geology at very bottom
+            'hexagon-mesh-fill',
+            'hexagon-mesh-outline',
+            'compare-co2egs-fill',      // CO₂-EGS comparison (5km) - bottom
+            'compare-co2egs-outline',
+            'compare-conventional-fill', // Conventional comparison (4km) - on top of CO₂-EGS
+            'compare-conventional-outline',
+            'co2egs-fill',
+            'co2egs-outline'
+        ];
+        
+        const pointLayers = [
+            'energynet-pins',
+            'energynet-unclustered-pins',
+            'datacenter-points',
+            'ccus-points',
+            'emitter-points',
+            'emitter-no-data',
+            'ethanol-points',
+            'ethanol-icons',
+            'optimal-sites-points',
+            'optimal-sites-labels'
+        ];
+        
+        // Move each point layer to the top in order
+        for (const layerId of pointLayers) {
+            try {
+                if (this.map.getLayer(layerId)) {
+                    this.map.moveLayer(layerId);
+                }
+            } catch (e) {
+                // Layer might not exist yet
+            }
+        }
     }
 
     addTransmissionLinesLayer(layerId, sourceId, minZoom, maxZoom) {
@@ -935,7 +1193,22 @@ class GeospatialApp {
     async updateMeshForDepth(newDepth) {
         console.log(`🔄 Updating hexagon mesh for depth: ${newDepth}m`);
         
+        // Track if CO₂-EGS layer was visible before update
+        const co2egsWasVisible = this.map.getLayer('co2egs-fill') && 
+            this.map.getLayoutProperty('co2egs-fill', 'visibility') === 'visible';
+        const currentViewMode = document.getElementById('co2egs-view-mode')?.value || 'all';
+        const currentOpacity = this.map.getLayer('co2egs-fill') ? 
+            this.map.getPaintProperty('co2egs-fill', 'fill-opacity') : 0.7;
+        
         try {
+            // Remove existing CO₂-EGS layers (they use the same source)
+            if (this.map.getLayer('co2egs-fill')) {
+                this.map.removeLayer('co2egs-fill');
+            }
+            if (this.map.getLayer('co2egs-outline')) {
+                this.map.removeLayer('co2egs-outline');
+            }
+            
             // Remove existing mesh layers
             if (this.map.getLayer('hexagon-mesh-fill')) {
                 this.map.removeLayer('hexagon-mesh-fill');
@@ -974,7 +1247,8 @@ class GeospatialApp {
                 data: hexGridWithData
             });
             
-            // Add fill layer
+            // Add fill layer - preserve current visibility state
+            const meshWasVisible = this.layerState.hexagonMesh;
             this.map.addLayer({
                 id: 'hexagon-mesh-fill',
                 type: 'fill',
@@ -982,7 +1256,7 @@ class GeospatialApp {
                 minzoom: 4,
                 maxzoom: 13,
                 layout: {
-                    'visibility': 'visible'
+                    'visibility': meshWasVisible ? 'visible' : 'none'
                 },
                 paint: {
                     'fill-color': [
@@ -1011,7 +1285,7 @@ class GeospatialApp {
                 minzoom: 4,
                 maxzoom: 13,
                 layout: {
-                    'visibility': 'visible'
+                    'visibility': meshWasVisible ? 'visible' : 'none'
                 },
                 paint: {
                     'line-color': [
@@ -1042,6 +1316,17 @@ class GeospatialApp {
             });
             
             console.log(`✅ Hexagon mesh updated for depth: ${newDepth}m`);
+            
+            // Recreate CO₂-EGS layers with the new source data
+            this.addCO2EGSLayer();
+            
+            // Restore CO₂-EGS visibility and settings
+            if (co2egsWasVisible) {
+                this.map.setLayoutProperty('co2egs-fill', 'visibility', 'visible');
+                this.map.setLayoutProperty('co2egs-outline', 'visibility', 'visible');
+                this.updateCO2EGSViewMode(currentViewMode);
+                this.map.setPaintProperty('co2egs-fill', 'fill-opacity', currentOpacity);
+            }
             
             // Save the newly generated mesh to cache
             await this.saveCachedData('geothermal', hexGridWithData, newDepth);
@@ -1318,7 +1603,6 @@ class GeospatialApp {
         
         // Pin layer IDs
         const clustersLayerId = 'energynet-clusters';
-        const clusterCountLayerId = 'energynet-cluster-count';
         const unclusteredLayerId = 'energynet-unclustered-pins';
         
         const visibility = visible ? 'visible' : 'none';
@@ -1335,10 +1619,6 @@ class GeospatialApp {
         // Toggle pin layers (zoom 0-7.5)
         if (this.map.getLayer(clustersLayerId)) {
             this.map.setLayoutProperty(clustersLayerId, 'visibility', visibility);
-        }
-        
-        if (this.map.getLayer(clusterCountLayerId)) {
-            this.map.setLayoutProperty(clusterCountLayerId, 'visibility', visibility);
         }
         
         if (this.map.getLayer(unclusteredLayerId)) {
@@ -1392,7 +1672,7 @@ class GeospatialApp {
                 minzoom: 4,
                 maxzoom: 13,
                 layout: {
-                    'visibility': 'visible'
+                    'visibility': 'none'  // Hidden by default - user must enable
                 },
                 paint: {
                     'fill-color': [
@@ -1421,7 +1701,7 @@ class GeospatialApp {
                 minzoom: 4,
                 maxzoom: 13,
                 layout: {
-                    'visibility': 'visible'
+                    'visibility': 'none'  // Hidden by default - user must enable
                 },
                 paint: {
                     'line-color': [
@@ -1453,8 +1733,965 @@ class GeospatialApp {
             
             console.log('✅ Hexagon mesh layer added successfully');
             
+            // Add CO₂-EGS Resource Potential layer (uses same source, different color scheme)
+            this.addCO2EGSLayer();
+            
         } catch (error) {
             console.error('❌ Error adding hexagon mesh layer:', error);
+        }
+    }
+
+    // Add CO₂-EGS Resource Potential layer
+    // Shows regions unlocked by CO₂-EGS vs conventional water-based EGS
+    // CO₂-EGS viable at 150°C+, Conventional/Water-EGS viable at 200°C+
+    addCO2EGSLayer() {
+        console.log('🔥 Adding CO₂-EGS Resource Potential layer...');
+        
+        try {
+            // Temperature thresholds in Fahrenheit (converted from Celsius)
+            // 150°C = 302°F, 200°C = 392°F
+            const CO2_EGS_MIN_F = 302;      // 150°C - minimum for CO₂-EGS viability
+            const FERVO_THRESHOLD_F = 392;  // 200°C - Fervo/water-EGS commercial threshold (both viable above this)
+            
+            // Add CO₂-EGS fill layer - TWO ZONES:
+            // Teal (150-200°C): CO₂-EGS only - unlocked resource
+            // Amber (200°C+): Both viable - CO₂-EGS and conventional EGS
+            this.map.addLayer({
+                id: 'co2egs-fill',
+                type: 'fill',
+                source: 'hexagon-mesh',
+                minzoom: 4,
+                maxzoom: 13,
+                layout: {
+                    'visibility': 'none'  // Hidden by default
+                },
+                paint: {
+                    'fill-color': [
+                        'case',
+                        // No data or below CO₂-EGS threshold - transparent
+                        ['==', ['get', 'avg_temperature_f'], null], 'transparent',
+                        ['<', ['get', 'avg_temperature_f'], CO2_EGS_MIN_F], 'transparent',
+                        // All CO₂-EGS viable (150°C+) - Blue (default view mode)
+                        '#00BCD4'
+                    ],
+                    'fill-opacity': 0.7
+                }
+            });
+            
+            // Add CO₂-EGS outline layer
+            this.map.addLayer({
+                id: 'co2egs-outline',
+                type: 'line',
+                source: 'hexagon-mesh',
+                minzoom: 4,
+                maxzoom: 13,
+                layout: {
+                    'visibility': 'none'  // Hidden by default
+                },
+                paint: {
+                    'line-color': '#FFFFFF',
+                    'line-width': 0.5,
+                    'line-opacity': 0.5
+                }
+            });
+            
+            console.log('✅ CO₂-EGS Resource Potential layer added successfully');
+            
+        } catch (error) {
+            console.error('❌ Error adding CO₂-EGS layer:', error);
+        }
+    }
+
+    // Initialize comparison layers (Conventional @ 4km vs CO₂-EGS @ 5km)
+    async initComparisonLayers() {
+        console.log('🔄 Initializing EGS comparison layers...');
+        
+        // Add empty sources for comparison layers
+        if (!this.map.getSource('compare-conventional')) {
+            this.map.addSource('compare-conventional', {
+                type: 'geojson',
+                data: { type: 'FeatureCollection', features: [] }
+            });
+        }
+        
+        if (!this.map.getSource('compare-co2egs')) {
+            this.map.addSource('compare-co2egs', {
+                type: 'geojson',
+                data: { type: 'FeatureCollection', features: [] }
+            });
+        }
+        
+        // Temperature thresholds in Fahrenheit
+        const CO2_EGS_MIN_F = 302;      // 150°C
+        const FERVO_THRESHOLD_F = 392;  // 200°C
+        
+        // Add CO₂-EGS layer FIRST (150°C+ at 5km) - Light Teal - renders at bottom
+        this.map.addLayer({
+            id: 'compare-co2egs-fill',
+            type: 'fill',
+            source: 'compare-co2egs',
+            minzoom: 4,
+            maxzoom: 13,
+            layout: { 'visibility': 'none' },
+            paint: {
+                'fill-color': [
+                    'case',
+                    ['==', ['get', 'avg_temperature_f'], null], 'transparent',
+                    ['<', ['get', 'avg_temperature_f'], CO2_EGS_MIN_F], 'transparent',
+                    '#66BB6A'  // Light green for 150°C+
+                ],
+                'fill-opacity': 0.7
+            }
+        });
+        
+        this.map.addLayer({
+            id: 'compare-co2egs-outline',
+            type: 'line',
+            source: 'compare-co2egs',
+            minzoom: 4,
+            maxzoom: 13,
+            layout: { 'visibility': 'none' },
+            paint: {
+                'line-color': [
+                    'case',
+                    ['==', ['get', 'avg_temperature_f'], null], 'transparent',
+                    ['<', ['get', 'avg_temperature_f'], CO2_EGS_MIN_F], 'transparent',
+                    '#66BB6A'
+                ],
+                'line-width': 0.5,
+                'line-opacity': 0.5
+            }
+        });
+        
+        // Add Conventional EGS layer SECOND (200°C+ at 4km) - Light Yellow - renders ON TOP
+        this.map.addLayer({
+            id: 'compare-conventional-fill',
+            type: 'fill',
+            source: 'compare-conventional',
+            minzoom: 4,
+            maxzoom: 13,
+            layout: { 'visibility': 'none' },
+            paint: {
+                'fill-color': [
+                    'case',
+                    ['==', ['get', 'avg_temperature_f'], null], 'transparent',
+                    ['<', ['get', 'avg_temperature_f'], FERVO_THRESHOLD_F], 'transparent',
+                    '#FFD54F'  // Light yellow/amber for 200°C+
+                ],
+                'fill-opacity': 0.85
+            }
+        });
+        
+        this.map.addLayer({
+            id: 'compare-conventional-outline',
+            type: 'line',
+            source: 'compare-conventional',
+            minzoom: 4,
+            maxzoom: 13,
+            layout: { 'visibility': 'none' },
+            paint: {
+                'line-color': [
+                    'case',
+                    ['==', ['get', 'avg_temperature_f'], null], 'transparent',
+                    ['<', ['get', 'avg_temperature_f'], FERVO_THRESHOLD_F], 'transparent',
+                    '#FFD54F'
+                ],
+                'line-width': 0.5,
+                'line-opacity': 0.5
+            }
+        });
+        
+        console.log('✅ Comparison layer structure initialized');
+        
+        // Add click handlers for comparison layers to show geothermal info
+        this.map.on('click', 'compare-conventional-fill', (e) => {
+            this.showComparisonPopup(e, 'conventional');
+        });
+        this.map.on('click', 'compare-co2egs-fill', (e) => {
+            this.showComparisonPopup(e, 'co2egs');
+        });
+        
+        // Change cursor on hover
+        this.map.on('mouseenter', 'compare-conventional-fill', () => {
+            this.map.getCanvas().style.cursor = 'pointer';
+        });
+        this.map.on('mouseleave', 'compare-conventional-fill', () => {
+            this.map.getCanvas().style.cursor = '';
+        });
+        this.map.on('mouseenter', 'compare-co2egs-fill', () => {
+            this.map.getCanvas().style.cursor = 'pointer';
+        });
+        this.map.on('mouseleave', 'compare-co2egs-fill', () => {
+            this.map.getCanvas().style.cursor = '';
+        });
+    }
+
+    // Show popup for comparison layer hexagon click
+    showComparisonPopup(e, layerType) {
+        const props = e.features[0].properties;
+        const tempF = props.avg_temperature_f;
+        const tempC = tempF ? ((tempF - 32) * 5/9).toFixed(1) : 'N/A';
+        const basementDepth = props.basement_depth;
+        
+        // Get the depth from the layer that was clicked
+        const depthInput = document.getElementById(`compare-${layerType}-depth`);
+        const layerDepth = depthInput ? parseInt(depthInput.value) : (layerType === 'conventional' ? 4000 : 5000);
+        
+        let popupHTML = `
+            <div class="popup-content" style="max-width: 250px;">
+                <div class="popup-header" style="background: #FF5722; color: white; padding: 8px; margin: -10px -10px 10px -10px; border-radius: 4px 4px 0 0;">
+                    <h3 style="margin: 0; font-size: 13px;">🌡️ Geothermal Resource</h3>
+                </div>
+                <div style="background: #f5f5f5; padding: 8px; border-radius: 4px;">
+                    <div style="font-size: 14px; font-weight: bold; margin-bottom: 6px; color: #333;">
+                        ${tempC}°C <span style="font-weight: normal; color: #666;">(${tempF ? tempF.toFixed(0) : 'N/A'}°F)</span>
+                    </div>
+                    <div style="font-size: 11px; color: #666;">
+                        at ${layerDepth/1000}km depth
+                    </div>
+                    ${basementDepth ? `<div style="font-size: 11px; color: #666; margin-top: 4px;">Basement: ${basementDepth.toFixed(0)}m</div>` : ''}
+                </div>
+            </div>
+        `;
+        
+        new maplibregl.Popup()
+            .setLngLat(e.lngLat)
+            .setHTML(popupHTML)
+            .addTo(this.map);
+    }
+
+    // Load comparison layer data - tries cache first, then falls back to current mesh
+    async loadComparisonLayerData(layerType) {
+        // Get custom depth from input field
+        const depthInput = document.getElementById(`compare-${layerType}-depth`);
+        const depth = depthInput ? parseInt(depthInput.value) : (layerType === 'conventional' ? 4000 : 5000);
+        const sourceId = `compare-${layerType}`;
+        
+        // Store the depth used for this layer
+        this.comparisonSettings = this.comparisonSettings || {};
+        this.comparisonSettings[layerType] = { depth };
+        
+        console.log(`📡 Loading ${layerType} at ${depth}m...`);
+        document.getElementById('compare-stats').textContent = `Loading ${layerType} at ${depth}m...`;
+        
+        try {
+            // Try to load from server cache first
+            let hexData = null;
+            try {
+                hexData = await this.loadCachedData('geothermal', depth);
+                if (hexData) {
+                    console.log(`⚡ Loaded ${layerType} from cache at ${depth}m!`);
+                }
+            } catch (e) {
+                console.log(`No cache for ${depth}m`);
+            }
+            
+            // If no cache, use current mesh data as fallback
+            // (User should set depth to 4000 or 5000 first)
+            if (!hexData) {
+                const meshSource = this.map.getSource('hexagon-mesh');
+                if (meshSource && meshSource._data) {
+                    hexData = JSON.parse(JSON.stringify(meshSource._data));
+                    console.log(`📋 Using current mesh for ${layerType}`);
+                }
+            }
+            
+            if (hexData) {
+                const source = this.map.getSource(sourceId);
+                if (source) source.setData(hexData);
+                this.dataCache[sourceId] = hexData;
+                console.log(`✅ ${layerType} data loaded at ${depth}m`);
+            }
+            
+            this.updateComparisonStats();
+            
+        } catch (error) {
+            console.error(`Error loading ${layerType}:`, error);
+            document.getElementById('compare-stats').textContent = `Error loading ${layerType}`;
+        }
+    }
+
+    // Toggle comparison layer visibility
+    async toggleComparisonLayer(layerType, visible) {
+        const fillLayer = `compare-${layerType}-fill`;
+        const outlineLayer = `compare-${layerType}-outline`;
+        
+        if (visible) {
+            // Load this layer's data if not already loaded
+            const sourceId = `compare-${layerType}`;
+            if (!this.dataCache[sourceId]?.features?.length) {
+                await this.loadComparisonLayerData(layerType);
+            }
+            
+            // Update paint property with custom temperature threshold
+            this.updateComparisonLayerPaint(layerType);
+            
+            // Apply basement depth filter
+            const basementSlider = document.getElementById(`compare-${layerType}-basement`);
+            if (basementSlider) {
+                const maxBasementDepth = parseInt(basementSlider.value) || 6000;
+                await this.applyComparisonBasementFilter(layerType, maxBasementDepth);
+            }
+            
+            // Show layers
+            if (this.map.getLayer(fillLayer)) {
+                this.map.setLayoutProperty(fillLayer, 'visibility', 'visible');
+            }
+            if (this.map.getLayer(outlineLayer)) {
+                this.map.setLayoutProperty(outlineLayer, 'visibility', 'visible');
+            }
+        } else {
+            // Hide layers
+            if (this.map.getLayer(fillLayer)) {
+                this.map.setLayoutProperty(fillLayer, 'visibility', 'none');
+            }
+            if (this.map.getLayer(outlineLayer)) {
+                this.map.setLayoutProperty(outlineLayer, 'visibility', 'none');
+            }
+        }
+        
+        this.updateComparisonStats();
+        this.reorderLayers();
+    }
+
+    // Reload comparison layer with new parameters (temp/depth changed)
+    async reloadComparisonLayer(layerType) {
+        const sourceId = `compare-${layerType}`;
+        
+        // Clear cache to force reload
+        delete this.dataCache[sourceId];
+        
+        // Reload data with new depth
+        await this.loadComparisonLayerData(layerType);
+        
+        // Update the layer paint property with new temperature threshold
+        this.updateComparisonLayerPaint(layerType);
+    }
+
+    // Update comparison layer paint property based on custom temperature
+    updateComparisonLayerPaint(layerType) {
+        const fillLayer = `compare-${layerType}-fill`;
+        if (!this.map.getLayer(fillLayer)) return;
+        
+        // Get custom temperature from input (convert °C to °F)
+        const tempInput = document.getElementById(`compare-${layerType}-temp`);
+        const depthInput = document.getElementById(`compare-${layerType}-depth`);
+        const tempC = tempInput ? parseInt(tempInput.value) : (layerType === 'conventional' ? 200 : 150);
+        const depthM = depthInput ? parseInt(depthInput.value) : (layerType === 'conventional' ? 4000 : 5000);
+        const tempF = (tempC * 9/5) + 32;
+        
+        // Set fill color based on temperature threshold
+        const color = layerType === 'conventional' ? '#FFD54F' : '#81C784';
+        
+        this.map.setPaintProperty(fillLayer, 'fill-color', [
+            'case',
+            ['==', ['get', 'avg_temperature_f'], null], 'transparent',
+            ['<', ['get', 'avg_temperature_f'], tempF], 'transparent',
+            color
+        ]);
+        
+        // Update legend text
+        const legendEl = document.getElementById(`compare-legend-${layerType}`);
+        if (legendEl) {
+            const label = layerType === 'conventional' ? 'Conventional EGS' : 'CO₂-EGS';
+            legendEl.textContent = `${label} (${tempC}°C+ @ ${depthM/1000}km)`;
+        }
+        
+        console.log(`🎨 Updated ${layerType} layer paint: ${tempC}°C (${tempF}°F) @ ${depthM}m`);
+    }
+
+    // Apply basement depth filter to comparison layer
+    async applyComparisonBasementFilter(layerType, maxBasementDepth) {
+        const sourceId = `compare-${layerType}`;
+        const fillLayer = `compare-${layerType}-fill`;
+        
+        if (!this.map.getLayer(fillLayer)) return;
+        
+        try {
+            // Get geology data for depth lookup
+            const geologySource = this.map.getSource('geology');
+            if (!geologySource || !geologySource._data) {
+                console.warn('⚠️ Geology data not loaded - cannot filter by basement depth');
+                return;
+            }
+            
+            const geologyData = geologySource._data;
+            const compareSource = this.map.getSource(sourceId);
+            if (!compareSource || !this.dataCache[sourceId]) {
+                console.warn(`⚠️ ${layerType} comparison data not loaded`);
+                return;
+            }
+            
+            // Build spatial index from geology points
+            const cellSize = 0.5;
+            const geologyGrid = {};
+            for (const feat of geologyData.features) {
+                const [lon, lat] = feat.geometry.coordinates;
+                const cellKey = `${Math.floor(lon / cellSize)},${Math.floor(lat / cellSize)}`;
+                if (!geologyGrid[cellKey]) geologyGrid[cellKey] = [];
+                geologyGrid[cellKey].push({
+                    lon, lat,
+                    depth: feat.properties.dt
+                });
+            }
+            
+            // For each hexagon, find nearest geology point and check depth
+            const hexData = JSON.parse(JSON.stringify(this.dataCache[sourceId]));
+            let filteredCount = 0;
+            let totalCount = 0;
+            
+            for (const hex of hexData.features) {
+                totalCount++;
+                const coords = hex.geometry.coordinates[0];
+                let centroidLon = 0, centroidLat = 0;
+                for (const [lon, lat] of coords) {
+                    centroidLon += lon;
+                    centroidLat += lat;
+                }
+                centroidLon /= coords.length;
+                centroidLat /= coords.length;
+                
+                // Look up depth in nearby cells
+                const nearbyPoints = [];
+                for (let dx = -1; dx <= 1; dx++) {
+                    for (let dy = -1; dy <= 1; dy++) {
+                        const key = `${Math.floor(centroidLon / cellSize) + dx},${Math.floor(centroidLat / cellSize) + dy}`;
+                        if (geologyGrid[key]) nearbyPoints.push(...geologyGrid[key]);
+                    }
+                }
+                
+                // Find closest geology point
+                let minDist = Infinity;
+                let closestDepth = null;
+                for (const pt of nearbyPoints) {
+                    const dist = Math.sqrt((pt.lon - centroidLon) ** 2 + (pt.lat - centroidLat) ** 2);
+                    if (dist < minDist) {
+                        minDist = dist;
+                        closestDepth = pt.depth;
+                    }
+                }
+                
+                hex.properties.basement_depth = closestDepth;
+                if (closestDepth !== null && closestDepth > maxBasementDepth) {
+                    hex.properties._filtered = true;
+                    filteredCount++;
+                } else {
+                    hex.properties._filtered = false;
+                }
+            }
+            
+            // Update the source data
+            compareSource.setData(hexData);
+            
+            // Apply filter
+            this.map.setFilter(fillLayer, ['!=', ['get', '_filtered'], true]);
+            this.map.setFilter(`compare-${layerType}-outline`, ['!=', ['get', '_filtered'], true]);
+            
+            console.log(`🎯 ${layerType} basement filter: max ${maxBasementDepth}m, filtered ${filteredCount}/${totalCount}`);
+            
+            this.updateComparisonStats();
+        } catch (error) {
+            console.error(`❌ Error applying basement filter to ${layerType}:`, error);
+        }
+    }
+
+    // Update comparison stats
+    updateComparisonStats() {
+        const statsEl = document.getElementById('compare-stats');
+        const conventionalChecked = document.getElementById('compare-conventional')?.checked;
+        const co2egsChecked = document.getElementById('compare-co2egs')?.checked;
+        
+        if (!conventionalChecked && !co2egsChecked) {
+            statsEl.textContent = 'Enable layers to see comparison stats';
+            return;
+        }
+        
+        // Get custom temperature thresholds from input fields (convert °C to °F)
+        const conventionalTempC = parseInt(document.getElementById('compare-conventional-temp')?.value) || 200;
+        const co2egsTempC = parseInt(document.getElementById('compare-co2egs-temp')?.value) || 150;
+        const conventionalTempF = (conventionalTempC * 9/5) + 32;  // Convert to Fahrenheit
+        const co2egsTempF = (co2egsTempC * 9/5) + 32;
+        
+        // Get depths for display
+        const conventionalDepth = parseInt(document.getElementById('compare-conventional-depth')?.value) || 4000;
+        const co2egsDepth = parseInt(document.getElementById('compare-co2egs-depth')?.value) || 5000;
+        
+        // Hexagon area: 5 mile radius = ~65 sq miles per hexagon
+        // Formula: (3 * sqrt(3) / 2) * r^2 ≈ 2.598 * 25 ≈ 65 sq mi
+        const hexAreaSqMiles = 65;
+        const hexAreaAcres = hexAreaSqMiles * 640;  // 640 acres per sq mile = 41,600 acres per hex
+        const plantSpacingSqMi = 100;
+        const avgPlantMW = 20;
+        const mwPerHexagon = (hexAreaSqMiles / plantSpacingSqMi) * avgPlantMW;  // ~13 MW per hex
+        
+        let conventionalCount = 0;
+        let co2egsCount = 0;
+        
+        // Count conventional cells using custom temperature threshold
+        if (this.dataCache['compare-conventional']?.features) {
+            for (const hex of this.dataCache['compare-conventional'].features) {
+                const temp = hex.properties?.avg_temperature_f;
+                if (temp && temp >= conventionalTempF) {
+                    conventionalCount++;
+                }
+            }
+        }
+        
+        // Count CO₂-EGS cells using custom temperature threshold
+        if (this.dataCache['compare-co2egs']?.features) {
+            for (const hex of this.dataCache['compare-co2egs'].features) {
+                const temp = hex.properties?.avg_temperature_f;
+                if (temp && temp >= co2egsTempF) {
+                    co2egsCount++;
+                }
+            }
+        }
+        
+        console.log(`📊 Stats: Conventional=${conventionalCount} hexes, CO₂-EGS=${co2egsCount} hexes`);
+        
+        // Calculate areas and GW
+        const conventionalAcres = conventionalCount * hexAreaAcres;
+        const conventionalSqMiles = conventionalCount * hexAreaSqMiles;
+        const co2egsAcres = co2egsCount * hexAreaAcres;
+        const co2egsSqMiles = co2egsCount * hexAreaSqMiles;
+        
+        const conventionalGW = (conventionalCount * mwPerHexagon) / 1000;
+        const co2egsGW = (co2egsCount * mwPerHexagon) / 1000;
+        
+        // CO₂-EGS only = total CO₂-EGS minus conventional overlap
+        const co2egsOnlyCount = Math.max(0, co2egsCount - conventionalCount);
+        const co2egsOnlyAcres = co2egsOnlyCount * hexAreaAcres;
+        const co2egsOnlySqMiles = co2egsOnlyCount * hexAreaSqMiles;
+        const additionalGW = (co2egsOnlyCount * mwPerHexagon) / 1000;
+        
+        // Format numbers with commas
+        const fmt = (n) => n.toLocaleString();
+        
+        let statsHTML = '<div style="font-size: 10px; line-height: 1.5;">';
+        
+        if (conventionalChecked) {
+            statsHTML += `<div style="color: #F9A825; margin-bottom: 4px;">
+                <strong>⬛ Conventional EGS (${conventionalDepth/1000}km, ${conventionalTempC}°C+)</strong><br>
+                ${fmt(conventionalCount)} cells · ${fmt(conventionalSqMiles)} sq mi<br>
+                <strong style="font-size: 11px;">~${conventionalGW.toFixed(1)} GW potential</strong>
+            </div>`;
+        }
+        if (co2egsChecked) {
+            statsHTML += `<div style="color: #43A047; margin-bottom: 4px;">
+                <strong>⬛ CO₂-EGS (${co2egsDepth/1000}km, ${co2egsTempC}°C+)</strong><br>
+                ${fmt(co2egsCount)} cells · ${fmt(co2egsSqMiles)} sq mi<br>
+                <strong style="font-size: 11px;">~${co2egsGW.toFixed(1)} GW potential</strong>
+            </div>`;
+        }
+        if (conventionalChecked && co2egsChecked) {
+            statsHTML += `<div style="margin-top: 6px; padding: 6px; background: #E8F5E9; border-radius: 4px; border-left: 3px solid #66BB6A;">
+                <strong style="color: #43A047;">🌱 NEW Regions Unlocked by CO₂-EGS</strong><br>
+                <span style="color: #333;">${fmt(co2egsOnlyCount)} cells · ${fmt(co2egsOnlySqMiles)} sq mi</span><br>
+                <span style="color: #333;">${fmt(co2egsOnlyAcres)} acres</span><br>
+                <strong style="color: #66BB6A; font-size: 12px;">~${additionalGW.toFixed(1)} GW additional capacity</strong>
+            </div>`;
+        }
+        
+        statsHTML += '<div style="margin-top: 6px; font-size: 9px; color: #999;">Based on 1× 20MW plant per 100 sq mi</div>';
+        statsHTML += '</div>';
+        statsEl.innerHTML = statsHTML;
+    }
+
+    // Toggle CO₂-EGS layer visibility and calculate stats
+    toggleCO2EGS(visible) {
+        const layers = ['co2egs-fill', 'co2egs-outline'];
+        layers.forEach(layerId => {
+            try {
+                if (this.map.getLayer(layerId)) {
+                    this.map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
+                }
+            } catch (error) {
+                // Layer might not exist yet
+            }
+        });
+        
+        if (visible) {
+            this.calculateCO2EGSStats();
+        } else {
+            document.getElementById('co2egs-stats').textContent = 'Select depth and enable to view resource potential';
+        }
+        
+        this.reorderLayers();
+    }
+
+    // Update CO₂-EGS layer opacity
+    updateCO2EGSOpacity(opacity) {
+        try {
+            if (this.map.getLayer('co2egs-fill')) {
+                this.map.setPaintProperty('co2egs-fill', 'fill-opacity', opacity);
+            }
+        } catch (error) {
+            console.error('Error updating CO₂-EGS opacity:', error);
+        }
+    }
+
+    // Update CO₂-EGS view mode (filter which zones are displayed)
+    updateCO2EGSViewMode(mode) {
+        if (!this.map.getLayer('co2egs-fill')) return;
+        
+        // Temperature thresholds in Fahrenheit
+        const CO2_EGS_MIN_F = 302;      // 150°C
+        const FERVO_THRESHOLD_F = 392;  // 200°C
+        let fillColor;
+        
+        switch (mode) {
+            case 'co2-all':
+                // Show all CO₂-EGS viable (150°C+) in blue
+                fillColor = [
+                    'case',
+                    ['==', ['get', 'avg_temperature_f'], null], 'transparent',
+                    ['<', ['get', 'avg_temperature_f'], CO2_EGS_MIN_F], 'transparent',
+                    '#00BCD4'  // Blue/teal for all CO₂-EGS viable (150°C+)
+                ];
+                break;
+            case 'water-egs':
+                // Show only water-based EGS viable (200°C+) in amber
+                fillColor = [
+                    'case',
+                    ['==', ['get', 'avg_temperature_f'], null], 'transparent',
+                    ['<', ['get', 'avg_temperature_f'], FERVO_THRESHOLD_F], 'transparent',
+                    '#FFC107'  // Amber for water-based EGS (200°C+)
+                ];
+                break;
+            case 'comparison':
+                // Show both with different colors: blue for CO₂-EGS only (150-200°C), amber for both viable (200°C+)
+                fillColor = [
+                    'case',
+                    ['==', ['get', 'avg_temperature_f'], null], 'transparent',
+                    ['<', ['get', 'avg_temperature_f'], CO2_EGS_MIN_F], 'transparent',
+                    ['<', ['get', 'avg_temperature_f'], FERVO_THRESHOLD_F], '#00BCD4',  // Blue - CO₂-EGS only
+                    '#FFC107'  // Amber - both viable
+                ];
+                break;
+            case 'all':
+            default:
+                // Default: all CO₂-EGS viable (150°C+) in blue
+                fillColor = [
+                    'case',
+                    ['==', ['get', 'avg_temperature_f'], null], 'transparent',
+                    ['<', ['get', 'avg_temperature_f'], CO2_EGS_MIN_F], 'transparent',
+                    '#00BCD4'  // Blue for all CO₂-EGS viable
+                ];
+                break;
+        }
+        
+        this.map.setPaintProperty('co2egs-fill', 'fill-color', fillColor);
+        
+        // Recalculate stats for current view mode
+        if (document.getElementById('co2egs-toggle')?.checked) {
+            this.calculateCO2EGSStats();
+        }
+        
+        console.log(`🔥 CO₂-EGS view mode changed to: ${mode}`);
+    }
+
+    // Update CO₂-EGS layer filter based on max depth to basement
+    updateCO2EGSBasementFilter(maxDepth) {
+        if (!this.map.getLayer('co2egs-fill')) return;
+        
+        // We need to cross-reference hexagon locations with geology depth data
+        // Load geology data and create a spatial lookup
+        this.applyCO2EGSBasementFilter(maxDepth);
+    }
+
+    async applyCO2EGSBasementFilter(maxDepth) {
+        try {
+            // Get geology data for depth lookup
+            const geologySource = this.map.getSource('geology');
+            if (!geologySource || !geologySource._data) {
+                console.warn('⚠️ Geology data not loaded - cannot filter by basement depth');
+                return;
+            }
+            
+            const geologyData = geologySource._data;
+            const hexSource = this.map.getSource('hexagon-mesh');
+            if (!hexSource || !hexSource._data) {
+                console.warn('⚠️ Hexagon mesh not loaded');
+                return;
+            }
+            
+            // Build spatial index from geology points (grid-based for fast lookup)
+            const cellSize = 0.5; // degrees
+            const geologyGrid = {};
+            for (const feat of geologyData.features) {
+                const [lon, lat] = feat.geometry.coordinates;
+                const cellKey = `${Math.floor(lon / cellSize)},${Math.floor(lat / cellSize)}`;
+                if (!geologyGrid[cellKey]) geologyGrid[cellKey] = [];
+                geologyGrid[cellKey].push({
+                    lon, lat,
+                    depth: feat.properties.dt // depth to basement in meters
+                });
+            }
+            
+            // For each hexagon, find nearest geology point and check depth
+            const hexData = JSON.parse(JSON.stringify(hexSource._data));
+            let filteredCount = 0;
+            let totalCount = 0;
+            
+            for (const hex of hexData.features) {
+                totalCount++;
+                // Get hexagon centroid
+                const coords = hex.geometry.coordinates[0];
+                let centroidLon = 0, centroidLat = 0;
+                for (const [lon, lat] of coords) {
+                    centroidLon += lon;
+                    centroidLat += lat;
+                }
+                centroidLon /= coords.length;
+                centroidLat /= coords.length;
+                
+                // Look up depth in nearby cells
+                const cellKey = `${Math.floor(centroidLon / cellSize)},${Math.floor(centroidLat / cellSize)}`;
+                const nearbyPoints = [];
+                for (let dx = -1; dx <= 1; dx++) {
+                    for (let dy = -1; dy <= 1; dy++) {
+                        const key = `${Math.floor(centroidLon / cellSize) + dx},${Math.floor(centroidLat / cellSize) + dy}`;
+                        if (geologyGrid[key]) nearbyPoints.push(...geologyGrid[key]);
+                    }
+                }
+                
+                // Find closest geology point
+                let minDist = Infinity;
+                let closestDepth = null;
+                for (const pt of nearbyPoints) {
+                    const dist = Math.sqrt((pt.lon - centroidLon) ** 2 + (pt.lat - centroidLat) ** 2);
+                    if (dist < minDist) {
+                        minDist = dist;
+                        closestDepth = pt.depth;
+                    }
+                }
+                
+                // Store depth on hexagon for filtering
+                hex.properties.basement_depth = closestDepth;
+                
+                // Mark as filtered if depth exceeds max
+                if (closestDepth !== null && closestDepth > maxDepth) {
+                    hex.properties._filtered = true;
+                    filteredCount++;
+                } else {
+                    hex.properties._filtered = false;
+                }
+            }
+            
+            // Update the source data
+            hexSource.setData(hexData);
+            
+            // Apply filter to CO2-EGS layer
+            this.map.setFilter('co2egs-fill', ['!=', ['get', '_filtered'], true]);
+            this.map.setFilter('co2egs-outline', ['!=', ['get', '_filtered'], true]);
+            
+            console.log(`🎯 CO₂-EGS basement filter: max ${maxDepth}m, filtered out ${filteredCount}/${totalCount} hexagons`);
+            
+            // Recalculate stats
+            if (document.getElementById('co2egs-toggle')?.checked) {
+                this.calculateCO2EGSStats();
+            }
+        } catch (error) {
+            console.error('❌ Error applying basement depth filter:', error);
+        }
+    }
+
+    // Set depth and trigger update
+    async setDepthAndUpdate(depth) {
+        const depthFilter = document.getElementById('depth-filter');
+        if (depthFilter) {
+            depthFilter.value = depth;
+            
+            // Show loading indicator
+            document.getElementById('loading').style.display = 'block';
+            
+            try {
+                await this.updateMeshForDepth(depth);
+                
+                // Apply basement depth filters to comparison layers if they're active
+                const conventionalChecked = document.getElementById('compare-conventional')?.checked;
+                const co2egsChecked = document.getElementById('compare-co2egs')?.checked;
+                
+                if (conventionalChecked) {
+                    const maxDepth = parseInt(document.getElementById('compare-conventional-basement')?.value) || 6000;
+                    await this.applyComparisonBasementFilter('conventional', maxDepth);
+                }
+                if (co2egsChecked) {
+                    const maxDepth = parseInt(document.getElementById('compare-co2egs-basement')?.value) || 6000;
+                    await this.applyComparisonBasementFilter('co2egs', maxDepth);
+                }
+            } catch (error) {
+                console.error('❌ Error updating mesh for depth:', error);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+    }
+
+    // Apply comparison presets - DEPRECATED (use EGS Technology Comparison controls instead)
+    async applyPreset(preset) {
+        console.log(`🎯 Applying preset: ${preset} (deprecated - use EGS Technology Comparison)`);
+        // This function is no longer used since CO2-EGS Resource Potential was removed
+    }
+
+    // Show popup for CO₂-EGS layer click
+    showCO2EGSPopup(e) {
+        const props = e.features[0].properties;
+        const tempF = props.avg_temperature_f;
+        
+        if (!tempF) {
+            return; // No data, don't show popup
+        }
+        
+        const tempC = this.fToC(tempF);
+        const currentDepth = document.getElementById('depth-filter')?.value || 3000;
+        
+        // Temperature thresholds in Fahrenheit
+        const CO2_EGS_MIN_F = 302;      // 150°C
+        const FERVO_THRESHOLD_F = 392;  // 200°C
+        
+        // Determine zone - TWO ZONES ONLY
+        let zoneName, zoneColor, zoneDescription, zoneIcon;
+        if (tempF < CO2_EGS_MIN_F) {
+            zoneName = 'Below EGS Threshold';
+            zoneColor = '#9E9E9E';
+            zoneDescription = 'Temperature too low for economic EGS development';
+            zoneIcon = '❄️';
+        } else if (tempF < FERVO_THRESHOLD_F) {
+            zoneName = 'CO₂-EGS Only Zone';
+            zoneColor = '#00BCD4';
+            zoneDescription = 'Unlocked by CO₂-EGS! Below Fervo/water-EGS commercial threshold (200°C). CO₂-EGS thermosiphon effect enables economic development.';
+            zoneIcon = '🔹';
+        } else {
+            zoneName = 'Both Viable Zone';
+            zoneColor = '#FFC107';
+            zoneDescription = 'Both CO₂-EGS and conventional water-EGS are viable at 200°C+. CO₂-EGS has thermodynamic advantages (lower viscosity, thermosiphon, better heat mining).';
+            zoneIcon = '🔸';
+        }
+        
+        const popupHTML = `
+            <div class="popup-content" style="max-width: 350px;">
+                <div class="popup-header" style="background: ${zoneColor}; color: ${tempF >= FERVO_THRESHOLD_F ? '#333' : 'white'}; padding: 10px; margin: -10px -10px 10px -10px; border-radius: 4px 4px 0 0;">
+                    <h3 style="margin: 0; font-size: 14px;">${zoneIcon} ${zoneName}</h3>
+                </div>
+                <div style="background: #f5f5f5; padding: 10px; border-radius: 4px; margin-bottom: 10px;">
+                    <div style="font-size: 28px; font-weight: bold; color: ${zoneColor}; text-align: center;">
+                        ${tempC}°C
+                    </div>
+                    <div style="text-align: center; font-size: 12px; color: #666;">
+                        at ${currentDepth}m depth
+                    </div>
+                </div>
+                <div style="font-size: 12px; color: #555; line-height: 1.4; margin-bottom: 10px;">
+                    ${zoneDescription}
+                </div>
+                <div style="font-size: 11px; color: #888; border-top: 1px solid #eee; padding-top: 8px;">
+                    <div><strong>Data Points:</strong> ${props.point_count || 'N/A'}</div>
+                    ${props.min_temperature_f ? `<div><strong>Temp Range:</strong> ${this.fToC(props.min_temperature_f)}°C - ${this.fToC(props.max_temperature_f)}°C</div>` : ''}
+                </div>
+            </div>
+        `;
+        
+        if (this.activePopup) {
+            this.activePopup.remove();
+        }
+        
+        this.activePopup = new maplibregl.Popup({
+            closeButton: true,
+            closeOnClick: false,
+            maxWidth: '380px'
+        })
+            .setLngLat(e.lngLat)
+            .setHTML(popupHTML)
+            .addTo(this.map);
+    }
+
+    // Calculate and display CO₂-EGS resource statistics
+    calculateCO2EGSStats() {
+        const statsEl = document.getElementById('co2egs-stats');
+        if (!statsEl) return;
+        
+        try {
+            const source = this.map.getSource('hexagon-mesh');
+            if (!source || !source._data) {
+                statsEl.textContent = 'No geothermal data available';
+                return;
+            }
+            
+            const hexData = source._data;
+            if (!hexData || !hexData.features) {
+                statsEl.textContent = 'No hexagon data available';
+                return;
+            }
+            
+            // Temperature thresholds in Fahrenheit
+            const CO2_EGS_MIN_F = 302;      // 150°C
+            const FERVO_THRESHOLD_F = 392;  // 200°C
+            
+            let co2OnlyCount = 0;
+            let bothViableCount = 0;
+            let totalWithData = 0;
+            
+            // Hexagon area calculation:
+            // Using 5-mile radius hexagons, area ≈ 65 sq miles each
+            // Formula: (3 * sqrt(3) / 2) * r^2 ≈ 2.598 * 25 ≈ 65 sq mi
+            const hexAreaSqMiles = 65;
+            
+            for (const hex of hexData.features) {
+                const temp = hex.properties?.avg_temperature_f;
+                if (temp === null || temp === undefined) continue;
+                
+                totalWithData++;
+                
+                if (temp >= CO2_EGS_MIN_F && temp < FERVO_THRESHOLD_F) {
+                    co2OnlyCount++;
+                } else if (temp >= FERVO_THRESHOLD_F) {
+                    bothViableCount++;  // 200°C+ is both viable (CO₂-EGS and conventional)
+                }
+            }
+            
+            // GW estimate methodology:
+            // - 1 plant per 100 sq miles (conservative spacing)
+            // - Average plant size: 20 MW
+            // - Each hexagon is ~65 sq mi → 0.65 plants per hex → ~13 MW per hexagon
+            const plantSpacingSqMi = 100;
+            const avgPlantMW = 20;
+            const mwPerHexagon = (hexAreaSqMiles / plantSpacingSqMi) * avgPlantMW;  // ~13 MW
+            
+            const co2OnlyGW = (co2OnlyCount * mwPerHexagon) / 1000;
+            const bothViableGW = (bothViableCount * mwPerHexagon) / 1000;
+            const totalCO2GW = ((co2OnlyCount + bothViableCount) * mwPerHexagon) / 1000;
+            
+            const currentDepth = document.getElementById('depth-filter')?.value || 3000;
+            
+            // Calculate total area in sq miles
+            const co2OnlyArea = Math.round(co2OnlyCount * hexAreaSqMiles).toLocaleString();
+            const bothViableArea = Math.round(bothViableCount * hexAreaSqMiles).toLocaleString();
+            
+            statsEl.innerHTML = `
+                <div style="font-size: 11px; line-height: 1.4;">
+                    <div style="font-weight: bold; margin-bottom: 4px;">At ${currentDepth}m depth:</div>
+                    <div style="color: #00838F;">🔹 CO₂-EGS Only (150-200°C): ${co2OnlyCount} cells (${co2OnlyArea} mi²)</div>
+                    <div style="color: #FF8F00;">🔸 Both Viable (200°C+): ${bothViableCount} cells (${bothViableArea} mi²)</div>
+                    <div style="margin-top: 6px; padding-top: 6px; border-top: 1px dashed #ccc;">
+                        <div style="font-weight: bold; color: #00838F;">
+                            CO₂-EGS unlocks: ~${co2OnlyGW.toFixed(1)} GW*
+                        </div>
+                        <div style="font-size: 10px; color: #666; margin-top: 2px;">
+                            Total CO₂-EGS viable: ~${totalCO2GW.toFixed(1)} GW
+                        </div>
+                        <div style="font-size: 10px; color: #999; margin-top: 2px;">
+                            *1 plant/100 mi² × 20 MW avg
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            console.log(`🔥 CO₂-EGS Stats: CO₂-only=${co2OnlyCount}, Both=${bothViableCount}`);
+            
+        } catch (error) {
+            console.error('Error calculating CO₂-EGS stats:', error);
+            statsEl.textContent = 'Error calculating statistics';
         }
     }
 
@@ -1473,6 +2710,10 @@ class GeospatialApp {
         
         const meshLayers = [
             'hexagon-mesh-fill'
+        ];
+
+        const co2egsLayers = [
+            'co2egs-fill'
         ];
 
         // Transmission lines popups
@@ -1546,6 +2787,23 @@ class GeospatialApp {
             });
         });
 
+        // CO₂-EGS layer click handler
+        co2egsLayers.forEach(layerId => {
+            this.map.on('click', layerId, (e) => {
+                if (e.features.length > 0) {
+                    this.showCO2EGSPopup(e);
+                }
+            });
+            
+            this.map.on('mouseenter', layerId, () => {
+                this.map.getCanvas().style.cursor = 'pointer';
+            });
+            
+            this.map.on('mouseleave', layerId, () => {
+                this.map.getCanvas().style.cursor = '';
+            });
+        });
+
         // Update stats on map move
         this.map.on('moveend', () => {
             this.updateStats();
@@ -1602,6 +2860,9 @@ class GeospatialApp {
         
         if (properties.point_count) {
             // Aggregated point
+            const avgTempC = this.fToC(properties.avg_temperature_f);
+            const minTempC = this.fToC(properties.min_temperature_f);
+            const maxTempC = this.fToC(properties.max_temperature_f);
             popupContent = `
                 <div class="popup-header">
                     <i class="fas fa-thermometer-half"></i> Geothermal Cluster
@@ -1612,11 +2873,11 @@ class GeospatialApp {
                 </div>
                 <div class="popup-row">
                     <span class="popup-label">Avg Temperature:</span> 
-                    <span class="popup-value">${properties.avg_temperature_f ? properties.avg_temperature_f + '°F' : 'Unknown'}</span>
+                    <span class="popup-value">${avgTempC !== null ? avgTempC + '°C' : 'Unknown'}</span>
                 </div>
                 <div class="popup-row">
                     <span class="popup-label">Temp Range:</span> 
-                    <span class="popup-value">${properties.min_temperature_f || 'N/A'} - ${properties.max_temperature_f || 'N/A'}°F</span>
+                    <span class="popup-value">${minTempC !== null ? minTempC : 'N/A'} - ${maxTempC !== null ? maxTempC : 'N/A'}°C</span>
                 </div>
                 <div class="popup-row">
                     <span class="popup-label">Avg Depth:</span> 
@@ -1625,13 +2886,14 @@ class GeospatialApp {
             `;
         } else {
             // Individual point
+            const tempC = this.fToC(properties.temperature_f);
             popupContent = `
                 <div class="popup-header">
                     <i class="fas fa-thermometer-half"></i> Geothermal Point
                 </div>
                 <div class="popup-row">
                     <span class="popup-label">Temperature:</span> 
-                    <span class="popup-value">${properties.temperature_f ? properties.temperature_f + '°F' : 'Unknown'}</span>
+                    <span class="popup-value">${tempC !== null ? tempC + '°C' : 'Unknown'}</span>
                 </div>
                 <div class="popup-row">
                     <span class="popup-label">Depth:</span> 
@@ -1657,6 +2919,10 @@ class GeospatialApp {
     showGridPopup(e) {
         const properties = e.features[0].properties;
         
+        const avgTempC = this.fToC(properties.avg_temperature_f);
+        const minTempC = this.fToC(properties.min_temperature_f);
+        const maxTempC = this.fToC(properties.max_temperature_f);
+        
         const popupContent = `
             <div class="popup-header">
                 <i class="fas fa-th"></i> Geothermal Grid Box (15-mile)
@@ -1667,7 +2933,7 @@ class GeospatialApp {
             </div>
             <div class="popup-row">
                 <span class="popup-label">Average Temperature:</span> 
-                <span class="popup-value" style="font-weight: bold; color: ${this.getTemperatureColor(properties.avg_temperature_f)}">${properties.avg_temperature_f ? properties.avg_temperature_f + '°F' : 'No data'}</span>
+                <span class="popup-value" style="font-weight: bold; color: ${this.getTemperatureColor(properties.avg_temperature_f)}">${avgTempC !== null ? avgTempC + '°C' : 'No data'}</span>
             </div>
             <div class="popup-row">
                 <span class="popup-label">Average Depth:</span> 
@@ -1675,7 +2941,7 @@ class GeospatialApp {
             </div>
             <div class="popup-row">
                 <span class="popup-label">Temperature Range:</span> 
-                <span class="popup-value">${properties.min_temperature_f || 'N/A'} - ${properties.max_temperature_f || 'N/A'}°F</span>
+                <span class="popup-value">${minTempC !== null ? minTempC : 'N/A'} - ${maxTempC !== null ? maxTempC : 'N/A'}°C</span>
             </div>
             <div class="popup-row">
                 <span class="popup-label">Data Points:</span> 
@@ -1758,6 +3024,120 @@ class GeospatialApp {
             this.updateDatacenters();
         });
 
+        // Optimal Sites controls
+        document.getElementById('optimal-sites-toggle').addEventListener('change', (e) => {
+            this.toggleOptimalSites(e.target.checked);
+        });
+        document.getElementById('optimal-depth').addEventListener('input', (e) => {
+            document.getElementById('optimal-depth-value').textContent = e.target.value;
+            if (this.layerState.optimalSites) {
+                this.calculateOptimalSites();
+            }
+        });
+        document.getElementById('optimal-count').addEventListener('input', (e) => {
+            document.getElementById('optimal-count-value').textContent = e.target.value;
+            if (this.layerState.optimalSites) {
+                this.calculateOptimalSites();
+            }
+        });
+        document.getElementById('optimal-use-ethanol').addEventListener('change', () => {
+            if (this.layerState.optimalSites) {
+                this.calculateOptimalSites();
+            }
+        });
+        document.getElementById('optimal-use-emitters').addEventListener('change', () => {
+            if (this.layerState.optimalSites) {
+                this.calculateOptimalSites();
+            }
+        });
+
+        // Ethanol controls
+        document.getElementById('ethanol-toggle').addEventListener('change', (e) => {
+            this.toggleEthanol(e.target.checked);
+        });
+
+        // Geology controls
+        document.getElementById('geology-toggle').addEventListener('change', (e) => {
+            this.toggleGeology(e.target.checked);
+        });
+        document.getElementById('geology-opacity').addEventListener('input', (e) => {
+            this.updateGeologyOpacity(parseFloat(e.target.value));
+        });
+        document.getElementById('geology-min-depth').addEventListener('input', (e) => {
+            document.getElementById('geology-min-depth-value').textContent = e.target.value;
+            this.updateGeologyFilter();
+        });
+        // CO2-EGS overlap checkbox removed from UI
+        // document.getElementById('geology-co2egs-overlap').addEventListener('change', (e) => {
+        //     this.filterGeologyByCO2EGSOverlap(e.target.checked);
+        // });
+
+        // Emitters controls
+        document.getElementById('emitters-toggle').addEventListener('change', (e) => {
+            this.toggleEmitters(e.target.checked);
+        });
+
+        // Emitter sub-category controls
+        document.getElementById('emitter-power-plants').addEventListener('change', (e) => {
+            this.layerState.emitterPowerPlants = e.target.checked;
+            this.updateEmittersFilter();
+        });
+        document.getElementById('emitter-petroleum').addEventListener('change', (e) => {
+            this.layerState.emitterPetroleum = e.target.checked;
+            this.updateEmittersFilter();
+        });
+        document.getElementById('emitter-waste').addEventListener('change', (e) => {
+            this.layerState.emitterWaste = e.target.checked;
+            this.updateEmittersFilter();
+        });
+        document.getElementById('emitter-chemicals').addEventListener('change', (e) => {
+            this.layerState.emitterChemicals = e.target.checked;
+            this.updateEmittersFilter();
+        });
+        document.getElementById('emitter-minerals').addEventListener('change', (e) => {
+            this.layerState.emitterMinerals = e.target.checked;
+            this.updateEmittersFilter();
+        });
+        document.getElementById('emitter-metals').addEventListener('change', (e) => {
+            this.layerState.emitterMetals = e.target.checked;
+            this.updateEmittersFilter();
+        });
+        document.getElementById('emitter-other').addEventListener('change', (e) => {
+            this.layerState.emitterOther = e.target.checked;
+            this.updateEmittersFilter();
+        });
+
+        // Emissions slider
+        document.getElementById('emissions-slider').addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            this.layerState.emitterMinEmissions = value;
+            document.getElementById('emissions-value').textContent = value.toLocaleString();
+            this.updateEmittersFilter();
+        });
+
+        // CCUS controls
+        document.getElementById('ccus-toggle').addEventListener('change', (e) => {
+            this.toggleCCUS(e.target.checked);
+        });
+
+        // CCUS sub-category controls
+        document.getElementById('ccus-saline').addEventListener('change', (e) => {
+            this.layerState.ccusSaline = e.target.checked;
+            this.updateCCUSFilter();
+        });
+        document.getElementById('ccus-eor').addEventListener('change', (e) => {
+            this.layerState.ccusEOR = e.target.checked;
+            this.updateCCUSFilter();
+        });
+        document.getElementById('ccus-utilization').addEventListener('change', (e) => {
+            this.layerState.ccusUtilization = e.target.checked;
+            this.updateCCUSFilter();
+        });
+        document.getElementById('ccus-other').addEventListener('change', (e) => {
+            this.layerState.ccusOther = e.target.checked;
+            this.updateCCUSFilter();
+        });
+
         // Mesh controls
         document.getElementById('mesh-toggle').addEventListener('change', (e) => {
             this.toggleMesh(e.target.checked);
@@ -1767,6 +3147,101 @@ class GeospatialApp {
             const opacity = e.target.value / 100;
             document.getElementById('mesh-opacity-value').textContent = e.target.value + '%';
             this.updateMeshOpacity(opacity);
+        });
+
+        // CO₂-EGS controls - COMMENTED OUT (UI elements removed, using EGS Technology Comparison instead)
+        /*
+        document.getElementById('co2egs-toggle').addEventListener('change', (e) => {
+            this.toggleCO2EGS(e.target.checked);
+        });
+
+        document.getElementById('co2egs-opacity').addEventListener('input', (e) => {
+            const opacity = e.target.value / 100;
+            document.getElementById('co2egs-opacity-value').textContent = e.target.value + '%';
+            this.updateCO2EGSOpacity(opacity);
+        });
+
+        // CO₂-EGS view mode selector
+        document.getElementById('co2egs-view-mode').addEventListener('change', (e) => {
+            this.updateCO2EGSViewMode(e.target.value);
+        });
+
+        // CO₂-EGS max basement depth filter
+        document.getElementById('co2egs-max-basement-depth').addEventListener('input', (e) => {
+            const maxDepth = parseInt(e.target.value);
+            document.getElementById('co2egs-max-basement-depth-value').textContent = maxDepth;
+            this.updateCO2EGSBasementFilter(maxDepth);
+        });
+
+        // Quick depth buttons
+        document.getElementById('depth-3000').addEventListener('click', () => {
+            this.setDepthAndUpdate(3000);
+        });
+        document.getElementById('depth-4000').addEventListener('click', () => {
+            this.setDepthAndUpdate(4000);
+        });
+        document.getElementById('depth-5000').addEventListener('click', () => {
+            this.setDepthAndUpdate(5000);
+        });
+        */
+
+        // EGS Comparison layer controls
+        document.getElementById('compare-conventional').addEventListener('change', (e) => {
+            this.toggleComparisonLayer('conventional', e.target.checked);
+        });
+        document.getElementById('compare-co2egs').addEventListener('change', (e) => {
+            this.toggleComparisonLayer('co2egs', e.target.checked);
+        });
+        
+        // Comparison layer parameter inputs - reload layer when changed
+        document.getElementById('compare-conventional-temp').addEventListener('change', () => {
+            if (document.getElementById('compare-conventional').checked) {
+                this.reloadComparisonLayer('conventional');
+            }
+        });
+        document.getElementById('compare-conventional-depth').addEventListener('change', () => {
+            if (document.getElementById('compare-conventional').checked) {
+                this.reloadComparisonLayer('conventional');
+            }
+        });
+        document.getElementById('compare-co2egs-temp').addEventListener('change', () => {
+            if (document.getElementById('compare-co2egs').checked) {
+                this.reloadComparisonLayer('co2egs');
+            }
+        });
+        document.getElementById('compare-co2egs-depth').addEventListener('change', () => {
+            if (document.getElementById('compare-co2egs').checked) {
+                this.reloadComparisonLayer('co2egs');
+            }
+        });
+        
+        // Comparison layer basement depth sliders
+        document.getElementById('compare-conventional-basement').addEventListener('input', (e) => {
+            const maxDepth = parseInt(e.target.value);
+            document.getElementById('compare-conventional-basement-value').textContent = maxDepth;
+            if (document.getElementById('compare-conventional').checked) {
+                this.applyComparisonBasementFilter('conventional', maxDepth);
+            }
+        });
+        document.getElementById('compare-co2egs-basement').addEventListener('input', (e) => {
+            const maxDepth = parseInt(e.target.value);
+            document.getElementById('compare-co2egs-basement-value').textContent = maxDepth;
+            if (document.getElementById('compare-co2egs').checked) {
+                this.applyComparisonBasementFilter('co2egs', maxDepth);
+            }
+        });
+        
+        document.getElementById('compare-show-both').addEventListener('click', async () => {
+            document.getElementById('compare-conventional').checked = true;
+            document.getElementById('compare-co2egs').checked = true;
+            await this.toggleComparisonLayer('conventional', true);
+            await this.toggleComparisonLayer('co2egs', true);
+        });
+        document.getElementById('compare-clear').addEventListener('click', () => {
+            document.getElementById('compare-conventional').checked = false;
+            document.getElementById('compare-co2egs').checked = false;
+            this.toggleComparisonLayer('conventional', false);
+            this.toggleComparisonLayer('co2egs', false);
         });
         
         // Depth filter functionality - re-aggregate mesh when depth changes
@@ -1781,6 +3256,19 @@ class GeospatialApp {
                 try {
                     // Re-generate hexagon mesh with new depth filter
                     await this.updateMeshForDepth(depth);
+                    
+                    // Apply basement depth filters to comparison layers if they're active
+                    const conventionalChecked = document.getElementById('compare-conventional')?.checked;
+                    const co2egsChecked = document.getElementById('compare-co2egs')?.checked;
+                    
+                    if (conventionalChecked) {
+                        const maxDepth = parseInt(document.getElementById('compare-conventional-basement')?.value) || 6000;
+                        await this.applyComparisonBasementFilter('conventional', maxDepth);
+                    }
+                    if (co2egsChecked) {
+                        const maxDepth = parseInt(document.getElementById('compare-co2egs-basement')?.value) || 6000;
+                        await this.applyComparisonBasementFilter('co2egs', maxDepth);
+                    }
                 } catch (error) {
                     console.error('❌ Error updating mesh for depth:', error);
                 } finally {
@@ -1882,61 +3370,48 @@ class GeospatialApp {
                 }
             });
             
-            // Add cluster circles layer
+            // Add cluster layer - triangle shape for land parcels
             this.map.addLayer({
                 id: 'energynet-clusters',
-                type: 'circle',
-                source: 'energynet-pins',
-                minzoom: 0,
-                maxzoom: 7.5,
-                filter: ['has', 'point_count'],
-                paint: {
-                    'circle-color': '#FF1493', // Bright pink matching parcels
-                    'circle-radius': [
-                        'step',
-                        ['get', 'point_count'],
-                        20,   // radius for clusters with 1-99 points
-                        100, 30,  // radius for clusters with 100-999 points  
-                        750, 40   // radius for clusters with 1000+ points
-                    ],
-                    'circle-opacity': 0.7,
-                    'circle-stroke-width': 2,
-                    'circle-stroke-color': '#0066CC'
-                }
-            });
-            
-            // Add cluster count labels
-            this.map.addLayer({
-                id: 'energynet-cluster-count',
                 type: 'symbol',
                 source: 'energynet-pins',
                 minzoom: 0,
                 maxzoom: 7.5,
                 filter: ['has', 'point_count'],
                 layout: {
+                    'icon-image': 'triangle-cluster',
+                    'icon-size': [
+                        'step',
+                        ['get', 'point_count'],
+                        1.0,    // size for clusters with 1-99 points
+                        100, 1.3,  // size for clusters with 100-999 points  
+                        750, 1.6   // size for clusters with 1000+ points
+                    ],
+                    'icon-allow-overlap': true,
+                    'icon-ignore-placement': true,
                     'text-field': '{point_count_abbreviated}',
                     'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-                    'text-size': 12
+                    'text-size': 12,
+                    'text-offset': [0, 0.2]
                 },
                 paint: {
                     'text-color': 'white'
                 }
             });
             
-            // Add unclustered point layer (individual pins)
+            // Add unclustered point layer (individual pins) - triangle shape
             this.map.addLayer({
                 id: 'energynet-unclustered-pins',
-                type: 'circle',
+                type: 'symbol',
                 source: 'energynet-pins',
                 minzoom: 0,
                 maxzoom: 7.5,
                 filter: ['!', ['has', 'point_count']],
-                paint: {
-                    'circle-color': '#FF1493', // Bright pink matching parcels
-                    'circle-radius': 8,
-                    'circle-opacity': 0.7,
-                    'circle-stroke-width': 1,
-                    'circle-stroke-color': '#0066CC'
+                layout: {
+                    'icon-image': 'triangle',
+                    'icon-size': 0.8,
+                    'icon-allow-overlap': true,
+                    'icon-ignore-placement': true
                 }
             });
             
@@ -2142,70 +3617,33 @@ class GeospatialApp {
         console.log('🏢 Adding Datacenter facilities layer...');
 
         try {
-            // Add source for datacenters
+            // Add source for datacenters (no clustering - show all squares)
             if (!this.map.getSource('datacenters')) {
                 this.map.addSource('datacenters', {
                     type: 'geojson',
                     data: {
                         type: 'FeatureCollection',
                         features: []
-                    },
-                    cluster: true,
-                    clusterMaxZoom: 14,
-                    clusterRadius: 50
+                    }
                 });
                 console.log('✅ Added datacenters source');
             }
 
-            // Add cluster circles layer
-            this.map.addLayer({
-                id: 'datacenter-clusters',
-                type: 'circle',
-                source: 'datacenters',
-                filter: ['has', 'point_count'],
-                paint: {
-                    'circle-color': '#00FF00', // Green for datacenters
-                    'circle-radius': [
-                        'step',
-                        ['get', 'point_count'],
-                        20,   // radius for clusters with 1-99 points
-                        100, 30,  // radius for clusters with 100-999 points
-                        750, 40   // radius for clusters with 1000+ points
-                    ],
-                    'circle-opacity': 0.7,
-                    'circle-stroke-width': 2,
-                    'circle-stroke-color': '#006600'
-                }
-            });
-
-            // Add cluster count labels
-            this.map.addLayer({
-                id: 'datacenter-cluster-count',
-                type: 'symbol',
-                source: 'datacenters',
-                filter: ['has', 'point_count'],
-                layout: {
-                    'text-field': '{point_count_abbreviated}',
-                    'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-                    'text-size': 12
-                },
-                paint: {
-                    'text-color': 'white'
-                }
-            });
-
-            // Add unclustered point layer (individual datacenters)
+            // Add datacenter points layer - square shape, visible at all zoom levels
             this.map.addLayer({
                 id: 'datacenter-points',
-                type: 'circle',
+                type: 'symbol',
                 source: 'datacenters',
-                filter: ['!', ['has', 'point_count']],
-                paint: {
-                    'circle-color': '#00FF00', // Green for datacenters
-                    'circle-radius': 8,
-                    'circle-opacity': 0.7,
-                    'circle-stroke-width': 2,
-                    'circle-stroke-color': '#006600'
+                layout: {
+                    'icon-image': 'square',
+                    'icon-size': [
+                        'interpolate', ['linear'], ['zoom'],
+                        4, 0.6,   // smaller at low zoom
+                        8, 0.9,   // normal at mid zoom
+                        12, 1.0   // full size at high zoom
+                    ],
+                    'icon-allow-overlap': true,
+                    'icon-ignore-placement': true
                 }
             });
 
@@ -2291,8 +3729,190 @@ class GeospatialApp {
         }
     }
 
-    toggleDatacenters(visible) {
-        const layers = ['datacenter-clusters', 'datacenter-cluster-count', 'datacenter-points'];
+    // ==== CCUS METHODS ====
+
+    async addCCUSLayer() {
+        console.log('🏭 Adding CCUS sites layer...');
+
+        try {
+            // Add empty GeoJSON source for CCUS sites
+            this.map.addSource('ccus-sites', {
+                type: 'geojson',
+                data: {
+                    type: 'FeatureCollection',
+                    features: []
+                }
+            });
+
+            // Add CCUS points layer - diamond shape with colors by storage classification
+            this.map.addLayer({
+                id: 'ccus-points',
+                type: 'symbol',
+                source: 'ccus-sites',
+                layout: {
+                    'icon-image': [
+                        'match',
+                        ['get', 'storage_classification'],
+                        'Dedicated Saline Storage', 'diamond-green',
+                        'Enhanced Oil Recovery', 'diamond-orange',
+                        'Utilization', 'diamond-purple',
+                        'Dedicated Saline Storage & Enhanced Oil Recovery', 'diamond-blue',
+                        'diamond-gray'  // Default for Other, Unavailable, etc.
+                    ],
+                    'icon-size': 1.0,
+                    'icon-allow-overlap': true,
+                    'icon-ignore-placement': true
+                }
+            });
+
+            console.log('✅ Successfully added CCUS layer');
+
+            // Load CCUS data
+            await this.loadCCUS();
+
+            // Set initial visibility
+            this.toggleCCUS(this.layerState.ccusSites);
+
+            // Add click handler for CCUS sites
+            this.map.on('click', 'ccus-points', (e) => {
+                this.showCCUSPopup(e);
+            });
+
+            // Add hover cursor
+            this.map.on('mouseenter', 'ccus-points', () => {
+                this.map.getCanvas().style.cursor = 'pointer';
+            });
+            this.map.on('mouseleave', 'ccus-points', () => {
+                this.map.getCanvas().style.cursor = '';
+            });
+
+        } catch (error) {
+            console.error('❌ Error adding CCUS layer:', error);
+        }
+    }
+
+    async loadCCUS() {
+        try {
+            console.log('📡 Loading CCUS sites data...');
+
+            const response = await fetch('/api/ccus-sites', {
+                headers: {
+                    'Cache-Control': 'no-cache',
+                    'Pragma': 'no-cache'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            console.log(`🏭 Loaded ${data.features?.length || 0} CCUS sites`);
+
+            // Update the map source
+            const source = this.map.getSource('ccus-sites');
+            if (source) {
+                source.setData(data);
+                console.log('✅ Updated CCUS source with data');
+            }
+
+            // Update UI count
+            const countEl = document.getElementById('ccus-count');
+            if (countEl) {
+                countEl.textContent = `${data.features?.length || 0} CCUS sites loaded`;
+            }
+
+            // Cache the data
+            this.dataCache.ccus = data;
+
+        } catch (error) {
+            console.error('❌ Error loading CCUS sites:', error);
+            const countEl = document.getElementById('ccus-count');
+            if (countEl) {
+                countEl.textContent = 'Error loading CCUS data';
+            }
+        }
+    }
+
+    // ==== OPTIMAL SITES METHODS ====
+
+    async addOptimalSitesLayer() {
+        console.log('🎯 Adding Optimal Sites layer...');
+
+        try {
+            // Add empty GeoJSON source for optimal sites
+            this.map.addSource('optimal-sites', {
+                type: 'geojson',
+                data: {
+                    type: 'FeatureCollection',
+                    features: []
+                }
+            });
+
+            // Add optimal sites markers layer
+            this.map.addLayer({
+                id: 'optimal-sites-points',
+                type: 'circle',
+                source: 'optimal-sites',
+                paint: {
+                    'circle-color': '#FFD700',  // Gold
+                    'circle-radius': [
+                        'interpolate', ['linear'], ['get', 'rank'],
+                        1, 20,
+                        10, 12,
+                        25, 8
+                    ],
+                    'circle-opacity': 0.9,
+                    'circle-stroke-width': 3,
+                    'circle-stroke-color': '#FF4500'  // Orange-red border
+                }
+            });
+
+            // Add rank labels
+            this.map.addLayer({
+                id: 'optimal-sites-labels',
+                type: 'symbol',
+                source: 'optimal-sites',
+                layout: {
+                    'text-field': ['concat', '#', ['get', 'rank']],
+                    'text-size': 12,
+                    'text-font': ['Open Sans Bold'],
+                    'text-allow-overlap': true
+                },
+                paint: {
+                    'text-color': '#000000',
+                    'text-halo-color': '#FFFFFF',
+                    'text-halo-width': 2
+                }
+            });
+
+            console.log('✅ Successfully added optimal sites layer');
+
+            // Set initial visibility (hidden by default)
+            this.toggleOptimalSites(false);
+
+            // Add click handler
+            this.map.on('click', 'optimal-sites-points', (e) => {
+                this.showOptimalSitePopup(e);
+            });
+
+            // Add hover cursor
+            this.map.on('mouseenter', 'optimal-sites-points', () => {
+                this.map.getCanvas().style.cursor = 'pointer';
+            });
+            this.map.on('mouseleave', 'optimal-sites-points', () => {
+                this.map.getCanvas().style.cursor = '';
+            });
+
+        } catch (error) {
+            console.error('❌ Error adding optimal sites layer:', error);
+        }
+    }
+
+    toggleOptimalSites(visible) {
+        this.layerState.optimalSites = visible;
+        const layers = ['optimal-sites-points', 'optimal-sites-labels'];
+        
         layers.forEach(layerId => {
             try {
                 if (this.map.getLayer(layerId)) {
@@ -2302,6 +3922,1258 @@ class GeospatialApp {
                 // Layer might not exist, ignore
             }
         });
+
+        if (visible) {
+            this.calculateOptimalSites();
+        } else {
+            // Clear the layer
+            const source = this.map.getSource('optimal-sites');
+            if (source) {
+                source.setData({ type: 'FeatureCollection', features: [] });
+            }
+            document.getElementById('optimal-sites-count').textContent = 'Check box to find optimal sites';
+        }
+
+        this.reorderLayers();
+    }
+
+    calculateOptimalSites() {
+        console.log('🎯 Calculating optimal sites...');
+        
+        const countEl = document.getElementById('optimal-sites-count');
+        countEl.textContent = 'Calculating...';
+
+        // Check which data sources to use
+        const useEthanol = document.getElementById('optimal-use-ethanol')?.checked ?? true;
+        const useEmitters = document.getElementById('optimal-use-emitters')?.checked ?? true;
+
+        if (!useEthanol && !useEmitters) {
+            countEl.textContent = 'Select at least one data source';
+            const source = this.map.getSource('optimal-sites');
+            if (source) source.setData({ type: 'FeatureCollection', features: [] });
+            return;
+        }
+
+        // Get hexagon mesh data for geothermal
+        const hexSource = this.map.getSource('hexagon-mesh');
+        if (!hexSource || !hexSource._data) {
+            countEl.textContent = 'No geothermal data available - enable hexagon mesh first';
+            return;
+        }
+
+        const topCount = parseInt(document.getElementById('optimal-count').value) || 10;
+        const scoredSites = [];
+        
+        // Process ethanol facilities (small dataset, process all)
+        if (useEthanol && this.dataCache.ethanol?.features) {
+            for (const facility of this.dataCache.ethanol.features) {
+                const props = facility.properties;
+                const coords = facility.geometry.coordinates;
+                const lng = coords[0];
+                const lat = coords[1];
+
+                const emissions = props.emissions_mt_co2e || 0;
+                // Skip facilities with no emissions for optimal site calculation
+                if (emissions <= 0) continue;
+                
+                const maxEmissions = 600000;
+                const emissionsScore = Math.min(100, (emissions / maxEmissions) * 100);
+
+                const geoData = this.getGeothermalAtLocation(lng, lat);
+                let geoScore = 0;
+                if (geoData && geoData.avg_temperature_f) {
+                    const temp = geoData.avg_temperature_f;
+                    geoScore = Math.min(100, Math.max(0, ((temp - 150) / 250) * 100));
+                }
+
+                const combinedScore = (emissionsScore * 0.5) + (geoScore * 0.5);
+
+                if (combinedScore > 0) {
+                    scoredSites.push({
+                        type: 'Feature',
+                        geometry: facility.geometry,
+                        properties: {
+                            facilityName: props.Company || props.Site || 'Unknown',
+                            siteName: props.Site || 'N/A',
+                            state: props.State || '',
+                            sourceType: 'ethanol',
+                            emissions: emissions,
+                            emissionsScore: Math.round(emissionsScore * 10) / 10,
+                            geoScore: Math.round(geoScore * 10) / 10,
+                            combinedScore: Math.round(combinedScore * 10) / 10,
+                            geoTemp: geoData?.avg_temperature_f || null,
+                            geoPointCount: geoData?.point_count || 0
+                        }
+                    });
+                }
+            }
+        }
+
+        // Process point source emitters - OPTIMIZED: only process top emitters by emissions
+        if (useEmitters && this.dataCache.emitters?.features) {
+            // Pre-filter and sort emitters by emissions to only process top 500
+            const emittersWithEmissions = this.dataCache.emitters.features
+                .filter(f => {
+                    const e = f.properties.total_emissions_2023;
+                    return e && e > 0;
+                })
+                .sort((a, b) => (b.properties.total_emissions_2023 || 0) - (a.properties.total_emissions_2023 || 0))
+                .slice(0, 500); // Only process top 500 emitters
+            
+            console.log(`🎯 Processing top ${emittersWithEmissions.length} emitters by emissions`);
+            
+            for (const facility of emittersWithEmissions) {
+                const props = facility.properties;
+                const coords = facility.geometry.coordinates;
+                const lng = coords[0];
+                const lat = coords[1];
+
+                const emissions = props.total_emissions_2023 || 0;
+                const maxEmissions = 20000000;
+                const emissionsScore = Math.min(100, (emissions / maxEmissions) * 100);
+
+                const geoData = this.getGeothermalAtLocation(lng, lat);
+                let geoScore = 0;
+                if (geoData && geoData.avg_temperature_f) {
+                    const temp = geoData.avg_temperature_f;
+                    geoScore = Math.min(100, Math.max(0, ((temp - 150) / 250) * 100));
+                }
+
+                const combinedScore = (emissionsScore * 0.5) + (geoScore * 0.5);
+
+                if (combinedScore > 0) {
+                    scoredSites.push({
+                        type: 'Feature',
+                        geometry: facility.geometry,
+                        properties: {
+                            facilityName: props.facility_name || 'Unknown',
+                            siteName: props.city || 'N/A',
+                            state: props.state || '',
+                            sourceType: 'emitter',
+                            industryType: props.industry_type_sectors || 'N/A',
+                            emissions: emissions,
+                            emissionsScore: Math.round(emissionsScore * 10) / 10,
+                            geoScore: Math.round(geoScore * 10) / 10,
+                            combinedScore: Math.round(combinedScore * 10) / 10,
+                            geoTemp: geoData?.avg_temperature_f || null,
+                            geoPointCount: geoData?.point_count || 0
+                        }
+                    });
+                }
+            }
+        }
+
+        // Sort by combined score and take top N
+        scoredSites.sort((a, b) => b.properties.combinedScore - a.properties.combinedScore);
+        const topSites = scoredSites.slice(0, topCount);
+
+        // Add rank
+        topSites.forEach((site, index) => {
+            site.properties.rank = index + 1;
+        });
+
+        // Update the map source
+        const source = this.map.getSource('optimal-sites');
+        if (source) {
+            source.setData({
+                type: 'FeatureCollection',
+                features: topSites
+            });
+        }
+
+        // Update status with source info
+        const sources = [];
+        if (useEthanol) sources.push('ethanol');
+        if (useEmitters) sources.push('emitters');
+        countEl.textContent = `Top ${topSites.length} sites (${sources.join(' + ')})`;
+        console.log(`🎯 Found ${topSites.length} optimal sites from ${sources.join(' + ')}`);
+
+        this.reorderLayers();
+    }
+
+    showOptimalSitePopup(e) {
+        const feature = e.features[0];
+        const props = feature.properties;
+
+        const formatEmissions = (val) => {
+            if (!val) return 'No data';
+            return Number(val).toLocaleString() + ' metric tons CO₂e';
+        };
+
+        const sourceIcon = props.sourceType === 'ethanol' ? '🌽' : '🏭';
+        const sourceLabel = props.sourceType === 'ethanol' ? 'Ethanol Facility' : 'Point Source Emitter';
+        const sourceColor = props.sourceType === 'ethanol' ? '#D4A017' : '#F44336';
+
+        const popupHTML = `
+            <div class="popup-content" style="max-width: 380px;">
+                <div class="popup-header" style="background: linear-gradient(135deg, #FFD700, #FF8C00); color: #333; padding: 10px; margin: -10px -10px 10px -10px; border-radius: 4px 4px 0 0;">
+                    <h3 style="margin: 0; font-size: 16px;">🎯 #${props.rank} Optimal Site</h3>
+                    <div style="font-size: 11px; margin-top: 4px;">${sourceIcon} ${sourceLabel}</div>
+                </div>
+                <div style="background: #FFF8E1; padding: 10px; border-radius: 4px; margin-bottom: 10px;">
+                    <div style="font-size: 24px; font-weight: bold; color: #FF6F00; text-align: center;">
+                        Score: ${props.combinedScore}/100
+                    </div>
+                    <div style="display: flex; justify-content: space-around; margin-top: 8px; font-size: 12px;">
+                        <div style="text-align: center;">
+                            <div style="color: #666;">Emissions</div>
+                            <div style="font-weight: bold; color: #C62828;">${props.emissionsScore}/100</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="color: #666;">Geothermal</div>
+                            <div style="font-weight: bold; color: #E65100;">${props.geoScore}/100</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="popup-row" style="margin-bottom: 6px;">
+                    <span style="font-weight: bold; color: #666;">Facility:</span>
+                    <span style="color: #333;">${props.facilityName || 'Unknown'}</span>
+                </div>
+                <div class="popup-row" style="margin-bottom: 6px;">
+                    <span style="font-weight: bold; color: #666;">Location:</span>
+                    <span style="color: #333;">${props.siteName || 'N/A'}, ${props.state || ''}</span>
+                </div>
+                ${props.industryType ? `
+                <div class="popup-row" style="margin-bottom: 6px;">
+                    <span style="font-weight: bold; color: #666;">Industry:</span>
+                    <span style="color: #333;">${props.industryType}</span>
+                </div>
+                ` : ''}
+                <div class="popup-row" style="margin-bottom: 6px;">
+                    <span style="font-weight: bold; color: #666;">Emissions:</span>
+                    <span style="color: #C62828; font-weight: bold;">${formatEmissions(props.emissions)}</span>
+                </div>
+                <div class="popup-row" style="margin-bottom: 6px;">
+                    <span style="font-weight: bold; color: #666;">Geothermal Temp:</span>
+                    <span style="color: #E65100; font-weight: bold;">${props.geoTemp ? this.fToC(props.geoTemp) + '°C' : 'No data'}</span>
+                </div>
+                <div class="popup-row" style="margin-bottom: 6px;">
+                    <span style="font-weight: bold; color: #666;">Geo Data Points:</span>
+                    <span style="color: #333;">${props.geoPointCount || 0}</span>
+                </div>
+            </div>
+        `;
+
+        if (this.activePopup) {
+            this.activePopup.remove();
+        }
+
+        this.activePopup = new maplibregl.Popup({
+            closeButton: true,
+            closeOnClick: false,
+            maxWidth: '420px'
+        })
+            .setLngLat(e.lngLat)
+            .setHTML(popupHTML)
+            .addTo(this.map);
+    }
+
+    // ==== ETHANOL METHODS ====
+
+    async addEthanolLayer() {
+        console.log('🌽 Adding Ethanol Plants layer...');
+
+        try {
+            // Add empty GeoJSON source for ethanol plants
+            this.map.addSource('ethanol-plants', {
+                type: 'geojson',
+                data: {
+                    type: 'FeatureCollection',
+                    features: []
+                }
+            });
+
+            // Add ethanol points layer - using circles with corn/wheat color
+            this.map.addLayer({
+                id: 'ethanol-points',
+                type: 'circle',
+                source: 'ethanol-plants',
+                paint: {
+                    'circle-color': [
+                        'case',
+                        ['==', ['get', 'emissions_mt_co2e'], null], '#666666',  // Gray if no emissions
+                        ['!', ['has', 'emissions_mt_co2e']], '#666666',          // Gray if no emissions
+                        '#D4A017'  // Golden/wheat color if has emissions data
+                    ],
+                    'circle-radius': [
+                        'case',
+                        ['==', ['get', 'emissions_mt_co2e'], null], 6,
+                        ['!', ['has', 'emissions_mt_co2e']], 6,
+                        ['interpolate', ['linear'], ['get', 'emissions_mt_co2e'],
+                            0, 6,
+                            100000, 9,
+                            300000, 13,
+                            500000, 18
+                        ]
+                    ],
+                    'circle-opacity': 0.9,
+                    'circle-stroke-width': 2,
+                    'circle-stroke-color': '#FFFFFF'
+                }
+            });
+
+            // Add ethanol icon/text layer on top
+            this.map.addLayer({
+                id: 'ethanol-icons',
+                type: 'symbol',
+                source: 'ethanol-plants',
+                layout: {
+                    'text-field': '🌽',
+                    'text-size': [
+                        'case',
+                        ['==', ['get', 'emissions_mt_co2e'], null], 12,
+                        ['!', ['has', 'emissions_mt_co2e']], 12,
+                        ['interpolate', ['linear'], ['get', 'emissions_mt_co2e'],
+                            0, 12,
+                            100000, 16,
+                            300000, 22,
+                            500000, 28
+                        ]
+                    ],
+                    'text-allow-overlap': true,
+                    'text-ignore-placement': true
+                }
+            });
+
+            console.log('✅ Successfully added ethanol layer');
+
+            // Load ethanol data
+            await this.loadEthanol();
+
+            // Set initial visibility (hidden by default)
+            this.toggleEthanol(this.layerState.ethanolPlants);
+
+            // Add click handler for ethanol
+            this.map.on('click', 'ethanol-points', (e) => {
+                this.showEthanolPopup(e);
+            });
+
+            // Add hover cursor
+            this.map.on('mouseenter', 'ethanol-points', () => {
+                this.map.getCanvas().style.cursor = 'pointer';
+            });
+            this.map.on('mouseleave', 'ethanol-points', () => {
+                this.map.getCanvas().style.cursor = '';
+            });
+
+        } catch (error) {
+            console.error('❌ Error adding ethanol layer:', error);
+        }
+    }
+
+    async loadEthanol() {
+        try {
+            console.log('📡 Loading ethanol plants data...');
+
+            const response = await fetch('/api/ethanol-plants', {
+                headers: {
+                    'Cache-Control': 'no-cache',
+                    'Pragma': 'no-cache'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            console.log(`🌽 Loaded ${data.features?.length || 0} ethanol plants`);
+
+            // Update the map source
+            const source = this.map.getSource('ethanol-plants');
+            if (source) {
+                source.setData(data);
+                console.log('✅ Updated ethanol source with data');
+            }
+
+            // Update UI count
+            const countEl = document.getElementById('ethanol-count');
+            if (countEl) {
+                const withEmissions = data.features?.filter(f => f.properties.emissions_mt_co2e).length || 0;
+                countEl.textContent = `${data.features?.length || 0} plants (${withEmissions} with emissions data)`;
+            }
+
+            // Cache the data
+            this.dataCache.ethanol = data;
+
+        } catch (error) {
+            console.error('❌ Error loading ethanol:', error);
+            const countEl = document.getElementById('ethanol-count');
+            if (countEl) {
+                countEl.textContent = 'Error loading ethanol data';
+            }
+        }
+    }
+
+    toggleEthanol(visible) {
+        const layers = ['ethanol-points', 'ethanol-icons'];
+        layers.forEach(layerId => {
+            try {
+                if (this.map.getLayer(layerId)) {
+                    this.map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
+                }
+            } catch (error) {
+                // Layer might not exist, ignore
+            }
+        });
+        // Ensure proper layer ordering
+        this.reorderLayers();
+    }
+
+    showEthanolPopup(e) {
+        const feature = e.features[0];
+        const props = feature.properties;
+
+        // Format emissions
+        const formatEmissions = (val) => {
+            if (!val) return 'No data';
+            return Number(val).toLocaleString() + ' metric tons CO₂e';
+        };
+
+        // Format capacity
+        const formatCapacity = (val) => {
+            if (!val) return 'N/A';
+            return Number(val).toLocaleString() + ' MMgal/yr';
+        };
+
+        const popupHTML = `
+            <div class="popup-content" style="max-width: 350px;">
+                <div class="popup-header" style="background: #4CAF50; color: white; padding: 10px; margin: -10px -10px 10px -10px; border-radius: 4px 4px 0 0;">
+                    <h3 style="margin: 0; font-size: 14px;">${props.Company || 'Unknown Company'}</h3>
+                </div>
+                <div class="popup-row" style="margin-bottom: 6px;">
+                    <span style="font-weight: bold; color: #666;">Site:</span>
+                    <span style="color: #333;">${props.Site || 'N/A'}</span>
+                </div>
+                <div class="popup-row" style="margin-bottom: 6px;">
+                    <span style="font-weight: bold; color: #666;">State:</span>
+                    <span style="color: #333;">${props.State || 'N/A'}</span>
+                </div>
+                <div class="popup-row" style="margin-bottom: 6px;">
+                    <span style="font-weight: bold; color: #666;">Capacity:</span>
+                    <span style="color: #333;">${formatCapacity(props.Cap_Mmgal)}</span>
+                </div>
+                <div class="popup-row" style="margin-bottom: 6px;">
+                    <span style="font-weight: bold; color: #666;">PADD Region:</span>
+                    <span style="color: #333;">${props.PADD || 'N/A'}</span>
+                </div>
+                ${props.emissions_mt_co2e ? `
+                <div class="popup-row" style="margin-bottom: 6px; background: #E8F5E9; padding: 8px; border-radius: 4px;">
+                    <span style="font-weight: bold; color: #2E7D32;">EPA Emissions:</span>
+                    <span style="color: #2E7D32; font-weight: bold;">${formatEmissions(props.emissions_mt_co2e)}</span>
+                </div>
+                ` : `
+                <div class="popup-row" style="margin-bottom: 6px; background: #FFF3E0; padding: 8px; border-radius: 4px;">
+                    <span style="color: #E65100;">No emissions data available</span>
+                </div>
+                `}
+                <div class="popup-row" style="margin-top: 8px; font-size: 11px; color: #666;">
+                    <span>Source: ${props.Source || 'EIA'}</span>
+                </div>
+                ${this.getGeothermalInfoHTML(e.lngLat.lng, e.lngLat.lat)}
+            </div>
+        `;
+
+        // Close existing popup
+        if (this.activePopup) {
+            this.activePopup.remove();
+        }
+
+        this.activePopup = new maplibregl.Popup({
+            closeButton: true,
+            closeOnClick: false,
+            maxWidth: '400px'
+        })
+            .setLngLat(e.lngLat)
+            .setHTML(popupHTML)
+            .addTo(this.map);
+    }
+
+    // ==== GEOLOGY METHODS ====
+
+    async addGeologyLayer() {
+        console.log('🪨 Adding Geology layer...');
+
+        try {
+            // Add empty GeoJSON source for geology
+            this.map.addSource('geology', {
+                type: 'geojson',
+                data: {
+                    type: 'FeatureCollection',
+                    features: []
+                }
+            });
+
+            // Add geology layer as circles (point data for performance)
+            // Color by depth to basement: shallow = green (favorable for HDR), deep = red
+            this.map.addLayer({
+                id: 'geology-fill',
+                type: 'circle',
+                source: 'geology',
+                paint: {
+                    'circle-color': [
+                        'interpolate',
+                        ['linear'],
+                        ['get', 'dt'],  // depth to basement in meters
+                        0, '#1B5E20',      // Deep green - basement at surface
+                        1000, '#4CAF50',   // Green - very shallow (<1km)
+                        2000, '#8BC34A',   // Light green - shallow (favorable)
+                        3000, '#FFEB3B',   // Yellow - moderate (~3km)
+                        5000, '#FF9800',   // Orange - getting deep
+                        8000, '#FF5722',   // Deep orange - deep
+                        12000, '#B71C1C'   // Dark red - very deep (unfavorable)
+                    ],
+                    'circle-radius': [
+                        'interpolate', ['linear'], ['zoom'],
+                        4, 4,    // Small at low zoom
+                        6, 8,    // Medium at mid zoom
+                        8, 12    // Larger at high zoom
+                    ],
+                    'circle-opacity': 0.7,
+                    'circle-stroke-width': 0.5,
+                    'circle-stroke-color': '#333',
+                    'circle-stroke-opacity': 0.3
+                }
+            });
+
+            console.log('✅ Successfully added geology layer');
+
+            // Load geology data
+            await this.loadGeology();
+
+            // Apply initial filter (exclude mountains by default)
+            this.updateGeologyFilter();
+
+            // Set initial visibility (hidden by default)
+            this.toggleGeology(this.layerState.geology);
+
+            // Add click handler for geology
+            this.map.on('click', 'geology-fill', (e) => {
+                this.showGeologyPopup(e);
+            });
+
+            // Add hover cursor
+            this.map.on('mouseenter', 'geology-fill', () => {
+                this.map.getCanvas().style.cursor = 'pointer';
+            });
+            this.map.on('mouseleave', 'geology-fill', () => {
+                this.map.getCanvas().style.cursor = '';
+            });
+
+        } catch (error) {
+            console.error('❌ Error adding geology layer:', error);
+        }
+    }
+
+    async loadGeology() {
+        try {
+            console.log('📡 Loading geology data...');
+
+            const response = await fetch('/api/geology', {
+                headers: {
+                    'Cache-Control': 'no-cache',
+                    'Pragma': 'no-cache'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            console.log(`🪨 Loaded ${data.features?.length || 0} geology cells`);
+
+            // Update the map source
+            const source = this.map.getSource('geology');
+            if (source) {
+                source.setData(data);
+                console.log('✅ Updated geology source with data');
+            }
+
+            // Update UI count
+            const countEl = document.getElementById('geology-count');
+            if (countEl) {
+                const favorable = data.features?.filter(f => f.properties.q === 'F').length || 0;
+                countEl.textContent = `${data.features?.length || 0} cells (${favorable} favorable)`;
+            }
+
+            // Cache the data
+            this.dataCache.geology = data;
+
+        } catch (error) {
+            console.error('❌ Error loading geology:', error);
+            const countEl = document.getElementById('geology-count');
+            if (countEl) {
+                countEl.textContent = 'Error loading geology data';
+            }
+        }
+    }
+
+    toggleGeology(visible) {
+        const layers = ['geology-fill'];
+        layers.forEach(layerId => {
+            try {
+                if (this.map.getLayer(layerId)) {
+                    this.map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
+                }
+            } catch (error) {
+                // Layer might not exist, ignore
+            }
+        });
+        this.layerState.geology = visible;
+    }
+
+    updateGeologyOpacity(opacity) {
+        try {
+            if (this.map.getLayer('geology-fill')) {
+                this.map.setPaintProperty('geology-fill', 'circle-opacity', opacity);
+            }
+        } catch (error) {
+            console.error('Error updating geology opacity:', error);
+        }
+    }
+
+    updateGeologyFilter() {
+        try {
+            const minDepth = parseInt(document.getElementById('geology-min-depth').value) || 0;
+            const overlapOnly = document.getElementById('geology-co2egs-overlap')?.checked || false;
+            
+            if (this.map.getLayer('geology-fill')) {
+                // If overlap filter is active, we filter via data (not map filter)
+                // So only apply minDepth filter here
+                if (minDepth > 0) {
+                    this.map.setFilter('geology-fill', ['>=', ['get', 'dt'], minDepth]);
+                } else {
+                    this.map.setFilter('geology-fill', null);
+                }
+                console.log(`🪨 Geology filter: minDepth=${minDepth}m`);
+            }
+        } catch (error) {
+            console.error('Error updating geology filter:', error);
+        }
+    }
+
+    async filterGeologyByCO2EGSOverlap(enableOverlap) {
+        console.log(`🪨 Filtering geology by CO₂-EGS overlap: ${enableOverlap}`);
+        
+        try {
+            const source = this.map.getSource('geology');
+            if (!source) {
+                console.error('Geology source not found');
+                return;
+            }
+
+            const countEl = document.getElementById('geology-count');
+
+            if (!enableOverlap) {
+                // Restore full geology data
+                if (this.dataCache.geologyFull) {
+                    source.setData(this.dataCache.geologyFull);
+                    if (countEl) {
+                        const favorable = this.dataCache.geologyFull.features?.filter(f => f.properties.q === 'F').length || 0;
+                        countEl.textContent = `${this.dataCache.geologyFull.features?.length || 0} cells (${favorable} favorable)`;
+                    }
+                }
+                return;
+            }
+
+            // Get CO₂-EGS data (5km depth, 150°C+ threshold)
+            const co2egsData = this.dataCache['compare-co2egs'];
+            if (!co2egsData || !co2egsData.features || co2egsData.features.length === 0) {
+                console.warn('CO₂-EGS data not loaded yet. Please enable the CO₂-EGS layer first.');
+                alert('Please enable the "CO₂-EGS (5km, 150°C+)" layer in the Comparison section first to load the data.');
+                document.getElementById('geology-co2egs-overlap').checked = false;
+                return;
+            }
+
+            // Get full geology data
+            const geologyData = this.dataCache.geologyFull || this.dataCache.geology;
+            if (!geologyData || !geologyData.features) {
+                console.error('Geology data not loaded');
+                return;
+            }
+
+            // Store full data for restoration
+            if (!this.dataCache.geologyFull) {
+                this.dataCache.geologyFull = JSON.parse(JSON.stringify(geologyData));
+            }
+
+            // Show loading state
+            if (countEl) {
+                countEl.textContent = 'Filtering... please wait';
+            }
+
+            // Use setTimeout to allow UI to update before heavy computation
+            await new Promise(resolve => setTimeout(resolve, 50));
+
+            console.log(`🪨 Filtering ${geologyData.features.length} geology points against ${co2egsData.features.length} CO₂-EGS hexagons...`);
+
+            // Build a Set of grid cells that contain viable CO₂-EGS hexagons
+            // Using a coarser grid (1 degree) for faster lookup with bounding box only
+            const GRID_SIZE = 1.0;
+            const co2egsGridSet = new Set();
+            const CO2_EGS_MIN_F = 302; // 150°C threshold
+            
+            for (const hex of co2egsData.features) {
+                const temp = hex.properties?.avg_temperature_f;
+                if (!temp || temp < CO2_EGS_MIN_F) continue;
+                
+                const coords = hex.geometry?.coordinates?.[0];
+                if (!coords) continue;
+                
+                // Get bounding box and add all grid cells it touches
+                let minLon = Infinity, maxLon = -Infinity, minLat = Infinity, maxLat = -Infinity;
+                for (const pt of coords) {
+                    minLon = Math.min(minLon, pt[0]);
+                    maxLon = Math.max(maxLon, pt[0]);
+                    minLat = Math.min(minLat, pt[1]);
+                    maxLat = Math.max(maxLat, pt[1]);
+                }
+                
+                // Add all grid cells this hexagon touches
+                for (let lon = Math.floor(minLon / GRID_SIZE); lon <= Math.floor(maxLon / GRID_SIZE); lon++) {
+                    for (let lat = Math.floor(minLat / GRID_SIZE); lat <= Math.floor(maxLat / GRID_SIZE); lat++) {
+                        co2egsGridSet.add(`${lon},${lat}`);
+                    }
+                }
+            }
+
+            console.log(`🪨 Built spatial index with ${co2egsGridSet.size} grid cells containing CO₂-EGS areas`);
+
+            // Fast filter: only keep geology points in grid cells that have CO₂-EGS coverage
+            const filteredFeatures = [];
+            
+            for (const feature of geologyData.features) {
+                const [lon, lat] = feature.geometry.coordinates;
+                const gridKey = `${Math.floor(lon / GRID_SIZE)},${Math.floor(lat / GRID_SIZE)}`;
+                
+                if (co2egsGridSet.has(gridKey)) {
+                    filteredFeatures.push(feature);
+                }
+            }
+
+            console.log(`🪨 Filtered to ${filteredFeatures.length} geology points within CO₂-EGS grid cells`);
+
+            // Update the source with filtered data
+            const filteredData = {
+                type: 'FeatureCollection',
+                features: filteredFeatures
+            };
+            source.setData(filteredData);
+
+            // Update count
+            if (countEl) {
+                const favorable = filteredFeatures.filter(f => f.properties.q === 'F').length;
+                countEl.textContent = `${filteredFeatures.length} cells in CO₂-EGS zones (${favorable} favorable)`;
+            }
+
+        } catch (error) {
+            console.error('Error filtering geology by CO₂-EGS overlap:', error);
+        }
+    }
+
+    showGeologyPopup(e) {
+        const feature = e.features[0];
+        const props = feature.properties;
+
+        // Format values
+        const formatMeters = (val) => {
+            if (val === null || val === undefined) return 'N/A';
+            return Number(val).toLocaleString() + ' m';
+        };
+
+        // Decode qualitative label from abbreviated form
+        const qualMap = { 'F': 'Favorable', 'M': 'Moderate', 'U': 'Unfavorable' };
+        const qualitative = qualMap[props.q] || 'Unknown';
+
+        // Determine qualitative color
+        const qualColors = {
+            'Favorable': '#4CAF50',
+            'Moderate': '#FF9800',
+            'Unfavorable': '#F44336'
+        };
+        const qualColor = qualColors[qualitative] || '#666';
+
+        const popupHTML = `
+            <div class="popup-content" style="max-width: 350px;">
+                <div class="popup-header" style="background: #795548; color: white; padding: 10px; margin: -10px -10px 10px -10px; border-radius: 4px 4px 0 0;">
+                    <h3 style="margin: 0; font-size: 14px;">🪨 Hot Dry Rock Access</h3>
+                </div>
+                <div class="popup-row" style="margin-bottom: 8px; padding: 8px; background: ${qualColor}22; border-left: 4px solid ${qualColor}; border-radius: 4px;">
+                    <span style="font-weight: bold; color: ${qualColor};">${qualitative}</span>
+                    <span style="color: #666; font-size: 11px;"> for HDR/EGS drilling</span>
+                </div>
+                <div class="popup-row" style="margin-bottom: 6px;">
+                    <span style="font-weight: bold; color: #666;">Depth to Basement (HDR):</span>
+                    <span style="color: #333;">${formatMeters(props.dt)}</span>
+                </div>
+                <div class="popup-row" style="margin-bottom: 6px;">
+                    <span style="font-weight: bold; color: #666;">Overburden Thickness:</span>
+                    <span style="color: #333;">${formatMeters(props.st)}</span>
+                </div>
+                <div class="popup-row" style="margin-top: 8px; font-size: 11px; color: #666;">
+                    <span>Source: USGS 3-Layer Geologic Model</span>
+                </div>
+            </div>
+        `;
+
+        // Close existing popup
+        if (this.activePopup) {
+            this.activePopup.remove();
+        }
+
+        this.activePopup = new maplibregl.Popup({
+            closeButton: true,
+            closeOnClick: false,
+            maxWidth: '400px'
+        })
+            .setLngLat(e.lngLat)
+            .setHTML(popupHTML)
+            .addTo(this.map);
+    }
+
+    // ==== EMITTERS METHODS ====
+
+    async addEmittersLayer() {
+        console.log('🏭 Adding Point Source Emitters layer...');
+
+        try {
+            // Add empty GeoJSON source for emitters
+            this.map.addSource('emitters', {
+                type: 'geojson',
+                data: {
+                    type: 'FeatureCollection',
+                    features: []
+                }
+            });
+
+            // Add emitters points layer with colors by industry type
+            // Circle size scales with emissions, gray with X for no data
+            this.map.addLayer({
+                id: 'emitter-points',
+                type: 'circle',
+                source: 'emitters',
+                paint: {
+                    'circle-color': [
+                        'case',
+                        // Gray for no emissions data
+                        ['==', ['get', 'total_emissions_2023'], null], '#888888',
+                        ['==', ['get', 'total_emissions_2023'], 0], '#888888',
+                        // Colors by industry type
+                        ['==', ['get', 'industry_type_sectors'], 'Power Plants'], '#F44336',
+                        ['all', ['has', 'industry_type_sectors'], ['in', 'Petroleum', ['get', 'industry_type_sectors']]], '#FF9800',
+                        ['all', ['has', 'industry_type_sectors'], ['in', 'Natural Gas', ['get', 'industry_type_sectors']]], '#FF9800',
+                        ['==', ['get', 'industry_type_sectors'], 'Waste'], '#795548',
+                        ['all', ['has', 'industry_type_sectors'], ['in', 'Waste', ['get', 'industry_type_sectors']]], '#795548',
+                        ['==', ['get', 'industry_type_sectors'], 'Chemicals'], '#9C27B0',
+                        ['all', ['has', 'industry_type_sectors'], ['in', 'Chemicals', ['get', 'industry_type_sectors']]], '#9C27B0',
+                        ['==', ['get', 'industry_type_sectors'], 'Minerals'], '#607D8B',
+                        ['==', ['get', 'industry_type_sectors'], 'Metals'], '#455A64',
+                        '#9E9E9E'  // Default gray for Other
+                    ],
+                    'circle-radius': [
+                        'interpolate', ['linear'], 
+                        ['coalesce', ['to-number', ['get', 'total_emissions_2023']], 0],
+                        0, 5,
+                        50000, 7,
+                        100000, 9,
+                        500000, 12,
+                        1000000, 15,
+                        5000000, 20,
+                        16000000, 28
+                    ],
+                    'circle-opacity': [
+                        'case',
+                        ['==', ['get', 'total_emissions_2023'], null], 0.5,
+                        ['==', ['get', 'total_emissions_2023'], 0], 0.5,
+                        0.8
+                    ],
+                    'circle-stroke-width': 2,
+                    'circle-stroke-color': '#FFFFFF'
+                }
+            });
+
+            // Add X symbol for emitters without emissions data
+            this.map.addLayer({
+                id: 'emitter-no-data',
+                type: 'symbol',
+                source: 'emitters',
+                filter: ['any', 
+                    ['==', ['get', 'total_emissions_2023'], null],
+                    ['==', ['get', 'total_emissions_2023'], 0]
+                ],
+                layout: {
+                    'text-field': '✕',
+                    'text-size': 10,
+                    'text-allow-overlap': true
+                },
+                paint: {
+                    'text-color': '#FFFFFF',
+                    'text-opacity': 0.8
+                }
+            });
+
+            console.log('✅ Successfully added emitters layer');
+
+            // Load emitters data
+            await this.loadEmitters();
+
+            // Set initial visibility
+            this.toggleEmitters(this.layerState.emitters);
+
+            // Add click handler for emitters
+            this.map.on('click', 'emitter-points', (e) => {
+                this.showEmitterPopup(e);
+            });
+
+            // Add hover cursor
+            this.map.on('mouseenter', 'emitter-points', () => {
+                this.map.getCanvas().style.cursor = 'pointer';
+            });
+            this.map.on('mouseleave', 'emitter-points', () => {
+                this.map.getCanvas().style.cursor = '';
+            });
+
+        } catch (error) {
+            console.error('❌ Error adding emitters layer:', error);
+        }
+    }
+
+    async loadEmitters() {
+        try {
+            console.log('📡 Loading point source emitters data...');
+
+            const response = await fetch('/api/emitters', {
+                headers: {
+                    'Cache-Control': 'no-cache',
+                    'Pragma': 'no-cache'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            console.log(`🏭 Loaded ${data.features?.length || 0} point source emitters`);
+
+            // Update the map source
+            const source = this.map.getSource('emitters');
+            if (source) {
+                source.setData(data);
+                console.log('✅ Updated emitters source with data');
+            }
+
+            // Update UI count
+            const countEl = document.getElementById('emitters-count');
+            if (countEl) {
+                countEl.textContent = `${data.features?.length || 0} emitters loaded`;
+            }
+
+            // Update slider max based on actual data
+            if (data.metadata?.max_emissions) {
+                const slider = document.getElementById('emissions-slider');
+                if (slider) {
+                    slider.max = Math.ceil(data.metadata.max_emissions);
+                }
+            }
+
+            // Cache the data
+            this.dataCache.emitters = data;
+
+        } catch (error) {
+            console.error('❌ Error loading emitters:', error);
+            const countEl = document.getElementById('emitters-count');
+            if (countEl) {
+                countEl.textContent = 'Error loading emitters data';
+            }
+        }
+    }
+
+    toggleEmitters(visible) {
+        const layers = ['emitter-points', 'emitter-no-data'];
+        layers.forEach(layerId => {
+            try {
+                if (this.map.getLayer(layerId)) {
+                    this.map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
+                }
+            } catch (error) {
+                // Layer might not exist, ignore
+            }
+        });
+        this.reorderLayers();
+    }
+
+    updateEmittersFilter() {
+        if (!this.map.getLayer('emitter-points')) return;
+        if (!this.dataCache.emitters) return;
+
+        // Filter the cached data and update the source directly (faster than complex map filters)
+        const allFeatures = this.dataCache.emitters.features || [];
+        
+        const filteredFeatures = allFeatures.filter(f => {
+            const props = f.properties;
+            const emissions = props.total_emissions_2023 || 0;
+            const sector = props.industry_type_sectors || '';
+            
+            // Check emissions threshold
+            if (emissions < this.layerState.emitterMinEmissions) return false;
+            
+            // Check category
+            if (sector === 'Power Plants' || sector.includes('Power Plants')) {
+                return this.layerState.emitterPowerPlants;
+            }
+            if (sector === 'Petroleum and Natural Gas Systems' || sector.includes('Petroleum') || sector.includes('Natural Gas')) {
+                return this.layerState.emitterPetroleum;
+            }
+            if (sector === 'Waste' || sector.includes('Waste')) {
+                return this.layerState.emitterWaste;
+            }
+            if (sector === 'Chemicals' || sector.includes('Chemicals')) {
+                return this.layerState.emitterChemicals;
+            }
+            if (sector === 'Minerals' || sector.includes('Minerals')) {
+                return this.layerState.emitterMinerals;
+            }
+            if (sector === 'Metals' || sector.includes('Metals')) {
+                return this.layerState.emitterMetals;
+            }
+            // Other category
+            return this.layerState.emitterOther;
+        });
+
+        // Update the source with filtered data
+        const source = this.map.getSource('emitters');
+        if (source) {
+            source.setData({
+                type: 'FeatureCollection',
+                features: filteredFeatures
+            });
+        }
+
+        // Update count
+        const countEl = document.getElementById('emitters-count');
+        if (countEl) {
+            countEl.textContent = `${filteredFeatures.length} of ${allFeatures.length} emitters shown`;
+        }
+
+        console.log(`🏭 Emitters filter updated: showing ${filteredFeatures.length} of ${allFeatures.length}`);
+    }
+
+    showEmitterPopup(e) {
+        const feature = e.features[0];
+        const props = feature.properties;
+
+        // Format emissions with commas
+        const formatEmissions = (val) => {
+            if (!val) return 'N/A';
+            return Number(val).toLocaleString() + ' metric tons CO₂e';
+        };
+
+        const popupHTML = `
+            <div class="popup-content" style="max-width: 350px;">
+                <div class="popup-header" style="background: #F44336; color: white; padding: 10px; margin: -10px -10px 10px -10px; border-radius: 4px 4px 0 0;">
+                    <h3 style="margin: 0; font-size: 14px;">${props.facility_name || 'Unknown Facility'}</h3>
+                </div>
+                <div class="popup-row" style="margin-bottom: 6px;">
+                    <span style="font-weight: bold; color: #666;">Address:</span>
+                    <span style="color: #333;">${props.address || 'N/A'}</span>
+                </div>
+                <div class="popup-row" style="margin-bottom: 6px;">
+                    <span style="font-weight: bold; color: #666;">City:</span>
+                    <span style="color: #333;">${props.city || 'N/A'}, ${props.state || ''} ${props.zip_code || ''}</span>
+                </div>
+                <div class="popup-row" style="margin-bottom: 6px;">
+                    <span style="font-weight: bold; color: #666;">County:</span>
+                    <span style="color: #333;">${props.county || 'N/A'}</span>
+                </div>
+                <div class="popup-row" style="margin-bottom: 6px;">
+                    <span style="font-weight: bold; color: #666;">Industry Type:</span>
+                    <span style="color: #333;">${props.industry_type_sectors || 'N/A'}</span>
+                </div>
+                <div class="popup-row" style="margin-bottom: 6px;">
+                    <span style="font-weight: bold; color: #666;">Subparts:</span>
+                    <span style="color: #333;">${props.industry_type_subparts || 'N/A'}</span>
+                </div>
+                <div class="popup-row" style="margin-bottom: 6px;">
+                    <span style="font-weight: bold; color: #666;">NAICS Code:</span>
+                    <span style="color: #333;">${props.primary_naics_code || 'N/A'}</span>
+                </div>
+                <div class="popup-row" style="margin-bottom: 6px; background: #FFEBEE; padding: 8px; border-radius: 4px;">
+                    <span style="font-weight: bold; color: #C62828;">2023 Emissions:</span>
+                    <span style="color: #C62828; font-weight: bold;">${formatEmissions(props.total_emissions_2023)}</span>
+                </div>
+                <div class="popup-row" style="margin-top: 8px; font-size: 11px; color: #666;">
+                    <span>Facility ID: ${props.facility_id || 'N/A'} | FRS ID: ${props.frs_id || 'N/A'}</span>
+                </div>
+                ${this.getGeothermalInfoHTML(e.lngLat.lng, e.lngLat.lat)}
+            </div>
+        `;
+
+        // Close existing popup
+        if (this.activePopup) {
+            this.activePopup.remove();
+        }
+
+        this.activePopup = new maplibregl.Popup({
+            closeButton: true,
+            closeOnClick: false,
+            maxWidth: '400px'
+        })
+            .setLngLat(e.lngLat)
+            .setHTML(popupHTML)
+            .addTo(this.map);
+    }
+
+    showCCUSPopup(e) {
+        const feature = e.features[0];
+        const props = feature.properties;
+
+        // Format capacity with commas
+        const formatCapacity = (val) => {
+            if (!val) return 'N/A';
+            return Number(val).toLocaleString() + ' metric tons/year';
+        };
+
+        const popupHTML = `
+            <div class="popup-content" style="max-width: 350px;">
+                <div class="popup-header" style="background: #9C27B0; color: white; padding: 10px; margin: -10px -10px 10px -10px; border-radius: 4px 4px 0 0;">
+                    <h3 style="margin: 0; font-size: 14px;">${props.project_name || 'Unknown Project'}</h3>
+                </div>
+                <div class="popup-row" style="margin-bottom: 6px;">
+                    <span style="font-weight: bold; color: #666;">Entities:</span>
+                    <span style="color: #333;">${props.entities || 'N/A'}</span>
+                </div>
+                <div class="popup-row" style="margin-bottom: 6px;">
+                    <span style="font-weight: bold; color: #666;">Location:</span>
+                    <span style="color: #333;">${props.location || 'N/A'}, ${props.state || ''}</span>
+                </div>
+                <div class="popup-row" style="margin-bottom: 6px;">
+                    <span style="font-weight: bold; color: #666;">Status:</span>
+                    <span style="color: #333; font-weight: bold;">${props.status || 'N/A'}</span>
+                </div>
+                <div class="popup-row" style="margin-bottom: 6px;">
+                    <span style="font-weight: bold; color: #666;">Sector:</span>
+                    <span style="color: #333;">${props.sector_description || props.sector_classification || 'N/A'}</span>
+                </div>
+                <div class="popup-row" style="margin-bottom: 6px;">
+                    <span style="font-weight: bold; color: #666;">Subsector:</span>
+                    <span style="color: #333;">${props.subsector_description || props.subsector_classification || 'N/A'}</span>
+                </div>
+                <div class="popup-row" style="margin-bottom: 6px;">
+                    <span style="font-weight: bold; color: #666;">Capacity:</span>
+                    <span style="color: #333;">${formatCapacity(props.capacity)}</span>
+                </div>
+                <div class="popup-row" style="margin-bottom: 6px;">
+                    <span style="font-weight: bold; color: #666;">Storage Type:</span>
+                    <span style="color: #333;">${props.storage_description || props.storage_classification || 'N/A'}</span>
+                </div>
+                <div class="popup-row" style="margin-bottom: 6px;">
+                    <span style="font-weight: bold; color: #666;">Year Announced:</span>
+                    <span style="color: #333;">${props.year_announced || 'N/A'}</span>
+                </div>
+                <div class="popup-row" style="margin-bottom: 6px;">
+                    <span style="font-weight: bold; color: #666;">Year Operational:</span>
+                    <span style="color: #333;">${props.year_operational || 'N/A'}</span>
+                </div>
+                ${props.capture_storage_details ? `
+                <div class="popup-row" style="margin-bottom: 6px;">
+                    <span style="font-weight: bold; color: #666;">Details:</span>
+                    <span style="color: #333; font-size: 11px;">${props.capture_storage_details.substring(0, 200)}${props.capture_storage_details.length > 200 ? '...' : ''}</span>
+                </div>
+                ` : ''}
+                ${props.reference ? `
+                <div class="popup-row" style="margin-top: 10px;">
+                    <a href="${props.reference}" target="_blank" style="color: #2196F3; font-size: 11px;">View Reference →</a>
+                </div>
+                ` : ''}
+                ${this.getGeothermalInfoHTML(e.lngLat.lng, e.lngLat.lat)}
+            </div>
+        `;
+
+        // Close existing popup
+        if (this.activePopup) {
+            this.activePopup.remove();
+        }
+
+        this.activePopup = new maplibregl.Popup({
+            closeButton: true,
+            closeOnClick: false,
+            maxWidth: '400px'
+        })
+            .setLngLat(e.lngLat)
+            .setHTML(popupHTML)
+            .addTo(this.map);
+    }
+
+    toggleDatacenters(visible) {
+        const layers = ['datacenter-points'];
+        layers.forEach(layerId => {
+            try {
+                if (this.map.getLayer(layerId)) {
+                    this.map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
+                }
+            } catch (error) {
+                // Layer might not exist, ignore
+            }
+        });
+        this.reorderLayers();
+    }
+
+    toggleCCUS(visible) {
+        const layers = ['ccus-points'];
+        layers.forEach(layerId => {
+            try {
+                if (this.map.getLayer(layerId)) {
+                    this.map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
+                }
+            } catch (error) {
+                // Layer might not exist, ignore
+            }
+        });
+        this.reorderLayers();
+    }
+
+    updateCCUSFilter() {
+        if (!this.map.getLayer('ccus-points')) return;
+
+        // Build filter based on selected categories
+        const allowedCategories = [];
+        
+        if (this.layerState.ccusSaline) {
+            allowedCategories.push('Dedicated Saline Storage');
+            allowedCategories.push('Dedicated Saline Storage & Enhanced Oil Recovery');
+        }
+        if (this.layerState.ccusEOR) {
+            allowedCategories.push('Enhanced Oil Recovery');
+            allowedCategories.push('Dedicated Saline Storage & Enhanced Oil Recovery');
+        }
+        if (this.layerState.ccusUtilization) {
+            allowedCategories.push('Utilization');
+        }
+        if (this.layerState.ccusOther) {
+            allowedCategories.push('Other');
+            allowedCategories.push('Unavailable');
+            allowedCategories.push(null);
+            allowedCategories.push('');
+        }
+
+        // Remove duplicates
+        const uniqueCategories = [...new Set(allowedCategories)];
+
+        // Apply filter
+        if (uniqueCategories.length === 0) {
+            // Hide all
+            this.map.setFilter('ccus-points', ['==', ['get', 'storage_classification'], '__none__']);
+        } else {
+            this.map.setFilter('ccus-points', [
+                'any',
+                ['in', ['get', 'storage_classification'], ['literal', uniqueCategories]],
+                ...(this.layerState.ccusOther ? [['!', ['has', 'storage_classification']]] : [])
+            ]);
+        }
+
+        console.log(`🏭 CCUS filter updated: ${uniqueCategories.length} categories visible`);
     }
 
     showDatacenterPopup(e) {
@@ -2574,6 +5446,11 @@ class GeospatialApp {
         const feature = e.features[0];
         const props = feature.properties;
         
+        // Convert temperatures to Celsius
+        const avgTempC = this.fToC(props.avg_temperature_f);
+        const minTempC = this.fToC(props.min_temperature_f);
+        const maxTempC = this.fToC(props.max_temperature_f);
+        
         // Create popup content
         let content = `
             <div class="popup-header">
@@ -2585,11 +5462,11 @@ class GeospatialApp {
             content += `
                 <div class="popup-row">
                     <span class="popup-label">Avg Temperature:</span>
-                    <span class="popup-value">${props.avg_temperature_f}°F</span>
+                    <span class="popup-value">${avgTempC}°C</span>
                 </div>
                 <div class="popup-row">
                     <span class="popup-label">Temperature Range:</span>
-                    <span class="popup-value">${props.min_temperature_f || 'N/A'}°F - ${props.max_temperature_f || 'N/A'}°F</span>
+                    <span class="popup-value">${minTempC !== null ? minTempC : 'N/A'}°C - ${maxTempC !== null ? maxTempC : 'N/A'}°C</span>
                 </div>
                 <div class="popup-row">
                     <span class="popup-label">Depth:</span>
