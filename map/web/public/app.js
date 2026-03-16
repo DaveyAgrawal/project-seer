@@ -360,26 +360,23 @@ class GeospatialApp {
             console.log('Geothermal dataset details:', geothermalDataset);
         }
         
-        // Try to load cached transmission lines first
-        if (transmissionDataset && await this.checkDataCacheValidity('transmission')) {
-            const cachedTransmission = await this.loadCachedData('transmission');
-            
-            if (cachedTransmission) {
+        // Load transmission lines from static GeoJSON file (works in production)
+        try {
+            console.log('📡 Loading transmission lines from static file...');
+            const response = await fetch('/data/transmission_lines.geojson');
+            if (response.ok) {
+                const transmissionData = await response.json();
                 this.map.addSource('transmission-lines', {
                     type: 'geojson',
-                    data: cachedTransmission
+                    data: transmissionData
                 });
                 this.dataSourceTypes.transmission = 'geojson';
-                console.log('⚡ Successfully loaded transmission lines from cache!');
+                console.log('⚡ Successfully loaded transmission lines from static file!');
             } else {
-                console.warn('⚠️ Cache load failed, falling back to vector tiles');
-                this.addTransmissionVectorSource(transmissionDataset, tileserverUrl);
-                this.dataSourceTypes.transmission = 'vector';
+                console.warn('⚠️ Failed to load transmission lines static file');
             }
-        } else if (transmissionDataset) {
-            console.log('🔧 No cache available, using vector tiles for transmission lines');
-            this.addTransmissionVectorSource(transmissionDataset, tileserverUrl);
-            this.dataSourceTypes.transmission = 'vector';
+        } catch (error) {
+            console.error('❌ Error loading transmission lines:', error);
         }
         
         // Geothermal data now processed via sectioned aggregation (no source needed)
