@@ -1070,7 +1070,18 @@ class GeospatialWebServer {
     try {
       console.log('🏛️ Fetching EnergyNet land parcels...');
       
-      // Query all land parcels from the database
+      // Load from static GeoJSON file (production mode)
+      const fs = require('fs');
+      const dataPath = path.join(__dirname, '../public/data/energynet_parcels.geojson');
+      
+      if (fs.existsSync(dataPath)) {
+        const data = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
+        console.log(`✅ Returning ${data.features?.length || 0} parcels from static file`);
+        res.json(data);
+        return;
+      }
+
+      // Fallback to database query
       const result = await this.pool.query(`
         SELECT 
           parcel_id,
