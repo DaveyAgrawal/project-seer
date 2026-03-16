@@ -334,7 +334,18 @@ class GeospatialWebServer {
     try {
       console.log('📍 Fetching EnergyNet parcel pins (centroids)...');
       
-      // Query centroid points for all land parcels
+      // Load from static GeoJSON file (production mode)
+      const fs = require('fs');
+      const dataPath = path.join(__dirname, '../public/data/energynet_parcels.geojson');
+      
+      if (fs.existsSync(dataPath)) {
+        const data = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
+        console.log(`✅ Returning ${data.features?.length || 0} parcels from static file`);
+        res.json(data);
+        return;
+      }
+
+      // Fallback to database query
       const result = await this.pool.query(`
         SELECT 
           parcel_id,
@@ -567,7 +578,18 @@ class GeospatialWebServer {
     try {
       console.log('🏢 Fetching datacenter facilities...');
 
-      // Query datacenter facilities (US only for map display)
+      // Load from static GeoJSON file (production mode)
+      const fs = require('fs');
+      const dataPath = path.join(__dirname, '../public/data/datacenters.geojson');
+      
+      if (fs.existsSync(dataPath)) {
+        const data = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
+        console.log(`✅ Returning ${data.features?.length || 0} datacenters from static file`);
+        res.json(data);
+        return;
+      }
+
+      // Fallback to database query if static file doesn't exist
       const result = await this.pool.query(`
         SELECT
           internal_id,
@@ -654,6 +676,18 @@ class GeospatialWebServer {
     try {
       console.log('🏭 Fetching CCUS sites...');
 
+      // Load from static GeoJSON file (production mode)
+      const fs = require('fs');
+      const dataPath = path.join(__dirname, '../public/data/ccus_sites.geojson');
+      
+      if (fs.existsSync(dataPath)) {
+        const data = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
+        console.log(`✅ Returning ${data.features?.length || 0} CCUS sites from static file`);
+        res.json(data);
+        return;
+      }
+
+      // Fallback to database query
       const result = await this.pool.query(`
         SELECT
           id,
@@ -738,6 +772,18 @@ class GeospatialWebServer {
     try {
       console.log('🏭 Fetching point source emitters...');
 
+      // Load from static GeoJSON file (production mode)
+      const fs = require('fs');
+      const dataPath = path.join(__dirname, '../public/data/emitters.geojson');
+      
+      if (fs.existsSync(dataPath)) {
+        const data = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
+        console.log(`✅ Returning ${data.features?.length || 0} emitters from static file`);
+        res.json(data);
+        return;
+      }
+
+      // Fallback to database query
       const result = await this.pool.query(`
         SELECT
           id,
