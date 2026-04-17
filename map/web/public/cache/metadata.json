@@ -1,13 +1,13 @@
 {
   "version": "1.0.0",
-  "lastUpdated": "2026-03-16T08:40:52.307Z",
+  "lastUpdated": "2026-04-14T18:18:42.433Z",
   "sources": {
     "geothermal": {
       "cached": true,
-      "defaultDepth": 4000,
-      "lastIngestion": "2026-03-16T08:40:52.307Z",
-      "dataVersion": "20260316",
-      "featureCount": 49531
+      "defaultDepth": 5000,
+      "lastIngestion": "2026-04-14T18:18:42.433Z",
+      "dataVersion": "20260414",
+      "featureCount": 49540
     },
     "transmission": {
       "cached": false

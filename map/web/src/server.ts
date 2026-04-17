@@ -112,6 +112,9 @@ class GeospatialWebServer {
     this.app.get('/api/emitters', this.getEmitters.bind(this));
     this.app.get('/api/emitters/categories', this.getEmitterCategories.bind(this));
     this.app.get('/api/ethanol-plants', this.getEthanolPlants.bind(this));
+    this.app.get('/api/natural-co2', this.getNaturalCO2.bind(this));
+    this.app.get('/api/co2-pipelines', this.getCO2Pipelines.bind(this));
+    this.app.get('/api/bedrock', this.getBedrock.bind(this));
     this.app.get('/api/geology', this.getGeology.bind(this));
     this.app.get('/api/generate-cache/:dataSource', this.generateCacheData.bind(this));
     this.app.post('/api/save-cache/:dataSource', this.saveCacheData.bind(this));
@@ -896,6 +899,106 @@ class GeospatialWebServer {
     } catch (error) {
       console.error('❌ Error fetching ethanol plants:', error);
       res.status(500).json({ error: 'Failed to fetch ethanol plants' });
+    }
+  }
+
+  private async getNaturalCO2(req: express.Request, res: express.Response): Promise<void> {
+    try {
+      console.log('☁️ Fetching natural CO₂ sources...');
+
+      const fs = require('fs');
+      const xlsx = require('xlsx');
+      const dataPath = path.join(__dirname, '../../../DataCenterMap-Scraper/more.data/natural_co2_reservoirs_CONUS.xlsx');
+      
+      if (!fs.existsSync(dataPath)) {
+        console.error('❌ Natural CO₂ data file not found:', dataPath);
+        res.status(404).json({ error: 'Natural CO₂ data not found' });
+        return;
+      }
+      
+      // Read Excel file and convert to GeoJSON
+      const workbook = xlsx.readFile(dataPath);
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const rows = xlsx.utils.sheet_to_json(sheet);
+      
+      const features = rows.map((row: any, idx: number) => ({
+        type: 'Feature',
+        geometry: {
+          type: 'Point',
+          coordinates: [row['Approx Lon'], row['Approx Lat']]
+        },
+        properties: {
+          id: idx + 1,
+          field_name: row['Field Name'],
+          state: row['State'],
+          reservoir_formation: row['Reservoir Formation'],
+          co2_purity: row['CO2 Purity (%)'],
+          status: row['Status'],
+          notes: row['Notes'],
+          primary_source: row['Primary Source'],
+          confidence: row['Confidence']
+        }
+      })).filter((f: any) => f.geometry.coordinates[0] && f.geometry.coordinates[1]);
+      
+      const geojson = {
+        type: 'FeatureCollection',
+        features
+      };
+      
+      console.log(`✅ Returning ${features.length} natural CO₂ sources`);
+      res.json(geojson);
+
+    } catch (error) {
+      console.error('❌ Error fetching natural CO₂ sources:', error);
+      res.status(500).json({ error: 'Failed to fetch natural CO₂ sources' });
+    }
+  }
+
+  private async getCO2Pipelines(req: express.Request, res: express.Response): Promise<void> {
+    try {
+      console.log('🔗 Fetching CO₂ pipelines...');
+
+      const fs = require('fs');
+      const dataPath = path.join(__dirname, '../../../DataCenterMap-Scraper/more.data/co2_pipelines.geojson');
+      
+      if (!fs.existsSync(dataPath)) {
+        console.error('❌ CO₂ pipelines data file not found:', dataPath);
+        res.status(404).json({ error: 'CO₂ pipelines data not found' });
+        return;
+      }
+      
+      const data = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
+      
+      console.log(`✅ Returning ${data.features?.length || 0} CO₂ pipeline segments`);
+      res.json(data);
+
+    } catch (error) {
+      console.error('❌ Error fetching CO₂ pipelines:', error);
+      res.status(500).json({ error: 'Failed to fetch CO₂ pipelines' });
+    }
+  }
+
+  private async getBedrock(req: express.Request, res: express.Response): Promise<void> {
+    try {
+      console.log('💎 Fetching bedrock lithology data...');
+
+      const fs = require('fs');
+      const dataPath = path.join(__dirname, '../public/data/bedrock_lithology.geojson');
+      
+      if (!fs.existsSync(dataPath)) {
+        console.error('❌ Bedrock lithology data file not found:', dataPath);
+        res.status(404).json({ error: 'Bedrock lithology data not found. Run process_bedrock_lithology.py first.' });
+        return;
+      }
+      
+      const data = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
+      
+      console.log(`✅ Returning ${data.features?.length || 0} bedrock polygons`);
+      res.json(data);
+
+    } catch (error) {
+      console.error('❌ Error fetching bedrock lithology:', error);
+      res.status(500).json({ error: 'Failed to fetch bedrock lithology data' });
     }
   }
 

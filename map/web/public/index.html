@@ -358,11 +358,11 @@
                         <option value="1500">1,500m</option>
                         <option value="2000">2,000m</option>
                         <option value="2500">2,500m</option>
-                        <option value="3000" selected>3,000m</option>
+                        <option value="3000">3,000m</option>
                         <option value="3500">3,500m</option>
                         <option value="4000">4,000m</option>
                         <option value="4500">4,500m</option>
-                        <option value="5000">5,000m</option>
+                        <option value="5000" selected>5,000m</option>
                         <option value="5500">5,500m</option>
                         <option value="6000">6,000m</option>
                         <option value="6500">6,500m</option>
@@ -472,6 +472,80 @@
         </div>
 
         <div class="layer-control">
+            <h4><i class="fas fa-gem"></i> Bedrock Lithology</h4>
+            <div class="control-group">
+                <div class="checkbox-wrapper">
+                    <input type="checkbox" id="bedrock-toggle">
+                    <label for="bedrock-toggle">Show bedrock lithology</label>
+                </div>
+                <div class="slider-wrapper" style="margin-top: 8px;">
+                    <label>Opacity: <span id="bedrock-opacity-value">60%</span></label>
+                    <input type="range" id="bedrock-opacity" min="0" max="100" value="60">
+                </div>
+                <div class="bedrock-legend" style="margin-top: 10px; font-size: 11px; max-height: 200px; overflow-y: auto;">
+                    <div style="font-weight: bold; margin-bottom: 6px; color: #333;">Sedimentary:</div>
+                    <div class="checkbox-wrapper" style="margin-bottom: 2px; margin-left: 8px;">
+                        <input type="checkbox" id="bedrock-shale" checked>
+                        <label for="bedrock-shale" style="color: #5D4037;">● Shale</label>
+                    </div>
+                    <div class="checkbox-wrapper" style="margin-bottom: 2px; margin-left: 8px;">
+                        <input type="checkbox" id="bedrock-sandstone" checked>
+                        <label for="bedrock-sandstone" style="color: #FFA726;">● Sandstone</label>
+                    </div>
+                    <div class="checkbox-wrapper" style="margin-bottom: 2px; margin-left: 8px;">
+                        <input type="checkbox" id="bedrock-limestone" checked>
+                        <label for="bedrock-limestone" style="color: #42A5F5;">● Limestone</label>
+                    </div>
+                    <div class="checkbox-wrapper" style="margin-bottom: 2px; margin-left: 8px;">
+                        <input type="checkbox" id="bedrock-dolostone" checked>
+                        <label for="bedrock-dolostone" style="color: #26C6DA;">● Dolostone</label>
+                    </div>
+                    <div style="font-weight: bold; margin: 8px 0 6px 0; color: #333;">Igneous:</div>
+                    <div class="checkbox-wrapper" style="margin-bottom: 2px; margin-left: 8px;">
+                        <input type="checkbox" id="bedrock-basalt" checked>
+                        <label for="bedrock-basalt" style="color: #37474F;">● Basalt</label>
+                    </div>
+                    <div class="checkbox-wrapper" style="margin-bottom: 2px; margin-left: 8px;">
+                        <input type="checkbox" id="bedrock-granite" checked>
+                        <label for="bedrock-granite" style="color: #F48FB1;">● Granite</label>
+                    </div>
+                    <div class="checkbox-wrapper" style="margin-bottom: 2px; margin-left: 8px;">
+                        <input type="checkbox" id="bedrock-andesite" checked>
+                        <label for="bedrock-andesite" style="color: #7E57C2;">● Andesite</label>
+                    </div>
+                    <div class="checkbox-wrapper" style="margin-bottom: 2px; margin-left: 8px;">
+                        <input type="checkbox" id="bedrock-rhyolite" checked>
+                        <label for="bedrock-rhyolite" style="color: #EC407A;">● Rhyolite</label>
+                    </div>
+                    <div class="checkbox-wrapper" style="margin-bottom: 2px; margin-left: 8px;">
+                        <input type="checkbox" id="bedrock-volcanic" checked>
+                        <label for="bedrock-volcanic" style="color: #D32F2F;">● Volcanic (other)</label>
+                    </div>
+                    <div style="font-weight: bold; margin: 8px 0 6px 0; color: #333;">Metamorphic:</div>
+                    <div class="checkbox-wrapper" style="margin-bottom: 2px; margin-left: 8px;">
+                        <input type="checkbox" id="bedrock-gneiss" checked>
+                        <label for="bedrock-gneiss" style="color: #8D6E63;">● Gneiss</label>
+                    </div>
+                    <div class="checkbox-wrapper" style="margin-bottom: 2px; margin-left: 8px;">
+                        <input type="checkbox" id="bedrock-schist" checked>
+                        <label for="bedrock-schist" style="color: #78909C;">● Schist</label>
+                    </div>
+                    <div style="font-weight: bold; margin: 8px 0 6px 0; color: #333;">Other:</div>
+                    <div class="checkbox-wrapper" style="margin-bottom: 2px; margin-left: 8px;">
+                        <input type="checkbox" id="bedrock-unconsolidated" checked>
+                        <label for="bedrock-unconsolidated" style="color: #FFEE58;">● Unconsolidated</label>
+                    </div>
+                </div>
+                <div class="stats" style="margin-top: 8px;">
+                    <small id="bedrock-count">Loading...</small>
+                </div>
+                <div style="margin-top: 6px; padding: 6px; background: #FFF3E0; border-radius: 4px; font-size: 10px; color: #E65100;">
+                    ⚠️ Sharp changes at state boundaries reflect different state geological survey methodologies (USGS SGMC data limitation)
+                </div>
+            </div>
+        </div>
+
+        <div class="layer-control">
             <h4><i class="fas fa-mountain"></i> Geology (Depth to HDR)</h4>
             <div class="control-group">
                 <div class="checkbox-wrapper">
@@ -545,6 +619,36 @@
                 </div>
                 <div class="stats">
                     <small id="emitters-count">Loading...</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="layer-control">
+            <h4><i class="fas fa-cloud"></i> Natural CO₂ Sources</h4>
+            <div class="control-group">
+                <div class="checkbox-wrapper">
+                    <input type="checkbox" id="natural-co2-toggle">
+                    <label for="natural-co2-toggle">Show natural CO₂ reservoirs</label>
+                </div>
+                <div class="stats">
+                    <small id="natural-co2-count" style="color: #E91E63;">⚠️ TENTATIVE - verify coordinates</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="layer-control">
+            <h4><i class="fas fa-project-diagram"></i> CO₂ Pipelines</h4>
+            <div class="control-group">
+                <div class="checkbox-wrapper">
+                    <input type="checkbox" id="co2-pipelines-toggle">
+                    <label for="co2-pipelines-toggle">Show CO₂ pipelines</label>
+                </div>
+                <div class="slider-wrapper">
+                    <label>Opacity: <span id="co2-pipelines-opacity-value">70%</span></label>
+                    <input type="range" id="co2-pipelines-opacity" min="0" max="100" value="70">
+                </div>
+                <div class="stats">
+                    <small id="co2-pipelines-count">Loading...</small>
                 </div>
             </div>
         </div>
@@ -711,6 +815,171 @@
             </div>
         </div>
         -->
+
+        <!-- Site Finder Tool -->
+        <div class="layer-control" style="background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%); border: 2px solid #1976D2; border-radius: 8px; padding: 12px;">
+            <h4 style="color: #1565C0;"><i class="fas fa-search-location"></i> Site Finder</h4>
+            <div class="control-group">
+                <p style="font-size: 11px; color: #555; margin: 0 0 10px 0;">Find optimal sites based on selected criteria:</p>
+                
+                <div style="font-weight: bold; font-size: 11px; color: #1565C0; margin-bottom: 6px;">Criteria (select at least one):</div>
+                
+                <div class="checkbox-wrapper" style="margin-bottom: 4px;">
+                    <input type="checkbox" id="finder-geothermal" checked>
+                    <label for="finder-geothermal" style="font-size: 11px;">🌡️ High geothermal temperature</label>
+                </div>
+                <div style="margin-left: 20px; margin-bottom: 6px;">
+                    <label style="font-size: 10px; color: #666;">Min temp (°C): </label>
+                    <input type="number" id="finder-min-temp" value="150" min="50" max="300" style="width: 60px; font-size: 10px; padding: 2px;">
+                    <label style="font-size: 10px; color: #666; margin-left: 8px;">Depth: </label>
+                    <select id="finder-depth" style="font-size: 10px; padding: 2px;">
+                        <option value="3000">3,000m</option>
+                        <option value="4000">4,000m</option>
+                        <option value="5000" selected>5,000m</option>
+                        <option value="6000">6,000m</option>
+                        <option value="6500">6,500m</option>
+                    </select>
+                </div>
+                
+                <div class="checkbox-wrapper" style="margin-bottom: 4px;">
+                    <input type="checkbox" id="finder-co2-proximity">
+                    <label for="finder-co2-proximity" style="font-size: 11px;">🏭 Near CO₂ sources</label>
+                </div>
+                <div style="margin-left: 20px; margin-bottom: 6px; display: none;" id="finder-co2-options">
+                    <label style="font-size: 10px; color: #666;">Max distance (mi): </label>
+                    <input type="number" id="finder-co2-distance" value="50" min="5" max="200" style="width: 50px; font-size: 10px; padding: 2px;">
+                    <div style="margin-top: 4px; display: flex; flex-wrap: wrap; gap: 2px;">
+                        <label style="font-size: 10px;"><input type="checkbox" id="finder-co2-ethanol" checked> Ethanol</label>
+                        <label style="font-size: 10px;"><input type="checkbox" id="finder-co2-natural" checked> Natural CO₂</label>
+                        <label style="font-size: 10px;"><input type="checkbox" id="finder-co2-power" checked> Power Plants</label>
+                        <label style="font-size: 10px;"><input type="checkbox" id="finder-co2-petroleum" checked> Petroleum & Gas</label>
+                        <label style="font-size: 10px;"><input type="checkbox" id="finder-co2-waste"> Waste</label>
+                        <label style="font-size: 10px;"><input type="checkbox" id="finder-co2-chemicals"> Chemicals</label>
+                        <label style="font-size: 10px;"><input type="checkbox" id="finder-co2-minerals"> Minerals</label>
+                        <label style="font-size: 10px;"><input type="checkbox" id="finder-co2-metals"> Metals</label>
+                        <label style="font-size: 10px;"><input type="checkbox" id="finder-co2-other"> Other</label>
+                    </div>
+                </div>
+                
+                <div class="checkbox-wrapper" style="margin-bottom: 4px;">
+                    <input type="checkbox" id="finder-pipeline-proximity">
+                    <label for="finder-pipeline-proximity" style="font-size: 11px;">🔗 Near CO₂ pipelines</label>
+                </div>
+                <div style="margin-left: 20px; margin-bottom: 6px; display: none;" id="finder-pipeline-options">
+                    <label style="font-size: 10px; color: #666;">Max distance (mi): </label>
+                    <input type="number" id="finder-pipeline-distance" value="30" min="5" max="100" style="width: 50px; font-size: 10px; padding: 2px;">
+                </div>
+                
+                <div class="checkbox-wrapper" style="margin-bottom: 4px;">
+                    <input type="checkbox" id="finder-transmission">
+                    <label for="finder-transmission" style="font-size: 11px;">⚡ Near transmission lines</label>
+                </div>
+                <div style="margin-left: 20px; margin-bottom: 6px; display: none;" id="finder-transmission-options">
+                    <label style="font-size: 10px; color: #666;">Max distance (mi): </label>
+                    <input type="number" id="finder-transmission-distance" value="20" min="1" max="50" style="width: 50px; font-size: 10px; padding: 2px;">
+                    <label style="font-size: 10px; color: #666; margin-left: 6px;">Min voltage (kV): </label>
+                    <input type="number" id="finder-min-voltage" value="230" min="69" max="765" style="width: 50px; font-size: 10px; padding: 2px;">
+                </div>
+                
+                <div class="checkbox-wrapper" style="margin-bottom: 4px;">
+                    <input type="checkbox" id="finder-datacenter">
+                    <label for="finder-datacenter" style="font-size: 11px;">🖥️ Near data centers</label>
+                </div>
+                <div style="margin-left: 20px; margin-bottom: 6px; display: none;" id="finder-datacenter-options">
+                    <label style="font-size: 10px; color: #666;">Max distance (mi): </label>
+                    <input type="number" id="finder-datacenter-distance" value="30" min="5" max="100" style="width: 50px; font-size: 10px; padding: 2px;">
+                </div>
+                
+                <div class="checkbox-wrapper" style="margin-bottom: 4px;">
+                    <input type="checkbox" id="finder-energynet">
+                    <label for="finder-energynet" style="font-size: 11px;">🏞️ Near EnergyNet land parcels</label>
+                </div>
+                <div style="margin-left: 20px; margin-bottom: 6px; display: none;" id="finder-energynet-options">
+                    <label style="font-size: 10px; color: #666;">Max distance (mi): </label>
+                    <input type="number" id="finder-energynet-distance" value="20" min="1" max="50" style="width: 50px; font-size: 10px; padding: 2px;">
+                </div>
+                
+                <div class="checkbox-wrapper" style="margin-bottom: 4px;">
+                    <input type="checkbox" id="finder-bedrock">
+                    <label for="finder-bedrock" style="font-size: 11px;">💎 Optimal bedrock lithology</label>
+                </div>
+                <div style="margin-left: 20px; margin-bottom: 6px; display: none;" id="finder-bedrock-options">
+                    <div style="font-size: 10px; color: #666; margin-bottom: 4px;">Preferred rock types:</div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 2px;">
+                        <label style="font-size: 10px;"><input type="checkbox" id="finder-bedrock-granite" checked> Granite</label>
+                        <label style="font-size: 10px;"><input type="checkbox" id="finder-bedrock-basalt" checked> Basalt</label>
+                        <label style="font-size: 10px;"><input type="checkbox" id="finder-bedrock-gneiss" checked> Gneiss</label>
+                        <label style="font-size: 10px;"><input type="checkbox" id="finder-bedrock-sandstone"> Sandstone</label>
+                        <label style="font-size: 10px;"><input type="checkbox" id="finder-bedrock-limestone"> Limestone</label>
+                    </div>
+                </div>
+                
+                <div class="checkbox-wrapper" style="margin-bottom: 4px;">
+                    <input type="checkbox" id="finder-shallow-basement">
+                    <label for="finder-shallow-basement" style="font-size: 11px;">🪨 Shallow basement depth</label>
+                </div>
+                <div style="margin-left: 20px; margin-bottom: 6px; display: none;" id="finder-basement-options">
+                    <label style="font-size: 10px; color: #666;">Max depth (m): </label>
+                    <input type="number" id="finder-max-basement" value="4000" min="500" max="12000" style="width: 60px; font-size: 10px; padding: 2px;">
+                </div>
+                
+                <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #90CAF9;">
+                    <label style="font-size: 11px; font-weight: bold; color: #1565C0;">Number of top sites: </label>
+                    <input type="number" id="finder-top-count" value="10" min="1" max="100" style="width: 50px; font-size: 11px; padding: 3px;">
+                </div>
+                
+                <button id="finder-run-btn" style="width: 100%; margin-top: 10px; padding: 10px; background: #1976D2; color: white; border: none; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer;">
+                    <i class="fas fa-search"></i> Find Top Sites
+                </button>
+                
+                <div id="finder-results" style="margin-top: 10px; display: none;">
+                    <div style="font-weight: bold; font-size: 12px; color: #1565C0; margin-bottom: 6px;">
+                        <i class="fas fa-trophy"></i> Top Sites Found: <span id="finder-results-count">0</span>
+                    </div>
+                    <div class="checkbox-wrapper" style="margin-bottom: 6px;">
+                        <input type="checkbox" id="show-finder-results" checked>
+                        <label for="show-finder-results" style="font-size: 10px;">Show results on map</label>
+                    </div>
+                    <div id="finder-results-list" style="max-height: 200px; overflow-y: auto; font-size: 11px;"></div>
+                    <div style="display: flex; gap: 6px; margin-top: 8px;">
+                        <button id="finder-save-all-btn" style="flex: 1; padding: 6px; background: #4CAF50; color: white; border: none; border-radius: 4px; font-size: 11px; cursor: pointer;">
+                            <i class="fas fa-save"></i> Save All
+                        </button>
+                        <button id="finder-clear-btn" style="flex: 1; padding: 6px; background: #F44336; color: white; border: none; border-radius: 4px; font-size: 11px; cursor: pointer;">
+                            <i class="fas fa-times"></i> Clear Results
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Saved Locations -->
+        <div class="layer-control" style="background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%); border: 2px solid #388E3C; border-radius: 8px; padding: 12px;">
+            <h4 style="color: #2E7D32;"><i class="fas fa-bookmark"></i> Saved Locations <span id="saved-count" style="font-size: 11px; background: #388E3C; color: white; padding: 2px 6px; border-radius: 10px;">0</span></h4>
+            <div class="control-group">
+                <div class="checkbox-wrapper" style="margin-bottom: 8px;">
+                    <input type="checkbox" id="show-saved-locations" checked>
+                    <label for="show-saved-locations" style="font-size: 11px;">Show saved locations on map</label>
+                </div>
+                
+                <div id="saved-locations-list" style="max-height: 150px; overflow-y: auto; font-size: 11px; margin-bottom: 8px;">
+                    <p style="color: #666; font-style: italic;">No saved locations yet. Click on the map or use Site Finder to add locations.</p>
+                </div>
+                
+                <div style="display: flex; gap: 6px;">
+                    <button id="export-locations-btn" style="flex: 1; padding: 8px; background: #388E3C; color: white; border: none; border-radius: 4px; font-size: 11px; cursor: pointer;" disabled>
+                        <i class="fas fa-file-excel"></i> Export Excel
+                    </button>
+                    <button id="clear-locations-btn" style="flex: 1; padding: 8px; background: #F44336; color: white; border: none; border-radius: 4px; font-size: 11px; cursor: pointer;" disabled>
+                        <i class="fas fa-trash"></i> Clear All
+                    </button>
+                </div>
+                
+                <div style="margin-top: 8px; padding: 6px; background: rgba(255,255,255,0.7); border-radius: 4px; font-size: 10px; color: #555;">
+                    💡 <strong>Tip:</strong> Right-click anywhere on the map to save that location with all available data.
+                </div>
+            </div>
+        </div>
 
         <div class="legend" id="legend">
             <h4><i class="fas fa-list"></i> Legend</h4>

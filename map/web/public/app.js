@@ -35,7 +35,24 @@ class GeospatialApp {
             emitterMinEmissions: 0,
             ethanolPlants: false,
             optimalSites: false,
-            geology: false
+            geology: false,
+            naturalCO2: false,
+            co2Pipelines: false,
+            bedrock: false,
+            bedrockFilters: {
+                shale: true,
+                sandstone: true,
+                limestone: true,
+                dolostone: true,
+                basalt: true,
+                granite: true,
+                andesite: true,
+                rhyolite: true,
+                volcanic: true,
+                gneiss: true,
+                schist: true,
+                unconsolidated: true
+            }
         };
         
         // Mesh configuration (65 square miles per hexagon)
@@ -57,8 +74,17 @@ class GeospatialApp {
             datacenters: null,
             ccus: null,
             emitters: null,
-            ethanol: null
+            ethanol: null,
+            co2Pipelines: null,
+            geology: null,
+            bedrock: null
         };
+
+        // Saved locations storage
+        this.savedLocations = JSON.parse(localStorage.getItem('savedLocations') || '[]');
+        
+        // Site finder results
+        this.finderResults = [];
 
         // Track data source types for proper layer styling
         this.dataSourceTypes = {
@@ -128,7 +154,7 @@ class GeospatialApp {
         try {
             let cachePath;
             if (dataSource === 'geothermal') {
-                const depth = subType || this.dataCache.metadata?.sources?.geothermal?.defaultDepth || 3000;
+                const depth = subType || this.dataCache.metadata?.sources?.geothermal?.defaultDepth || 5000;
                 cachePath = `/cache/geothermal/mesh-${depth}m.json`;
             } else if (dataSource === 'transmission') {
                 cachePath = '/cache/transmission/lines.json';
@@ -430,6 +456,18 @@ class GeospatialApp {
         console.log('🌽 Adding Ethanol Plants layer...');
         this.addEthanolLayer();
 
+        // Add Natural CO2 Sources layer
+        console.log('☁️ Adding Natural CO₂ Sources layer...');
+        this.addNaturalCO2Layer();
+
+        // Add CO2 Pipelines layer
+        console.log('🔗 Adding CO₂ Pipelines layer...');
+        this.addCO2PipelinesLayer();
+
+        // Add Bedrock Lithology layer
+        console.log('💎 Adding Bedrock Lithology layer...');
+        this.addBedrockLayer();
+
         // Add Geology layer
         console.log('🪨 Adding Geology layer...');
         this.addGeologyLayer();
@@ -437,6 +475,10 @@ class GeospatialApp {
         // Add Optimal Sites layer
         console.log('🎯 Adding Optimal Sites layer...');
         this.addOptimalSitesLayer();
+
+        // Add Saved Locations layer
+        console.log('📍 Adding Saved Locations layer...');
+        this.addSavedLocationsLayer();
 
         // Ensure proper layer ordering (hexagon mesh at bottom, points on top)
         setTimeout(() => this.reorderLayers(), 2000);
@@ -539,7 +581,7 @@ class GeospatialApp {
     // Generate geothermal info HTML for popups
     getGeothermalInfoHTML(lng, lat) {
         const geoData = this.getGeothermalAtLocation(lng, lat);
-        const currentDepth = document.getElementById('depth-filter')?.value || 3000;
+        const currentDepth = document.getElementById('depth-filter')?.value || 5000;
         
         if (!geoData || geoData.avg_temperature_f === null) {
             return `
@@ -923,7 +965,7 @@ class GeospatialApp {
         
         try {
             // Get current depth filter value (default 3000m)
-            const depthFilter = parseFloat(document.getElementById('depth-filter')?.value) || 3000;
+            const depthFilter = parseFloat(document.getElementById('depth-filter')?.value) || 5000;
             console.log(`🌡️ Using depth filter: ${depthFilter}m`);
             
             // Create a temporary map source for this section to get real data
@@ -2541,7 +2583,7 @@ class GeospatialApp {
         }
         
         const tempC = this.fToC(tempF);
-        const currentDepth = document.getElementById('depth-filter')?.value || 3000;
+        const currentDepth = document.getElementById('depth-filter')?.value || 5000;
         
         // Temperature thresholds in Fahrenheit
         const CO2_EGS_MIN_F = 302;      // 150°C
@@ -2659,7 +2701,7 @@ class GeospatialApp {
             const bothViableGW = (bothViableCount * mwPerHexagon) / 1000;
             const totalCO2GW = ((co2OnlyCount + bothViableCount) * mwPerHexagon) / 1000;
             
-            const currentDepth = document.getElementById('depth-filter')?.value || 3000;
+            const currentDepth = document.getElementById('depth-filter')?.value || 5000;
             
             // Calculate total area in sq miles
             const co2OnlyArea = Math.round(co2OnlyCount * hexAreaSqMiles).toLocaleString();
@@ -3112,6 +3154,39 @@ class GeospatialApp {
             this.updateEmittersFilter();
         });
 
+        // Bedrock Lithology controls
+        document.getElementById('bedrock-toggle').addEventListener('change', (e) => {
+            this.toggleBedrock(e.target.checked);
+        });
+        document.getElementById('bedrock-opacity').addEventListener('input', (e) => {
+            const opacity = e.target.value / 100;
+            document.getElementById('bedrock-opacity-value').textContent = e.target.value + '%';
+            this.updateBedrockOpacity(opacity);
+        });
+        // Bedrock filter checkboxes
+        const bedrockTypes = ['shale', 'sandstone', 'limestone', 'dolostone', 'basalt', 'granite', 'andesite', 'rhyolite', 'volcanic', 'gneiss', 'schist', 'unconsolidated'];
+        bedrockTypes.forEach(type => {
+            document.getElementById(`bedrock-${type}`).addEventListener('change', (e) => {
+                this.layerState.bedrockFilters[type] = e.target.checked;
+                this.updateBedrockFilter();
+            });
+        });
+
+        // Natural CO2 Sources controls
+        document.getElementById('natural-co2-toggle').addEventListener('change', (e) => {
+            this.toggleNaturalCO2(e.target.checked);
+        });
+
+        // CO2 Pipelines controls
+        document.getElementById('co2-pipelines-toggle').addEventListener('change', (e) => {
+            this.toggleCO2Pipelines(e.target.checked);
+        });
+        document.getElementById('co2-pipelines-opacity').addEventListener('input', (e) => {
+            const opacity = e.target.value / 100;
+            document.getElementById('co2-pipelines-opacity-value').textContent = e.target.value + '%';
+            this.updateCO2PipelinesOpacity(opacity);
+        });
+
         // CCUS controls
         document.getElementById('ccus-toggle').addEventListener('change', (e) => {
             this.toggleCCUS(e.target.checked);
@@ -3241,6 +3316,12 @@ class GeospatialApp {
             this.toggleComparisonLayer('co2egs', false);
         });
         
+        // Site Finder controls
+        this.setupSiteFinderControls();
+        
+        // Saved Locations controls
+        this.setupSavedLocationsControls();
+
         // Depth filter functionality - re-aggregate mesh when depth changes
         document.getElementById('depth-filter').addEventListener('change', async (e) => {
             const depth = parseFloat(e.target.value);
@@ -4380,6 +4461,630 @@ class GeospatialApp {
             closeButton: true,
             closeOnClick: false,
             maxWidth: '400px'
+        })
+            .setLngLat(e.lngLat)
+            .setHTML(popupHTML)
+            .addTo(this.map);
+    }
+
+    // ==== NATURAL CO2 SOURCES METHODS ====
+
+    async addNaturalCO2Layer() {
+        console.log('☁️ Adding Natural CO₂ Sources layer...');
+
+        try {
+            // Add empty GeoJSON source
+            this.map.addSource('natural-co2', {
+                type: 'geojson',
+                data: {
+                    type: 'FeatureCollection',
+                    features: []
+                }
+            });
+
+            // Add points layer - pink/magenta color to distinguish
+            this.map.addLayer({
+                id: 'natural-co2-points',
+                type: 'circle',
+                source: 'natural-co2',
+                paint: {
+                    'circle-color': '#E91E63',
+                    'circle-radius': 12,
+                    'circle-opacity': 0.9,
+                    'circle-stroke-width': 3,
+                    'circle-stroke-color': '#FFFFFF'
+                }
+            });
+
+            // Add icon layer
+            this.map.addLayer({
+                id: 'natural-co2-icons',
+                type: 'symbol',
+                source: 'natural-co2',
+                layout: {
+                    'text-field': '☁️',
+                    'text-size': 16,
+                    'text-allow-overlap': true,
+                    'text-ignore-placement': true
+                }
+            });
+
+            console.log('✅ Successfully added natural CO₂ layer');
+
+            // Load data
+            await this.loadNaturalCO2();
+
+            // Set initial visibility
+            this.toggleNaturalCO2(this.layerState.naturalCO2);
+
+            // Add click handler
+            this.map.on('click', 'natural-co2-points', (e) => {
+                this.showNaturalCO2Popup(e);
+            });
+
+            // Add hover cursor
+            this.map.on('mouseenter', 'natural-co2-points', () => {
+                this.map.getCanvas().style.cursor = 'pointer';
+            });
+            this.map.on('mouseleave', 'natural-co2-points', () => {
+                this.map.getCanvas().style.cursor = '';
+            });
+
+        } catch (error) {
+            console.error('❌ Error adding natural CO₂ layer:', error);
+        }
+    }
+
+    async loadNaturalCO2() {
+        try {
+            console.log('📡 Loading natural CO₂ sources...');
+
+            const response = await fetch('/api/natural-co2');
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            console.log(`☁️ Loaded ${data.features?.length || 0} natural CO₂ sources`);
+
+            const source = this.map.getSource('natural-co2');
+            if (source) {
+                source.setData(data);
+            }
+
+            // Update UI count
+            const countEl = document.getElementById('natural-co2-count');
+            if (countEl) {
+                countEl.innerHTML = `⚠️ ${data.features?.length || 0} sources (TENTATIVE)`;
+            }
+
+        } catch (error) {
+            console.error('❌ Error loading natural CO₂:', error);
+        }
+    }
+
+    toggleNaturalCO2(visible) {
+        const layers = ['natural-co2-points', 'natural-co2-icons'];
+        layers.forEach(layerId => {
+            try {
+                if (this.map.getLayer(layerId)) {
+                    this.map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
+                }
+            } catch (error) {
+                // Layer might not exist
+            }
+        });
+        this.layerState.naturalCO2 = visible;
+        this.reorderLayers();
+    }
+
+    showNaturalCO2Popup(e) {
+        const feature = e.features[0];
+        const props = feature.properties;
+
+        const popupHTML = `
+            <div class="popup-content" style="max-width: 350px;">
+                <div class="popup-header" style="background: #E91E63; color: white; padding: 10px; margin: -10px -10px 10px -10px; border-radius: 4px 4px 0 0;">
+                    <h3 style="margin: 0; font-size: 14px;">☁️ ${props.field_name || props.name || 'Natural CO₂ Source'}</h3>
+                </div>
+                <div style="background: #FCE4EC; padding: 6px; border-radius: 4px; margin-bottom: 8px; font-size: 11px; color: #C2185B;">
+                    ⚠️ TENTATIVE DATA - Verify coordinates before use
+                </div>
+                <div class="popup-row" style="margin-bottom: 6px;">
+                    <span style="font-weight: bold; color: #666;">State:</span>
+                    <span style="color: #333;">${props.state || 'N/A'}</span>
+                </div>
+                <div class="popup-row" style="margin-bottom: 6px;">
+                    <span style="font-weight: bold; color: #666;">Formation:</span>
+                    <span style="color: #333;">${props.reservoir_formation || 'N/A'}</span>
+                </div>
+                <div class="popup-row" style="margin-bottom: 6px;">
+                    <span style="font-weight: bold; color: #666;">CO₂ Purity:</span>
+                    <span style="color: #333;">${props.co2_purity || 'N/A'}</span>
+                </div>
+                <div class="popup-row" style="margin-bottom: 6px;">
+                    <span style="font-weight: bold; color: #666;">Status:</span>
+                    <span style="color: #333;">${props.status || 'N/A'}</span>
+                </div>
+                <div class="popup-row" style="margin-bottom: 6px;">
+                    <span style="font-weight: bold; color: #666;">Notes:</span>
+                    <span style="color: #333; font-size: 11px;">${props.notes || 'N/A'}</span>
+                </div>
+                <div class="popup-row" style="margin-bottom: 6px;">
+                    <span style="font-weight: bold; color: #666;">Source:</span>
+                    <span style="color: #333; font-size: 11px;">${props.primary_source || 'N/A'}</span>
+                </div>
+            </div>
+        `;
+
+        if (this.activePopup) {
+            this.activePopup.remove();
+        }
+
+        this.activePopup = new maplibregl.Popup({
+            closeButton: true,
+            closeOnClick: false,
+            maxWidth: '400px'
+        })
+            .setLngLat(e.lngLat)
+            .setHTML(popupHTML)
+            .addTo(this.map);
+    }
+
+    // ==== CO2 PIPELINES METHODS ====
+
+    async addCO2PipelinesLayer() {
+        console.log('🔗 Adding CO₂ Pipelines layer...');
+
+        try {
+            // Add empty GeoJSON source
+            this.map.addSource('co2-pipelines', {
+                type: 'geojson',
+                data: {
+                    type: 'FeatureCollection',
+                    features: []
+                }
+            });
+
+            // Add line layer - purple color
+            this.map.addLayer({
+                id: 'co2-pipelines-line',
+                type: 'line',
+                source: 'co2-pipelines',
+                paint: {
+                    'line-color': '#7B1FA2',
+                    'line-width': 3,
+                    'line-opacity': 0.7
+                },
+                layout: {
+                    'line-cap': 'round',
+                    'line-join': 'round'
+                }
+            });
+
+            // Add glow effect layer underneath
+            this.map.addLayer({
+                id: 'co2-pipelines-glow',
+                type: 'line',
+                source: 'co2-pipelines',
+                paint: {
+                    'line-color': '#CE93D8',
+                    'line-width': 6,
+                    'line-opacity': 0.4,
+                    'line-blur': 3
+                }
+            }, 'co2-pipelines-line');
+
+            console.log('✅ Successfully added CO₂ pipelines layer');
+
+            // Load data
+            await this.loadCO2Pipelines();
+
+            // Set initial visibility
+            this.toggleCO2Pipelines(this.layerState.co2Pipelines);
+
+            // Add click handler
+            this.map.on('click', 'co2-pipelines-line', (e) => {
+                this.showCO2PipelinePopup(e);
+            });
+
+            // Add hover cursor
+            this.map.on('mouseenter', 'co2-pipelines-line', () => {
+                this.map.getCanvas().style.cursor = 'pointer';
+            });
+            this.map.on('mouseleave', 'co2-pipelines-line', () => {
+                this.map.getCanvas().style.cursor = '';
+            });
+
+        } catch (error) {
+            console.error('❌ Error adding CO₂ pipelines layer:', error);
+        }
+    }
+
+    async loadCO2Pipelines() {
+        try {
+            console.log('📡 Loading CO₂ pipelines...');
+
+            const response = await fetch('/api/co2-pipelines');
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            console.log(`🔗 Loaded ${data.features?.length || 0} CO₂ pipeline segments`);
+
+            const source = this.map.getSource('co2-pipelines');
+            if (source) {
+                source.setData(data);
+            }
+
+            // Update UI count
+            const countEl = document.getElementById('co2-pipelines-count');
+            if (countEl) {
+                countEl.textContent = `${data.features?.length || 0} pipeline segments`;
+            }
+
+        } catch (error) {
+            console.error('❌ Error loading CO₂ pipelines:', error);
+        }
+    }
+
+    toggleCO2Pipelines(visible) {
+        const layers = ['co2-pipelines-line', 'co2-pipelines-glow'];
+        layers.forEach(layerId => {
+            try {
+                if (this.map.getLayer(layerId)) {
+                    this.map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
+                }
+            } catch (error) {
+                // Layer might not exist
+            }
+        });
+        this.layerState.co2Pipelines = visible;
+    }
+
+    updateCO2PipelinesOpacity(opacity) {
+        try {
+            if (this.map.getLayer('co2-pipelines-line')) {
+                this.map.setPaintProperty('co2-pipelines-line', 'line-opacity', opacity);
+            }
+            if (this.map.getLayer('co2-pipelines-glow')) {
+                this.map.setPaintProperty('co2-pipelines-glow', 'line-opacity', opacity * 0.6);
+            }
+        } catch (error) {
+            console.error('Error updating CO₂ pipelines opacity:', error);
+        }
+    }
+
+    showCO2PipelinePopup(e) {
+        const feature = e.features[0];
+        const props = feature.properties;
+
+        const lengthKm = props.SHAPE__Length ? (props.SHAPE__Length / 1000).toFixed(1) : 'N/A';
+
+        const popupHTML = `
+            <div class="popup-content" style="max-width: 300px;">
+                <div class="popup-header" style="background: #7B1FA2; color: white; padding: 10px; margin: -10px -10px 10px -10px; border-radius: 4px 4px 0 0;">
+                    <h3 style="margin: 0; font-size: 14px;">🔗 CO₂ Pipeline</h3>
+                </div>
+                <div class="popup-row" style="margin-bottom: 6px;">
+                    <span style="font-weight: bold; color: #666;">Segment ID:</span>
+                    <span style="color: #333;">${props.objectid || props.id || 'N/A'}</span>
+                </div>
+                <div class="popup-row" style="margin-bottom: 6px;">
+                    <span style="font-weight: bold; color: #666;">Length:</span>
+                    <span style="color: #333;">${lengthKm} km</span>
+                </div>
+                <div style="background: #F3E5F5; padding: 6px; border-radius: 4px; margin-top: 8px; font-size: 11px; color: #7B1FA2;">
+                    ℹ️ Operator and capacity data not available
+                </div>
+            </div>
+        `;
+
+        if (this.activePopup) {
+            this.activePopup.remove();
+        }
+
+        this.activePopup = new maplibregl.Popup({
+            closeButton: true,
+            closeOnClick: false,
+            maxWidth: '350px'
+        })
+            .setLngLat(e.lngLat)
+            .setHTML(popupHTML)
+            .addTo(this.map);
+    }
+
+    // ==== BEDROCK LITHOLOGY METHODS ====
+
+    async addBedrockLayer() {
+        console.log('💎 Adding Bedrock Lithology layer...');
+
+        try {
+            // Add empty GeoJSON source
+            this.map.addSource('bedrock', {
+                type: 'geojson',
+                data: {
+                    type: 'FeatureCollection',
+                    features: []
+                }
+            });
+
+            // Color mapping for rock types
+            const rockColors = {
+                'Shale': '#5D4037',
+                'Sandstone': '#FFA726',
+                'Limestone': '#42A5F5',
+                'Dolostone': '#26C6DA',
+                'Conglomerate': '#8D6E63',
+                'Sedimentary': '#A1887F',
+                'Chert': '#90A4AE',
+                'Evaporite': '#E0E0E0',
+                'Coal': '#212121',
+                'Basalt': '#37474F',
+                'Granite': '#F48FB1',
+                'Andesite': '#7E57C2',
+                'Rhyolite': '#EC407A',
+                'Volcanic': '#D32F2F',
+                'Intrusive': '#CE93D8',
+                'Gneiss': '#8D6E63',
+                'Schist': '#78909C',
+                'Metamorphic': '#607D8B',
+                'Unconsolidated': '#FFEE58',
+                'Water': '#64B5F6',
+                'Unknown': '#9E9E9E'
+            };
+
+            // Add fill layer with match expression for colors
+            this.map.addLayer({
+                id: 'bedrock-fill',
+                type: 'fill',
+                source: 'bedrock',
+                paint: {
+                    'fill-color': [
+                        'match',
+                        ['get', 'rock_type'],
+                        'Shale', '#5D4037',
+                        'Sandstone', '#FFA726',
+                        'Limestone', '#42A5F5',
+                        'Dolostone', '#26C6DA',
+                        'Conglomerate', '#8D6E63',
+                        'Sedimentary', '#A1887F',
+                        'Chert', '#90A4AE',
+                        'Evaporite', '#E0E0E0',
+                        'Coal', '#212121',
+                        'Basalt', '#37474F',
+                        'Granite', '#F48FB1',
+                        'Andesite', '#7E57C2',
+                        'Rhyolite', '#EC407A',
+                        'Volcanic', '#D32F2F',
+                        'Intrusive', '#CE93D8',
+                        'Gneiss', '#8D6E63',
+                        'Schist', '#78909C',
+                        'Metamorphic', '#607D8B',
+                        'Unconsolidated', '#FFEE58',
+                        'Water', '#64B5F6',
+                        '#9E9E9E'  // default
+                    ],
+                    'fill-opacity': 0.6
+                }
+            });
+
+            // Add outline layer
+            this.map.addLayer({
+                id: 'bedrock-outline',
+                type: 'line',
+                source: 'bedrock',
+                paint: {
+                    'line-color': '#333333',
+                    'line-width': 0.5,
+                    'line-opacity': 0.3
+                }
+            });
+
+            console.log('✅ Successfully added bedrock layer');
+
+            // Load data
+            await this.loadBedrock();
+
+            // Set initial visibility
+            this.toggleBedrock(this.layerState.bedrock);
+
+            // Add click handler
+            this.map.on('click', 'bedrock-fill', (e) => {
+                this.showBedrockPopup(e);
+            });
+
+            // Add hover cursor
+            this.map.on('mouseenter', 'bedrock-fill', () => {
+                this.map.getCanvas().style.cursor = 'pointer';
+            });
+            this.map.on('mouseleave', 'bedrock-fill', () => {
+                this.map.getCanvas().style.cursor = '';
+            });
+
+        } catch (error) {
+            console.error('❌ Error adding bedrock layer:', error);
+        }
+    }
+
+    async loadBedrock() {
+        try {
+            console.log('📡 Loading bedrock lithology data...');
+
+            const response = await fetch('/api/bedrock');
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            console.log(`💎 Loaded ${data.features?.length || 0} bedrock polygons`);
+
+            const source = this.map.getSource('bedrock');
+            if (source) {
+                source.setData(data);
+            }
+
+            // Cache data
+            this.dataCache.bedrock = data;
+
+            // Update UI count
+            const countEl = document.getElementById('bedrock-count');
+            if (countEl) {
+                countEl.textContent = `${data.features?.length || 0} geological units`;
+            }
+
+        } catch (error) {
+            console.error('❌ Error loading bedrock:', error);
+            const countEl = document.getElementById('bedrock-count');
+            if (countEl) {
+                countEl.textContent = 'Error loading bedrock data';
+            }
+        }
+    }
+
+    toggleBedrock(visible) {
+        const layers = ['bedrock-fill', 'bedrock-outline'];
+        layers.forEach(layerId => {
+            try {
+                if (this.map.getLayer(layerId)) {
+                    this.map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
+                }
+            } catch (error) {
+                // Layer might not exist
+            }
+        });
+        this.layerState.bedrock = visible;
+    }
+
+    updateBedrockOpacity(opacity) {
+        try {
+            if (this.map.getLayer('bedrock-fill')) {
+                this.map.setPaintProperty('bedrock-fill', 'fill-opacity', opacity);
+            }
+        } catch (error) {
+            console.error('Error updating bedrock opacity:', error);
+        }
+    }
+
+    updateBedrockFilter() {
+        if (!this.map.getLayer('bedrock-fill')) return;
+
+        const filters = this.layerState.bedrockFilters;
+        const visibleTypes = [];
+
+        // Map filter keys to rock_type values
+        const typeMapping = {
+            shale: 'Shale',
+            sandstone: 'Sandstone',
+            limestone: 'Limestone',
+            dolostone: 'Dolostone',
+            basalt: 'Basalt',
+            granite: 'Granite',
+            andesite: 'Andesite',
+            rhyolite: 'Rhyolite',
+            volcanic: 'Volcanic',
+            gneiss: 'Gneiss',
+            schist: 'Schist',
+            unconsolidated: 'Unconsolidated'
+        };
+
+        for (const [key, rockType] of Object.entries(typeMapping)) {
+            if (filters[key]) {
+                visibleTypes.push(rockType);
+            }
+        }
+
+        // Also include related types
+        if (filters.sandstone) visibleTypes.push('Conglomerate', 'Chert');
+        if (filters.limestone) visibleTypes.push('Evaporite');
+        if (filters.shale) visibleTypes.push('Sedimentary', 'Coal');
+        if (filters.volcanic) visibleTypes.push('Intrusive', 'Igneous');
+        if (filters.schist) visibleTypes.push('Metamorphic');
+
+        // Build filter expression
+        const filterExpr = ['in', ['get', 'rock_type'], ['literal', visibleTypes]];
+
+        try {
+            this.map.setFilter('bedrock-fill', filterExpr);
+            this.map.setFilter('bedrock-outline', filterExpr);
+        } catch (error) {
+            console.error('Error updating bedrock filter:', error);
+        }
+    }
+
+    showBedrockPopup(e) {
+        const feature = e.features[0];
+        const props = feature.properties;
+
+        const popupHTML = `
+            <div class="popup-content" style="max-width: 400px;">
+                <div class="popup-header" style="background: #795548; color: white; padding: 10px; margin: -10px -10px 10px -10px; border-radius: 4px 4px 0 0;">
+                    <h3 style="margin: 0; font-size: 14px;">💎 Bedrock Lithology</h3>
+                </div>
+                <div class="popup-row" style="margin-bottom: 8px; background: #EFEBE9; padding: 8px; border-radius: 4px;">
+                    <span style="font-weight: bold; color: #5D4037;">Resolved Bedrock:</span>
+                    <span style="color: #333; font-weight: bold; font-size: 15px;">${props.rock_type || 'Unknown'}</span>
+                </div>
+                <div style="font-size: 12px; color: #666; margin-bottom: 8px; font-weight: bold;">Original SGMC Fields:</div>
+                <div class="popup-row" style="margin-bottom: 4px; font-size: 12px;">
+                    <span style="font-weight: bold; color: #666;">GENERALIZED_LITH:</span>
+                    <span style="color: #333;">${props.generalized_lith || '—'}</span>
+                </div>
+                <div class="popup-row" style="margin-bottom: 4px; font-size: 12px;">
+                    <span style="font-weight: bold; color: #666;">MAJOR1:</span>
+                    <span style="color: #333;">${props.major1 || '—'}</span>
+                </div>
+                <div class="popup-row" style="margin-bottom: 4px; font-size: 12px;">
+                    <span style="font-weight: bold; color: #666;">MAJOR2:</span>
+                    <span style="color: #333;">${props.major2 || '—'}</span>
+                </div>
+                <div class="popup-row" style="margin-bottom: 4px; font-size: 12px;">
+                    <span style="font-weight: bold; color: #666;">MAJOR3:</span>
+                    <span style="color: #333;">${props.major3 || '—'}</span>
+                </div>
+                <div class="popup-row" style="margin-bottom: 4px; font-size: 12px;">
+                    <span style="font-weight: bold; color: #666;">MINOR1:</span>
+                    <span style="color: #333;">${props.minor1 || '—'}</span>
+                </div>
+                <div class="popup-row" style="margin-bottom: 4px; font-size: 12px;">
+                    <span style="font-weight: bold; color: #666;">MINOR2:</span>
+                    <span style="color: #333;">${props.minor2 || '—'}</span>
+                </div>
+                <div class="popup-row" style="margin-bottom: 4px; font-size: 12px;">
+                    <span style="font-weight: bold; color: #666;">UNIT_NAME:</span>
+                    <span style="color: #333; font-size: 11px;">${props.unit_name || '—'}</span>
+                </div>
+                <div class="popup-row" style="margin-bottom: 4px; font-size: 12px;">
+                    <span style="font-weight: bold; color: #666;">ORIG_LABEL:</span>
+                    <span style="color: #333;">${props.orig_label || '—'}</span>
+                </div>
+                <div class="popup-row" style="margin-bottom: 4px; font-size: 12px;">
+                    <span style="font-weight: bold; color: #666;">AGE_MIN:</span>
+                    <span style="color: #333; font-size: 11px;">${props.age_min || '—'}</span>
+                </div>
+                <div class="popup-row" style="margin-bottom: 4px; font-size: 12px;">
+                    <span style="font-weight: bold; color: #666;">AGE_MAX:</span>
+                    <span style="color: #333; font-size: 11px;">${props.age_max || '—'}</span>
+                </div>
+                <div class="popup-row" style="margin-bottom: 4px; font-size: 12px;">
+                    <span style="font-weight: bold; color: #666;">STATE:</span>
+                    <span style="color: #333;">${props.state || '—'}</span>
+                </div>
+                <div style="margin-top: 8px; padding: 6px; background: #FFF3E0; border-radius: 4px; font-size: 10px; color: #E65100;">
+                    ℹ️ Data from ${props.state || 'state'} geological survey. Classifications may differ at state boundaries.
+                </div>
+            </div>
+        `;
+
+        if (this.activePopup) {
+            this.activePopup.remove();
+        }
+
+        this.activePopup = new maplibregl.Popup({
+            closeButton: true,
+            closeOnClick: false,
+            maxWidth: '450px'
         })
             .setLngLat(e.lngLat)
             .setHTML(popupHTML)
@@ -5646,6 +6351,1154 @@ class GeospatialApp {
                 <i class="fas fa-exclamation-triangle"></i> Error: ${message}
             </div>
         `;
+    }
+
+    // ==== SITE FINDER METHODS ====
+
+    setupSiteFinderControls() {
+        // Toggle visibility of sub-options
+        document.getElementById('finder-co2-proximity').addEventListener('change', (e) => {
+            document.getElementById('finder-co2-options').style.display = e.target.checked ? 'block' : 'none';
+        });
+        document.getElementById('finder-pipeline-proximity').addEventListener('change', (e) => {
+            document.getElementById('finder-pipeline-options').style.display = e.target.checked ? 'block' : 'none';
+        });
+        document.getElementById('finder-transmission').addEventListener('change', (e) => {
+            document.getElementById('finder-transmission-options').style.display = e.target.checked ? 'block' : 'none';
+        });
+        document.getElementById('finder-datacenter').addEventListener('change', (e) => {
+            document.getElementById('finder-datacenter-options').style.display = e.target.checked ? 'block' : 'none';
+        });
+        document.getElementById('finder-energynet').addEventListener('change', (e) => {
+            document.getElementById('finder-energynet-options').style.display = e.target.checked ? 'block' : 'none';
+        });
+        document.getElementById('finder-bedrock').addEventListener('change', (e) => {
+            document.getElementById('finder-bedrock-options').style.display = e.target.checked ? 'block' : 'none';
+        });
+        document.getElementById('finder-shallow-basement').addEventListener('change', (e) => {
+            document.getElementById('finder-basement-options').style.display = e.target.checked ? 'block' : 'none';
+        });
+
+        // Run finder button
+        document.getElementById('finder-run-btn').addEventListener('click', () => {
+            this.runSiteFinder();
+        });
+
+        // Save all results button
+        document.getElementById('finder-save-all-btn').addEventListener('click', () => {
+            this.saveAllFinderResults();
+        });
+
+        // Toggle finder results visibility
+        document.getElementById('show-finder-results').addEventListener('change', (e) => {
+            this.toggleFinderResultsLayer(e.target.checked);
+        });
+
+        // Clear finder results button
+        document.getElementById('finder-clear-btn').addEventListener('click', () => {
+            this.clearFinderResults();
+        });
+
+        // Note: Right-click context menu is added in addSavedLocationsLayer after map is ready
+    }
+
+    async runSiteFinder() {
+        console.log('🔍 Running Site Finder...');
+        const btn = document.getElementById('finder-run-btn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Searching...';
+
+        try {
+            // Get criteria - temperature is now in Celsius, convert to Fahrenheit for internal use
+            const minTempC = parseFloat(document.getElementById('finder-min-temp').value) || 150;
+            const minTempF = (minTempC * 9/5) + 32;
+            
+            const criteria = {
+                geothermal: document.getElementById('finder-geothermal').checked,
+                minTempC: minTempC,
+                minTemp: minTempF, // Internal use in Fahrenheit
+                depth: parseInt(document.getElementById('finder-depth').value) || 4000,
+                co2Proximity: document.getElementById('finder-co2-proximity').checked,
+                co2Distance: parseFloat(document.getElementById('finder-co2-distance').value) || 50,
+                co2Ethanol: document.getElementById('finder-co2-ethanol').checked,
+                co2Natural: document.getElementById('finder-co2-natural').checked,
+                co2Power: document.getElementById('finder-co2-power').checked,
+                co2Petroleum: document.getElementById('finder-co2-petroleum').checked,
+                co2Waste: document.getElementById('finder-co2-waste').checked,
+                co2Chemicals: document.getElementById('finder-co2-chemicals').checked,
+                co2Minerals: document.getElementById('finder-co2-minerals').checked,
+                co2Metals: document.getElementById('finder-co2-metals').checked,
+                co2Other: document.getElementById('finder-co2-other').checked,
+                pipelineProximity: document.getElementById('finder-pipeline-proximity').checked,
+                pipelineDistance: parseFloat(document.getElementById('finder-pipeline-distance').value) || 30,
+                transmission: document.getElementById('finder-transmission').checked,
+                transmissionDistance: parseFloat(document.getElementById('finder-transmission-distance').value) || 20,
+                minVoltage: parseFloat(document.getElementById('finder-min-voltage').value) || 230,
+                datacenter: document.getElementById('finder-datacenter').checked,
+                datacenterDistance: parseFloat(document.getElementById('finder-datacenter-distance').value) || 30,
+                energynet: document.getElementById('finder-energynet').checked,
+                energynetDistance: parseFloat(document.getElementById('finder-energynet-distance').value) || 20,
+                bedrock: document.getElementById('finder-bedrock').checked,
+                bedrockGranite: document.getElementById('finder-bedrock-granite').checked,
+                bedrockBasalt: document.getElementById('finder-bedrock-basalt').checked,
+                bedrockGneiss: document.getElementById('finder-bedrock-gneiss').checked,
+                bedrockSandstone: document.getElementById('finder-bedrock-sandstone').checked,
+                bedrockLimestone: document.getElementById('finder-bedrock-limestone').checked,
+                shallowBasement: document.getElementById('finder-shallow-basement').checked,
+                maxBasement: parseFloat(document.getElementById('finder-max-basement').value) || 4000,
+                topCount: parseInt(document.getElementById('finder-top-count').value) || 10
+            };
+
+            // Load required data
+            await this.ensureFinderDataLoaded(criteria);
+
+            // Score all geothermal hexagons
+            const results = await this.scoreLocations(criteria);
+
+            // Sort by score and take top N
+            results.sort((a, b) => b.score - a.score);
+            this.finderResults = results.slice(0, criteria.topCount);
+
+            // Display results
+            this.displayFinderResults();
+
+            // Add markers to map
+            this.showFinderResultsOnMap();
+
+        } catch (error) {
+            console.error('❌ Site Finder error:', error);
+            alert('Error running Site Finder: ' + error.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-search"></i> Find Top Sites';
+        }
+    }
+
+    async ensureFinderDataLoaded(criteria) {
+        // Load geothermal mesh data for the specified depth
+        const depthFile = `mesh-${criteria.depth}m.json`;
+        if (!this.dataCache.geothermalMesh || this.dataCache.geothermalMeshDepth !== criteria.depth) {
+            console.log(`📡 Loading geothermal mesh for ${criteria.depth}m...`);
+            const response = await fetch(`/cache/geothermal/${depthFile}`);
+            if (response.ok) {
+                this.dataCache.geothermalMesh = await response.json();
+                this.dataCache.geothermalMeshDepth = criteria.depth;
+            }
+        }
+
+        // Load CO2 sources if needed
+        if (criteria.co2Proximity) {
+            if (!this.dataCache.emitters) {
+                const response = await fetch('/api/emitters');
+                if (response.ok) this.dataCache.emitters = await response.json();
+            }
+            if (!this.dataCache.ethanol) {
+                const response = await fetch('/api/ethanol-plants');
+                if (response.ok) this.dataCache.ethanol = await response.json();
+            }
+            if (criteria.co2Natural && !this.dataCache.naturalCO2) {
+                const response = await fetch('/api/natural-co2');
+                if (response.ok) this.dataCache.naturalCO2 = await response.json();
+            }
+        }
+
+        // Load pipelines if needed
+        if (criteria.pipelineProximity && !this.dataCache.co2Pipelines) {
+            const response = await fetch('/api/co2-pipelines');
+            if (response.ok) this.dataCache.co2Pipelines = await response.json();
+        }
+
+        // Load geology if needed
+        if (criteria.shallowBasement && !this.dataCache.geology) {
+            const response = await fetch('/api/geology');
+            if (response.ok) this.dataCache.geology = await response.json();
+        }
+
+        // Load datacenters if needed
+        if (criteria.datacenter && !this.dataCache.datacenters) {
+            const response = await fetch('/api/datacenters');
+            if (response.ok) this.dataCache.datacenters = await response.json();
+        }
+
+        // Load EnergyNet parcels if needed
+        if (criteria.energynet && !this.dataCache.energynet) {
+            const response = await fetch('/api/energynet-parcels');
+            if (response.ok) this.dataCache.energynet = await response.json();
+        }
+
+        // Load bedrock if needed
+        if (criteria.bedrock && !this.dataCache.bedrock) {
+            const response = await fetch('/api/bedrock');
+            if (response.ok) this.dataCache.bedrock = await response.json();
+        }
+    }
+
+    async scoreLocations(criteria) {
+        const results = [];
+        const mesh = this.dataCache.geothermalMesh;
+
+        if (!mesh || !mesh.features) {
+            throw new Error('No geothermal mesh data available');
+        }
+
+        // Pre-compute CO2 source locations
+        let co2Sources = [];
+        if (criteria.co2Proximity) {
+            // Ethanol plants
+            if (criteria.co2Ethanol && this.dataCache.ethanol?.features) {
+                co2Sources = co2Sources.concat(this.dataCache.ethanol.features.map(f => ({
+                    ...f,
+                    sourceType: 'Ethanol',
+                    emissions: f.properties.emissions_mt_co2e || f.properties.capacity * 0.003 || 50000
+                })));
+            }
+            // Natural CO2 sources
+            if (criteria.co2Natural && this.dataCache.naturalCO2?.features) {
+                co2Sources = co2Sources.concat(this.dataCache.naturalCO2.features.map(f => ({
+                    ...f,
+                    sourceType: 'Natural CO₂',
+                    emissions: f.properties.estimated_co2 || 100000
+                })));
+            }
+            // Point source emitters by category
+            if (this.dataCache.emitters?.features) {
+                const emitters = this.dataCache.emitters.features.filter(f => {
+                    const sector = f.properties.industry_type_sectors || '';
+                    if (criteria.co2Power && sector.includes('Power')) return true;
+                    if (criteria.co2Petroleum && (sector.includes('Petroleum') || sector.includes('Natural Gas'))) return true;
+                    if (criteria.co2Waste && sector.includes('Waste')) return true;
+                    if (criteria.co2Chemicals && sector.includes('Chemical')) return true;
+                    if (criteria.co2Minerals && sector.includes('Mineral')) return true;
+                    if (criteria.co2Metals && sector.includes('Metal')) return true;
+                    if (criteria.co2Other && !sector.includes('Power') && !sector.includes('Petroleum') && 
+                        !sector.includes('Natural Gas') && !sector.includes('Waste') && !sector.includes('Chemical') &&
+                        !sector.includes('Mineral') && !sector.includes('Metal')) return true;
+                    return false;
+                }).map(f => {
+                    const sector = f.properties.industry_type_sectors || '';
+                    let type = 'Other';
+                    if (sector.includes('Power')) type = 'Power Plant';
+                    else if (sector.includes('Petroleum') || sector.includes('Natural Gas')) type = 'Petroleum & Gas';
+                    else if (sector.includes('Waste')) type = 'Waste';
+                    else if (sector.includes('Chemical')) type = 'Chemicals';
+                    else if (sector.includes('Mineral')) type = 'Minerals';
+                    else if (sector.includes('Metal')) type = 'Metals';
+                    return {
+                        ...f,
+                        sourceType: type,
+                        emissions: f.properties.ghg_quantity || 100000
+                    };
+                });
+                co2Sources = co2Sources.concat(emitters);
+            }
+        }
+
+        // Pre-compute pipeline geometries
+        let pipelineLines = [];
+        if (criteria.pipelineProximity && this.dataCache.co2Pipelines?.features) {
+            pipelineLines = this.dataCache.co2Pipelines.features;
+        }
+
+        // Score each hexagon
+        for (const hex of mesh.features) {
+            const temp = hex.properties.avg_temperature_f;
+            if (!temp) continue;
+
+            // Check minimum temperature
+            if (criteria.geothermal && temp < criteria.minTemp) continue;
+
+            const centroid = turf.centroid(hex);
+            const [lng, lat] = centroid.geometry.coordinates;
+
+            let score = 0;
+            const details = {
+                lng, lat,
+                temperature: temp,
+                depth: criteria.depth,
+                hexId: hex.properties.id || hex.id
+            };
+
+            // Temperature score (0-40 points)
+            if (criteria.geothermal) {
+                const tempScore = Math.min(40, (temp - criteria.minTemp) / 5);
+                score += tempScore;
+                details.tempScore = tempScore;
+            }
+
+            // CO2 proximity score (0-30 points)
+            if (criteria.co2Proximity && co2Sources.length > 0) {
+                let nearestCO2 = null;
+                let minDist = Infinity;
+                let totalNearbyEmissions = 0;
+
+                for (const source of co2Sources) {
+                    const [sLng, sLat] = source.geometry.coordinates;
+                    const dist = turf.distance([lng, lat], [sLng, sLat], { units: 'miles' });
+                    if (dist < minDist) {
+                        minDist = dist;
+                        nearestCO2 = source;
+                    }
+                    if (dist <= criteria.co2Distance) {
+                        totalNearbyEmissions += source.emissions || 0;
+                    }
+                }
+
+                if (minDist <= criteria.co2Distance) {
+                    const distScore = 15 * (1 - minDist / criteria.co2Distance);
+                    const emissionScore = Math.min(15, totalNearbyEmissions / 100000);
+                    score += distScore + emissionScore;
+                    details.nearestCO2Distance = minDist.toFixed(1);
+                    details.nearestCO2Type = nearestCO2?.sourceType;
+                    // Get name from various possible property fields
+                    const props = nearestCO2?.properties || {};
+                    details.nearestCO2Name = props.facility_name || props.Company || props.Site || 
+                        (props.Company && props.Site ? `${props.Company} - ${props.Site}` : null) ||
+                        props.field_name || props.name || 'Unknown';
+                    // For ethanol, combine Company and Site if both exist
+                    if (nearestCO2?.sourceType === 'Ethanol' && props.Company) {
+                        details.nearestCO2Name = props.Site ? `${props.Company} (${props.Site})` : props.Company;
+                    }
+                    details.nearestCO2Emissions = nearestCO2?.emissions || 0;
+                    details.totalNearbyEmissions = totalNearbyEmissions;
+                    details.co2Score = distScore + emissionScore;
+                    // Store CO2 source coordinates for deduplication and display
+                    details.co2SourceLng = nearestCO2?.geometry?.coordinates?.[0];
+                    details.co2SourceLat = nearestCO2?.geometry?.coordinates?.[1];
+                    details.co2SourceId = `${details.co2SourceLng?.toFixed(4)}_${details.co2SourceLat?.toFixed(4)}`;
+                } else {
+                    continue; // Skip if no CO2 within range
+                }
+            }
+
+            // Pipeline proximity score (0-15 points)
+            if (criteria.pipelineProximity && pipelineLines.length > 0) {
+                let minPipelineDist = Infinity;
+                for (const line of pipelineLines) {
+                    try {
+                        const dist = turf.pointToLineDistance(centroid, line, { units: 'miles' });
+                        if (dist < minPipelineDist) minPipelineDist = dist;
+                    } catch (e) { /* skip invalid geometries */ }
+                }
+
+                if (minPipelineDist <= criteria.pipelineDistance) {
+                    const pipeScore = 15 * (1 - minPipelineDist / criteria.pipelineDistance);
+                    score += pipeScore;
+                    details.nearestPipelineDistance = minPipelineDist.toFixed(1);
+                    details.pipelineScore = pipeScore;
+                } else if (criteria.pipelineProximity) {
+                    continue; // Skip if pipeline required but none in range
+                }
+            }
+
+            // Basement depth score (0-15 points)
+            if (criteria.shallowBasement && this.dataCache.geology?.features) {
+                // Find nearest geology point
+                let nearestGeo = null;
+                let minGeoDist = Infinity;
+                for (const geo of this.dataCache.geology.features) {
+                    const [gLng, gLat] = geo.geometry.coordinates;
+                    const dist = Math.sqrt((lng - gLng) ** 2 + (lat - gLat) ** 2);
+                    if (dist < minGeoDist) {
+                        minGeoDist = dist;
+                        nearestGeo = geo;
+                    }
+                }
+
+                if (nearestGeo) {
+                    const basementDepth = nearestGeo.properties.dt || 10000;
+                    if (basementDepth <= criteria.maxBasement) {
+                        const basementScore = 15 * (1 - basementDepth / criteria.maxBasement);
+                        score += basementScore;
+                        details.basementDepth = basementDepth;
+                        details.basementScore = basementScore;
+                    } else {
+                        continue; // Skip if basement too deep
+                    }
+                }
+            }
+
+            // Datacenter proximity score (0-10 points)
+            if (criteria.datacenter && this.dataCache.datacenters?.features) {
+                let minDCDist = Infinity;
+                let nearestDC = null;
+                for (const dc of this.dataCache.datacenters.features) {
+                    if (!dc.geometry?.coordinates) continue;
+                    const [dcLng, dcLat] = dc.geometry.coordinates;
+                    const dist = turf.distance([lng, lat], [dcLng, dcLat], { units: 'miles' });
+                    if (dist < minDCDist) {
+                        minDCDist = dist;
+                        nearestDC = dc;
+                    }
+                }
+
+                if (minDCDist <= criteria.datacenterDistance) {
+                    const dcScore = 10 * (1 - minDCDist / criteria.datacenterDistance);
+                    score += dcScore;
+                    details.nearestDatacenterDistance = minDCDist.toFixed(1);
+                    details.nearestDatacenterName = nearestDC?.properties?.name || nearestDC?.properties?.company;
+                    details.datacenterScore = dcScore;
+                } else if (criteria.datacenter) {
+                    continue; // Skip if datacenter required but none in range
+                }
+            }
+
+            // EnergyNet proximity score (0-10 points)
+            if (criteria.energynet && this.dataCache.energynet?.features) {
+                let minENDist = Infinity;
+                let nearestEN = null;
+                for (const parcel of this.dataCache.energynet.features) {
+                    try {
+                        const parcelCentroid = turf.centroid(parcel);
+                        const [pLng, pLat] = parcelCentroid.geometry.coordinates;
+                        const dist = turf.distance([lng, lat], [pLng, pLat], { units: 'miles' });
+                        if (dist < minENDist) {
+                            minENDist = dist;
+                            nearestEN = parcel;
+                        }
+                    } catch (e) { /* skip invalid geometries */ }
+                }
+
+                if (minENDist <= criteria.energynetDistance) {
+                    const enScore = 10 * (1 - minENDist / criteria.energynetDistance);
+                    score += enScore;
+                    details.nearestEnergyNetDistance = minENDist.toFixed(1);
+                    details.nearestEnergyNetName = nearestEN?.properties?.name || nearestEN?.properties?.parcel_id;
+                    details.energynetScore = enScore;
+                } else if (criteria.energynet) {
+                    continue; // Skip if EnergyNet required but none in range
+                }
+            }
+
+            // Bedrock lithology score (0-10 points)
+            if (criteria.bedrock && this.dataCache.bedrock?.features) {
+                const point = turf.point([lng, lat]);
+                let foundBedrock = null;
+                
+                // Check if point is within any bedrock polygon
+                for (const rock of this.dataCache.bedrock.features) {
+                    try {
+                        if (turf.booleanPointInPolygon(point, rock)) {
+                            foundBedrock = rock;
+                            break;
+                        }
+                    } catch (e) { /* skip invalid geometries */ }
+                }
+
+                if (foundBedrock) {
+                    const rockType = foundBedrock.properties.rock_type || '';
+                    const preferredTypes = [];
+                    if (criteria.bedrockGranite) preferredTypes.push('Granite');
+                    if (criteria.bedrockBasalt) preferredTypes.push('Basalt');
+                    if (criteria.bedrockGneiss) preferredTypes.push('Gneiss');
+                    if (criteria.bedrockSandstone) preferredTypes.push('Sandstone');
+                    if (criteria.bedrockLimestone) preferredTypes.push('Limestone');
+
+                    if (preferredTypes.includes(rockType)) {
+                        score += 10;
+                        details.bedrockType = rockType;
+                        details.bedrockScore = 10;
+                    } else if (criteria.bedrock && preferredTypes.length > 0) {
+                        continue; // Skip if bedrock required but not preferred type
+                    }
+                }
+            }
+
+            if (score > 0) {
+                results.push({ score, ...details });
+            }
+        }
+
+        // Deduplicate by CO2 source if CO2 proximity was a criterion
+        // Keep only the best scoring site per unique CO2 source location
+        if (criteria.co2Proximity && results.length > 0) {
+            const bestByCO2Source = new Map();
+            for (const site of results) {
+                // Use the unique CO2 source ID based on coordinates
+                const co2Key = site.co2SourceId || `unknown_${Math.random()}`;
+                if (!bestByCO2Source.has(co2Key) || bestByCO2Source.get(co2Key).score < site.score) {
+                    bestByCO2Source.set(co2Key, site);
+                }
+            }
+            return Array.from(bestByCO2Source.values());
+        }
+
+        return results;
+    }
+
+    displayFinderResults() {
+        const resultsDiv = document.getElementById('finder-results');
+        const listDiv = document.getElementById('finder-results-list');
+        const countSpan = document.getElementById('finder-results-count');
+
+        resultsDiv.style.display = 'block';
+        countSpan.textContent = this.finderResults.length;
+
+        if (this.finderResults.length === 0) {
+            listDiv.innerHTML = '<p style="color: #666;">No sites found matching criteria. Try adjusting filters.</p>';
+            return;
+        }
+
+        let html = '';
+        this.finderResults.forEach((site, idx) => {
+            // Convert temperature from F to C for display
+            const tempC = site.temperature ? ((site.temperature - 32) * 5/9).toFixed(0) : '?';
+            html += `
+                <div class="finder-result-item" style="padding: 8px; margin-bottom: 6px; background: white; border-radius: 4px; border-left: 3px solid #1976D2; cursor: pointer;" 
+                     onclick="window.geoApp.flyToSite(${site.lng}, ${site.lat})" 
+                     onmouseover="this.style.background='#E3F2FD'" 
+                     onmouseout="this.style.background='white'">
+                    <div style="font-weight: bold; color: #1565C0;">#${idx + 1} - Score: ${site.score.toFixed(1)}</div>
+                    <div style="font-size: 10px; color: #666;">
+                        🌡️ ${tempC}°C at ${site.depth}m
+                        ${site.nearestCO2Distance ? `<br>🏭 ${site.nearestCO2Distance} mi to ${site.nearestCO2Type}` : ''}
+                        ${site.nearestPipelineDistance ? `<br>🔗 ${site.nearestPipelineDistance} mi to pipeline` : ''}
+                        ${site.nearestDatacenterDistance ? `<br>🖥️ ${site.nearestDatacenterDistance} mi to datacenter` : ''}
+                        ${site.nearestEnergyNetDistance ? `<br>🏞️ ${site.nearestEnergyNetDistance} mi to EnergyNet` : ''}
+                        ${site.bedrockType ? `<br>💎 ${site.bedrockType}` : ''}
+                        ${site.basementDepth ? `<br>🪨 ${site.basementDepth.toFixed(0)}m basement` : ''}
+                    </div>
+                    <button onclick="event.stopPropagation(); window.geoApp.saveLocation(${JSON.stringify(site).replace(/"/g, '&quot;')})" 
+                            style="margin-top: 4px; padding: 2px 6px; font-size: 9px; background: #4CAF50; color: white; border: none; border-radius: 3px; cursor: pointer;">
+                        <i class="fas fa-bookmark"></i> Save
+                    </button>
+                </div>
+            `;
+        });
+
+        listDiv.innerHTML = html;
+    }
+
+    showFinderResultsOnMap() {
+        // Remove existing finder markers layer
+        if (this.map.getLayer('finder-results-markers')) {
+            this.map.removeLayer('finder-results-markers');
+        }
+        if (this.map.getLayer('finder-results-labels')) {
+            this.map.removeLayer('finder-results-labels');
+        }
+        if (this.map.getLayer('finder-co2-markers')) {
+            this.map.removeLayer('finder-co2-markers');
+        }
+        if (this.map.getLayer('finder-co2-labels')) {
+            this.map.removeLayer('finder-co2-labels');
+        }
+        if (this.map.getSource('finder-results')) {
+            this.map.removeSource('finder-results');
+        }
+        if (this.map.getSource('finder-co2-sources')) {
+            this.map.removeSource('finder-co2-sources');
+        }
+
+        // Create GeoJSON from results (site locations)
+        const geojson = {
+            type: 'FeatureCollection',
+            features: this.finderResults.map((site, idx) => ({
+                type: 'Feature',
+                geometry: { type: 'Point', coordinates: [site.lng, site.lat] },
+                properties: { rank: idx + 1, score: site.score, ...site }
+            }))
+        };
+
+        // Create GeoJSON for CO2 sources
+        const co2Geojson = {
+            type: 'FeatureCollection',
+            features: this.finderResults
+                .filter(site => site.co2SourceLng && site.co2SourceLat)
+                .map((site, idx) => ({
+                    type: 'Feature',
+                    geometry: { type: 'Point', coordinates: [site.co2SourceLng, site.co2SourceLat] },
+                    properties: { 
+                        rank: idx + 1,
+                        name: site.nearestCO2Name,
+                        type: site.nearestCO2Type,
+                        emissions: site.nearestCO2Emissions,
+                        siteRank: idx + 1
+                    }
+                }))
+        };
+
+        // Add source and layers for site results
+        this.map.addSource('finder-results', { type: 'geojson', data: geojson });
+
+        this.map.addLayer({
+            id: 'finder-results-markers',
+            type: 'circle',
+            source: 'finder-results',
+            paint: {
+                'circle-radius': 15,
+                'circle-color': '#1976D2',
+                'circle-stroke-width': 3,
+                'circle-stroke-color': '#FFFFFF'
+            }
+        });
+
+        this.map.addLayer({
+            id: 'finder-results-labels',
+            type: 'symbol',
+            source: 'finder-results',
+            layout: {
+                'text-field': ['get', 'rank'],
+                'text-size': 12,
+                'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold']
+            },
+            paint: {
+                'text-color': '#FFFFFF'
+            }
+        });
+
+        // Add CO2 source markers (orange/yellow factory icons)
+        if (co2Geojson.features.length > 0) {
+            this.map.addSource('finder-co2-sources', { type: 'geojson', data: co2Geojson });
+
+            this.map.addLayer({
+                id: 'finder-co2-markers',
+                type: 'circle',
+                source: 'finder-co2-sources',
+                paint: {
+                    'circle-radius': 12,
+                    'circle-color': '#FF9800',
+                    'circle-stroke-width': 2,
+                    'circle-stroke-color': '#E65100'
+                }
+            });
+
+            this.map.addLayer({
+                id: 'finder-co2-labels',
+                type: 'symbol',
+                source: 'finder-co2-sources',
+                layout: {
+                    'text-field': '🏭',
+                    'text-size': 14
+                }
+            });
+
+            // Click handler for CO2 source markers
+            this.map.on('click', 'finder-co2-markers', (e) => {
+                const props = e.features[0].properties;
+                this.showCO2SourcePopup(e.lngLat, props);
+            });
+
+            this.map.on('mouseenter', 'finder-co2-markers', () => {
+                this.map.getCanvas().style.cursor = 'pointer';
+            });
+            this.map.on('mouseleave', 'finder-co2-markers', () => {
+                this.map.getCanvas().style.cursor = '';
+            });
+        }
+
+        // Fit map to results (include both sites and CO2 sources)
+        if (this.finderResults.length > 0) {
+            const bounds = new maplibregl.LngLatBounds();
+            this.finderResults.forEach(site => {
+                bounds.extend([site.lng, site.lat]);
+                if (site.co2SourceLng && site.co2SourceLat) {
+                    bounds.extend([site.co2SourceLng, site.co2SourceLat]);
+                }
+            });
+            this.map.fitBounds(bounds, { padding: 100 });
+        }
+
+        // Add click handler for popups
+        this.map.on('click', 'finder-results-markers', (e) => {
+            const props = e.features[0].properties;
+            this.showFinderResultPopup(e.lngLat, props);
+        });
+
+        // Change cursor on hover
+        this.map.on('mouseenter', 'finder-results-markers', () => {
+            this.map.getCanvas().style.cursor = 'pointer';
+        });
+        this.map.on('mouseleave', 'finder-results-markers', () => {
+            this.map.getCanvas().style.cursor = '';
+        });
+    }
+
+    showCO2SourcePopup(lngLat, props) {
+        const emissionsDisplay = props.emissions ? `${(parseFloat(props.emissions)/1000).toFixed(0)}k MT CO₂/year` : 'Unknown';
+        const popupHTML = `
+            <div class="popup-content" style="max-width: 280px;">
+                <div class="popup-header" style="background: #FF9800; color: white; padding: 10px; margin: -10px -10px 10px -10px; border-radius: 4px 4px 0 0;">
+                    <h3 style="margin: 0; font-size: 14px;">🏭 CO₂ Source</h3>
+                </div>
+                <div style="font-size: 12px;">
+                    <div><strong>Name:</strong> ${props.name || 'Unknown'}</div>
+                    <div><strong>Type:</strong> ${props.type || 'Unknown'}</div>
+                    <div><strong>Emissions:</strong> ${emissionsDisplay}</div>
+                    <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #ddd; font-size: 11px; color: #666;">
+                        Associated with Site #${props.siteRank}
+                    </div>
+                </div>
+            </div>
+        `;
+
+        new maplibregl.Popup({ closeButton: true, maxWidth: '300px' })
+            .setLngLat(lngLat)
+            .setHTML(popupHTML)
+            .addTo(this.map);
+    }
+
+    showFinderResultPopup(lngLat, props) {
+        // Convert temperature from F to C for display
+        const tempC = props.temperature ? ((parseFloat(props.temperature) - 32) * 5/9).toFixed(0) : '?';
+        const rank = props.rank;
+        const totalResults = this.finderResults.length;
+        
+        const popupHTML = `
+            <div class="popup-content" style="max-width: 320px;">
+                <div class="popup-header" style="background: #1976D2; color: white; padding: 10px; margin: -10px -10px 10px -10px; border-radius: 4px 4px 0 0;">
+                    <h3 style="margin: 0; font-size: 14px;">🏆 Rank #${rank} of ${totalResults}</h3>
+                    <div style="font-size: 12px; margin-top: 4px;">Score: ${parseFloat(props.score).toFixed(1)} points</div>
+                </div>
+                <div style="font-size: 12px;">
+                    <div><strong>🌡️ Temperature:</strong> ${tempC}°C at ${props.depth || 4000}m</div>
+                    <div><strong>📍 Location:</strong> ${parseFloat(props.lat).toFixed(4)}, ${parseFloat(props.lng).toFixed(4)}</div>
+                    ${props.nearestCO2Distance ? `<div><strong>🏭 Nearest CO₂:</strong> ${props.nearestCO2Distance} mi (${props.nearestCO2Type || 'Unknown'})</div>` : ''}
+                    ${props.nearestCO2Name ? `<div style="margin-left: 20px; font-size: 11px; color: #666;">${props.nearestCO2Name}</div>` : ''}
+                    ${props.nearestCO2Emissions ? `<div style="margin-left: 20px; font-size: 11px; color: #666;">Emissions: ${(parseFloat(props.nearestCO2Emissions)/1000).toFixed(0)}k MT CO₂</div>` : ''}
+                    ${props.nearestPipelineDistance ? `<div><strong>🔗 Nearest Pipeline:</strong> ${props.nearestPipelineDistance} mi</div>` : ''}
+                    ${props.nearestDatacenterDistance ? `<div><strong>🖥️ Nearest Datacenter:</strong> ${props.nearestDatacenterDistance} mi</div>` : ''}
+                    ${props.nearestEnergyNetDistance ? `<div><strong>🏞️ Nearest EnergyNet:</strong> ${props.nearestEnergyNetDistance} mi</div>` : ''}
+                    ${props.bedrockType ? `<div><strong>💎 Bedrock:</strong> ${props.bedrockType}</div>` : ''}
+                    ${props.basementDepth ? `<div><strong>🪨 Basement:</strong> ${parseFloat(props.basementDepth).toFixed(0)}m</div>` : ''}
+                </div>
+                <button onclick="window.geoApp.saveLocation(${JSON.stringify(props).replace(/"/g, '&quot;')})" 
+                        style="width: 100%; margin-top: 10px; padding: 8px; background: #4CAF50; color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer;">
+                    <i class="fas fa-bookmark"></i> Save This Location
+                </button>
+            </div>
+        `;
+
+        new maplibregl.Popup({ closeButton: true, maxWidth: '350px' })
+            .setLngLat(lngLat)
+            .setHTML(popupHTML)
+            .addTo(this.map);
+    }
+
+    toggleFinderResultsLayer(visible) {
+        const layers = ['finder-results-markers', 'finder-results-labels', 'finder-co2-markers', 'finder-co2-labels'];
+        layers.forEach(layerId => {
+            if (this.map.getLayer(layerId)) {
+                this.map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
+            }
+        });
+    }
+
+    clearFinderResults() {
+        // Remove layers and source
+        if (this.map.getLayer('finder-results-markers')) {
+            this.map.removeLayer('finder-results-markers');
+        }
+        if (this.map.getLayer('finder-results-labels')) {
+            this.map.removeLayer('finder-results-labels');
+        }
+        if (this.map.getLayer('finder-co2-markers')) {
+            this.map.removeLayer('finder-co2-markers');
+        }
+        if (this.map.getLayer('finder-co2-labels')) {
+            this.map.removeLayer('finder-co2-labels');
+        }
+        if (this.map.getSource('finder-results')) {
+            this.map.removeSource('finder-results');
+        }
+        if (this.map.getSource('finder-co2-sources')) {
+            this.map.removeSource('finder-co2-sources');
+        }
+
+        // Clear results array
+        this.finderResults = [];
+
+        // Hide results panel
+        document.getElementById('finder-results').style.display = 'none';
+        document.getElementById('finder-results-list').innerHTML = '';
+        document.getElementById('finder-results-count').textContent = '0';
+        
+        // Reset toggle checkbox
+        document.getElementById('show-finder-results').checked = true;
+    }
+
+    flyToSite(lng, lat) {
+        this.map.flyTo({ center: [lng, lat], zoom: 10 });
+    }
+
+    saveAllFinderResults() {
+        this.finderResults.forEach(site => this.saveLocation(site, false));
+        this.updateSavedLocationsUI();
+        alert(`Saved ${this.finderResults.length} locations!`);
+    }
+
+    // ==== SAVED LOCATIONS METHODS ====
+
+    setupSavedLocationsControls() {
+        // Show/hide saved locations on map
+        document.getElementById('show-saved-locations').addEventListener('change', (e) => {
+            this.toggleSavedLocationsLayer(e.target.checked);
+        });
+
+        // Export button
+        document.getElementById('export-locations-btn').addEventListener('click', () => {
+            this.exportLocationsToExcel();
+        });
+
+        // Clear button
+        document.getElementById('clear-locations-btn').addEventListener('click', () => {
+            if (confirm('Are you sure you want to clear all saved locations?')) {
+                this.savedLocations = [];
+                localStorage.setItem('savedLocations', '[]');
+                this.updateSavedLocationsUI();
+                this.updateSavedLocationsLayer();
+            }
+        });
+
+        // Initialize UI only - layer will be added after map loads
+        this.updateSavedLocationsUI();
+    }
+
+    showSaveLocationMenu(e) {
+        const lng = e.lngLat.lng;
+        const lat = e.lngLat.lat;
+
+        // Gather data at this location
+        const locationData = this.gatherLocationData(lng, lat);
+
+        // Create popup with save option
+        const popup = new maplibregl.Popup({ closeButton: true, maxWidth: '300px' })
+            .setLngLat(e.lngLat)
+            .setHTML(`
+                <div style="padding: 10px;">
+                    <h4 style="margin: 0 0 10px 0; color: #388E3C;"><i class="fas fa-map-marker-alt"></i> Save This Location</h4>
+                    <div style="font-size: 11px; margin-bottom: 10px;">
+                        <strong>Coordinates:</strong> ${lat.toFixed(4)}, ${lng.toFixed(4)}<br>
+                        ${locationData.temperature ? `<strong>Temperature:</strong> ${locationData.temperature.toFixed(0)}°F<br>` : ''}
+                        ${locationData.nearestCO2Distance ? `<strong>Nearest CO₂:</strong> ${locationData.nearestCO2Distance} mi<br>` : ''}
+                        ${locationData.nearestPipelineDistance ? `<strong>Nearest Pipeline:</strong> ${locationData.nearestPipelineDistance} mi<br>` : ''}
+                    </div>
+                    <input type="text" id="location-name-input" placeholder="Location name (optional)" 
+                           style="width: 100%; padding: 6px; margin-bottom: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 11px;">
+                    <button onclick="window.geoApp.saveLocationFromPopup(${lng}, ${lat})" 
+                            style="width: 100%; padding: 8px; background: #388E3C; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                        <i class="fas fa-save"></i> Save Location
+                    </button>
+                </div>
+            `)
+            .addTo(this.map);
+
+        this.saveLocationPopup = popup;
+    }
+
+    gatherLocationData(lng, lat) {
+        const data = { lng, lat };
+
+        // Get geothermal temperature from mesh
+        const meshSource = this.map.getSource('hexagon-mesh');
+        if (meshSource && meshSource._data) {
+            const point = turf.point([lng, lat]);
+            for (const hex of meshSource._data.features) {
+                if (turf.booleanPointInPolygon(point, hex)) {
+                    data.temperature = hex.properties.avg_temperature_f;
+                    data.depth = this.dataCache.geothermalMeshDepth || 4000;
+                    break;
+                }
+            }
+        }
+
+        // Find nearest CO2 source
+        if (this.dataCache.emitters?.features || this.dataCache.ethanol?.features) {
+            let minDist = Infinity;
+            let nearest = null;
+
+            const sources = [
+                ...(this.dataCache.ethanol?.features || []).map(f => ({ ...f, type: 'Ethanol' })),
+                ...(this.dataCache.emitters?.features || []).map(f => ({ ...f, type: 'Emitter' }))
+            ];
+
+            for (const source of sources) {
+                const [sLng, sLat] = source.geometry.coordinates;
+                const dist = turf.distance([lng, lat], [sLng, sLat], { units: 'miles' });
+                if (dist < minDist) {
+                    minDist = dist;
+                    nearest = source;
+                }
+            }
+
+            if (nearest && minDist < 200) {
+                data.nearestCO2Distance = minDist.toFixed(1);
+                data.nearestCO2Type = nearest.type;
+                data.nearestCO2Name = nearest.properties?.facility_name || nearest.properties?.site;
+                data.nearestCO2Emissions = nearest.properties?.ghg_quantity || nearest.properties?.emissions_mt_co2e;
+            }
+        }
+
+        // Find nearest pipeline
+        if (this.dataCache.co2Pipelines?.features) {
+            let minDist = Infinity;
+            const point = turf.point([lng, lat]);
+
+            for (const line of this.dataCache.co2Pipelines.features) {
+                try {
+                    const dist = turf.pointToLineDistance(point, line, { units: 'miles' });
+                    if (dist < minDist) minDist = dist;
+                } catch (e) { /* skip */ }
+            }
+
+            if (minDist < 200) {
+                data.nearestPipelineDistance = minDist.toFixed(1);
+            }
+        }
+
+        return data;
+    }
+
+    saveLocationFromPopup(lng, lat) {
+        const nameInput = document.getElementById('location-name-input');
+        const name = nameInput?.value || `Location ${this.savedLocations.length + 1}`;
+
+        const locationData = this.gatherLocationData(lng, lat);
+        locationData.name = name;
+        locationData.savedAt = new Date().toISOString();
+
+        this.saveLocation(locationData);
+
+        if (this.saveLocationPopup) {
+            this.saveLocationPopup.remove();
+        }
+    }
+
+    saveLocation(data, updateUI = true) {
+        // Check for duplicates
+        const isDuplicate = this.savedLocations.some(loc => 
+            Math.abs(loc.lng - data.lng) < 0.001 && Math.abs(loc.lat - data.lat) < 0.001
+        );
+
+        if (!isDuplicate) {
+            const location = {
+                id: Date.now(),
+                name: data.name || `Site ${this.savedLocations.length + 1}`,
+                lng: data.lng,
+                lat: data.lat,
+                temperature: data.temperature,
+                depth: data.depth,
+                nearestCO2Distance: data.nearestCO2Distance,
+                nearestCO2Type: data.nearestCO2Type,
+                nearestCO2Name: data.nearestCO2Name,
+                nearestCO2Emissions: data.nearestCO2Emissions,
+                nearestPipelineDistance: data.nearestPipelineDistance,
+                nearestDatacenterDistance: data.nearestDatacenterDistance,
+                nearestDatacenterName: data.nearestDatacenterName,
+                nearestEnergyNetDistance: data.nearestEnergyNetDistance,
+                nearestEnergyNetName: data.nearestEnergyNetName,
+                bedrockType: data.bedrockType,
+                basementDepth: data.basementDepth,
+                score: data.score,
+                savedAt: data.savedAt || new Date().toISOString()
+            };
+
+            this.savedLocations.push(location);
+            localStorage.setItem('savedLocations', JSON.stringify(this.savedLocations));
+
+            if (updateUI) {
+                this.updateSavedLocationsUI();
+                this.updateSavedLocationsLayer();
+            }
+        }
+    }
+
+    updateSavedLocationsUI() {
+        const countSpan = document.getElementById('saved-count');
+        const listDiv = document.getElementById('saved-locations-list');
+        const exportBtn = document.getElementById('export-locations-btn');
+        const clearBtn = document.getElementById('clear-locations-btn');
+
+        countSpan.textContent = this.savedLocations.length;
+        exportBtn.disabled = this.savedLocations.length === 0;
+        clearBtn.disabled = this.savedLocations.length === 0;
+
+        if (this.savedLocations.length === 0) {
+            listDiv.innerHTML = '<p style="color: #666; font-style: italic;">No saved locations yet. Click on the map or use Site Finder to add locations.</p>';
+            return;
+        }
+
+        let html = '';
+        this.savedLocations.forEach((loc, idx) => {
+            html += `
+                <div class="saved-location-item" style="padding: 6px; margin-bottom: 4px; background: white; border-radius: 4px; border-left: 3px solid #388E3C; display: flex; justify-content: space-between; align-items: center;">
+                    <div style="cursor: pointer; flex: 1;" onclick="window.geoApp.flyToSite(${loc.lng}, ${loc.lat})">
+                        <div style="font-weight: bold; font-size: 11px; color: #2E7D32;">${loc.name}</div>
+                        <div style="font-size: 9px; color: #666;">
+                            ${loc.temperature ? `${loc.temperature.toFixed(0)}°F` : ''} 
+                            ${loc.nearestCO2Distance ? `• ${loc.nearestCO2Distance}mi CO₂` : ''}
+                        </div>
+                    </div>
+                    <button onclick="window.geoApp.removeLocation(${loc.id})" 
+                            style="padding: 2px 6px; background: #F44336; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 9px;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+        });
+
+        listDiv.innerHTML = html;
+    }
+
+    removeLocation(id) {
+        this.savedLocations = this.savedLocations.filter(loc => loc.id !== id);
+        localStorage.setItem('savedLocations', JSON.stringify(this.savedLocations));
+        this.updateSavedLocationsUI();
+        this.updateSavedLocationsLayer();
+    }
+
+    addSavedLocationsLayer() {
+        // Add source for saved locations
+        this.map.addSource('saved-locations', {
+            type: 'geojson',
+            data: { type: 'FeatureCollection', features: [] }
+        });
+
+        // Add marker layer
+        this.map.addLayer({
+            id: 'saved-locations-markers',
+            type: 'circle',
+            source: 'saved-locations',
+            paint: {
+                'circle-radius': 12,
+                'circle-color': '#388E3C',
+                'circle-stroke-width': 3,
+                'circle-stroke-color': '#FFFFFF'
+            }
+        });
+
+        // Add icon layer
+        this.map.addLayer({
+            id: 'saved-locations-icons',
+            type: 'symbol',
+            source: 'saved-locations',
+            layout: {
+                'text-field': '📍',
+                'text-size': 14,
+                'text-allow-overlap': true
+            }
+        });
+
+        // Update with existing saved locations
+        this.updateSavedLocationsLayer();
+
+        // Add click handler
+        this.map.on('click', 'saved-locations-markers', (e) => {
+            const props = e.features[0].properties;
+            this.showSavedLocationPopup(e.lngLat, props);
+        });
+
+        // Add right-click context menu for saving locations
+        this.map.on('contextmenu', (e) => {
+            this.showSaveLocationMenu(e);
+        });
+    }
+
+    updateSavedLocationsLayer() {
+        const source = this.map.getSource('saved-locations');
+        if (!source) return;
+
+        const geojson = {
+            type: 'FeatureCollection',
+            features: this.savedLocations.map(loc => ({
+                type: 'Feature',
+                geometry: { type: 'Point', coordinates: [loc.lng, loc.lat] },
+                properties: loc
+            }))
+        };
+
+        source.setData(geojson);
+    }
+
+    toggleSavedLocationsLayer(visible) {
+        const layers = ['saved-locations-markers', 'saved-locations-icons'];
+        layers.forEach(layerId => {
+            if (this.map.getLayer(layerId)) {
+                this.map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
+            }
+        });
+    }
+
+    showSavedLocationPopup(lngLat, props) {
+        // Convert temperature from F to C for display
+        const tempC = props.temperature ? ((parseFloat(props.temperature) - 32) * 5/9).toFixed(0) : null;
+        const popupHTML = `
+            <div class="popup-content" style="max-width: 300px;">
+                <div class="popup-header" style="background: #388E3C; color: white; padding: 10px; margin: -10px -10px 10px -10px; border-radius: 4px 4px 0 0;">
+                    <h3 style="margin: 0; font-size: 14px;">📍 ${props.name}</h3>
+                </div>
+                <div style="font-size: 12px;">
+                    ${tempC ? `<div><strong>Temperature:</strong> ${tempC}°C at ${props.depth || 4000}m</div>` : ''}
+                    ${props.nearestCO2Distance ? `<div><strong>Nearest CO₂:</strong> ${props.nearestCO2Distance} mi (${props.nearestCO2Type || 'Unknown'})</div>` : ''}
+                    ${props.nearestCO2Name ? `<div><strong>CO₂ Source:</strong> ${props.nearestCO2Name}</div>` : ''}
+                    ${props.nearestPipelineDistance ? `<div><strong>Nearest Pipeline:</strong> ${props.nearestPipelineDistance} mi</div>` : ''}
+                    ${props.nearestDatacenterDistance ? `<div><strong>Nearest Datacenter:</strong> ${props.nearestDatacenterDistance} mi</div>` : ''}
+                    ${props.nearestEnergyNetDistance ? `<div><strong>Nearest EnergyNet:</strong> ${props.nearestEnergyNetDistance} mi</div>` : ''}
+                    ${props.bedrockType ? `<div><strong>Bedrock:</strong> ${props.bedrockType}</div>` : ''}
+                    ${props.basementDepth ? `<div><strong>Basement Depth:</strong> ${parseFloat(props.basementDepth).toFixed(0)}m</div>` : ''}
+                    ${props.score ? `<div><strong>Score:</strong> ${parseFloat(props.score).toFixed(1)}</div>` : ''}
+                    <div style="margin-top: 6px; font-size: 10px; color: #666;">
+                        Saved: ${new Date(props.savedAt).toLocaleDateString()}
+                    </div>
+                </div>
+            </div>
+        `;
+
+        new maplibregl.Popup({ closeButton: true, maxWidth: '350px' })
+            .setLngLat(lngLat)
+            .setHTML(popupHTML)
+            .addTo(this.map);
+    }
+
+    exportLocationsToExcel() {
+        if (this.savedLocations.length === 0) {
+            alert('No locations to export');
+            return;
+        }
+
+        // Create CSV content
+        const headers = [
+            'Name', 'Latitude', 'Longitude', 'Temperature (°C)', 'Depth (m)',
+            'Nearest CO2 Distance (mi)', 'Nearest CO2 Type', 'Nearest CO2 Name', 'CO2 Emissions (MT)',
+            'Nearest Pipeline Distance (mi)', 'Nearest Datacenter Distance (mi)', 'Nearest Datacenter Name',
+            'Nearest EnergyNet Distance (mi)', 'Bedrock Type', 'Basement Depth (m)', 'Score', 'Saved Date'
+        ];
+
+        const rows = this.savedLocations.map(loc => {
+            // Convert temperature from F to C
+            const tempC = loc.temperature ? ((loc.temperature - 32) * 5/9).toFixed(1) : '';
+            return [
+                loc.name,
+                loc.lat?.toFixed(6),
+                loc.lng?.toFixed(6),
+                tempC,
+                loc.depth || '',
+                loc.nearestCO2Distance || '',
+                loc.nearestCO2Type || '',
+                loc.nearestCO2Name || '',
+                loc.nearestCO2Emissions || '',
+                loc.nearestPipelineDistance || '',
+                loc.nearestDatacenterDistance || '',
+                loc.nearestDatacenterName || '',
+                loc.nearestEnergyNetDistance || '',
+                loc.bedrockType || '',
+                loc.basementDepth?.toFixed(0) || '',
+                loc.score?.toFixed(2) || '',
+                loc.savedAt ? new Date(loc.savedAt).toLocaleDateString() : ''
+            ];
+        });
+
+        // Build CSV
+        let csv = headers.join(',') + '\n';
+        rows.forEach(row => {
+            csv += row.map(cell => `"${cell}"`).join(',') + '\n';
+        });
+
+        // Download
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `saved_locations_${new Date().toISOString().split('T')[0]}.csv`;
+        link.click();
     }
 }
 
