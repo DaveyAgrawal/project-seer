@@ -4,7 +4,7 @@
   "description": "MapLibre GL JS web application for geospatial data visualization",
   "main": "dist/server.js",
   "scripts": {
-    "build": "tsc",
+    "build": "git lfs pull || true && tsc",
     "dev": "ts-node src/server.ts",
     "start": "node dist/server.js",
     "clean": "rm -rf dist"
