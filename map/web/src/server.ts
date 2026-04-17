@@ -908,7 +908,7 @@ class GeospatialWebServer {
 
       const fs = require('fs');
       const xlsx = require('xlsx');
-      const dataPath = path.join(__dirname, '../../../DataCenterMap-Scraper/more.data/natural_co2_reservoirs_CONUS.xlsx');
+      const dataPath = path.join(__dirname, '../public/data/natural_co2_reservoirs_CONUS.xlsx');
       
       if (!fs.existsSync(dataPath)) {
         console.error('❌ Natural CO₂ data file not found:', dataPath);
@@ -959,7 +959,7 @@ class GeospatialWebServer {
       console.log('🔗 Fetching CO₂ pipelines...');
 
       const fs = require('fs');
-      const dataPath = path.join(__dirname, '../../../DataCenterMap-Scraper/more.data/co2_pipelines.geojson');
+      const dataPath = path.join(__dirname, '../public/data/co2_pipelines.geojson');
       
       if (!fs.existsSync(dataPath)) {
         console.error('❌ CO₂ pipelines data file not found:', dataPath);
