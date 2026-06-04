@@ -22,3 +22,12 @@ logs/
 .env.local
 .env.productionDataCenterMap-Scraper/more.data/3LYRModel_Shapefiles/
 DataCenterMap-Scraper/Copy of Copy of geospatial_dump.sql
+
+# Large uploaded data files
+Qfaults_GIS.zip
+qfaults.kmz
+class_vi_primacy_status.csv
+water_budget_sui_ensemble.parquet
+
+# Large source datasets
+DataCenterMap-Scraper/more.data/
