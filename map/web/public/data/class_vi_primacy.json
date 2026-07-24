@@ -1,0 +1,313 @@
+{
+  "metadata": {
+    "total_states": 50,
+    "source": "EPA Class VI Primacy Status",
+    "primacy_scores": {
+      "2": "Full primacy (state regulates Class VI wells)",
+      "1": "Application pending",
+      "0": "Federal regulation (EPA regulates)"
+    }
+  },
+  "data": {
+    "TX": {
+      "state": "Texas",
+      "primacy_status": "primacy",
+      "primacy_score": 2,
+      "note": "Full Class VI primacy as of 2025"
+    },
+    "AZ": {
+      "state": "Arizona",
+      "primacy_status": "primacy",
+      "primacy_score": 2,
+      "note": "Full Class VI primacy as of 2025"
+    },
+    "WV": {
+      "state": "West Virginia",
+      "primacy_status": "primacy",
+      "primacy_score": 2,
+      "note": "Full Class VI primacy as of 2025"
+    },
+    "LA": {
+      "state": "Louisiana",
+      "primacy_status": "primacy",
+      "primacy_score": 2,
+      "note": "Full Class VI primacy as of 2025"
+    },
+    "WY": {
+      "state": "Wyoming",
+      "primacy_status": "primacy",
+      "primacy_score": 2,
+      "note": "Full Class VI primacy as of 2025"
+    },
+    "ND": {
+      "state": "North Dakota",
+      "primacy_status": "primacy",
+      "primacy_score": 2,
+      "note": "Full Class VI primacy as of 2025"
+    },
+    "AL": {
+      "state": "Alabama",
+      "primacy_status": "application",
+      "primacy_score": 1,
+      "note": "Active primacy application"
+    },
+    "AK": {
+      "state": "Alaska",
+      "primacy_status": "application",
+      "primacy_score": 1,
+      "note": "Active primacy application"
+    },
+    "CO": {
+      "state": "Colorado",
+      "primacy_status": "application",
+      "primacy_score": 1,
+      "note": "Active primacy application"
+    },
+    "MS": {
+      "state": "Mississippi",
+      "primacy_status": "application",
+      "primacy_score": 1,
+      "note": "Active primacy application"
+    },
+    "NE": {
+      "state": "Nebraska",
+      "primacy_status": "application",
+      "primacy_score": 1,
+      "note": "Active primacy application"
+    },
+    "OK": {
+      "state": "Oklahoma",
+      "primacy_status": "application",
+      "primacy_score": 1,
+      "note": "Active primacy application"
+    },
+    "UT": {
+      "state": "Utah",
+      "primacy_status": "application",
+      "primacy_score": 1,
+      "note": "Active primacy application"
+    },
+    "AR": {
+      "state": "Arkansas",
+      "primacy_status": "federal",
+      "primacy_score": 0,
+      "note": "EPA-administered (no primacy)"
+    },
+    "CA": {
+      "state": "California",
+      "primacy_status": "federal",
+      "primacy_score": 0,
+      "note": "EPA-administered (no primacy)"
+    },
+    "CT": {
+      "state": "Connecticut",
+      "primacy_status": "federal",
+      "primacy_score": 0,
+      "note": "EPA-administered (no primacy)"
+    },
+    "DE": {
+      "state": "Delaware",
+      "primacy_status": "federal",
+      "primacy_score": 0,
+      "note": "EPA-administered (no primacy)"
+    },
+    "FL": {
+      "state": "Florida",
+      "primacy_status": "federal",
+      "primacy_score": 0,
+      "note": "EPA-administered (no primacy)"
+    },
+    "GA": {
+      "state": "Georgia",
+      "primacy_status": "federal",
+      "primacy_score": 0,
+      "note": "EPA-administered (no primacy)"
+    },
+    "HI": {
+      "state": "Hawaii",
+      "primacy_status": "federal",
+      "primacy_score": 0,
+      "note": "EPA-administered (no primacy)"
+    },
+    "ID": {
+      "state": "Idaho",
+      "primacy_status": "federal",
+      "primacy_score": 0,
+      "note": "EPA-administered (no primacy)"
+    },
+    "IL": {
+      "state": "Illinois",
+      "primacy_status": "federal",
+      "primacy_score": 0,
+      "note": "EPA-administered (no primacy)"
+    },
+    "IN": {
+      "state": "Indiana",
+      "primacy_status": "federal",
+      "primacy_score": 0,
+      "note": "EPA-administered (no primacy)"
+    },
+    "IA": {
+      "state": "Iowa",
+      "primacy_status": "federal",
+      "primacy_score": 0,
+      "note": "EPA-administered (no primacy)"
+    },
+    "KS": {
+      "state": "Kansas",
+      "primacy_status": "federal",
+      "primacy_score": 0,
+      "note": "EPA-administered (no primacy)"
+    },
+    "KY": {
+      "state": "Kentucky",
+      "primacy_status": "federal",
+      "primacy_score": 0,
+      "note": "EPA-administered (no primacy)"
+    },
+    "ME": {
+      "state": "Maine",
+      "primacy_status": "federal",
+      "primacy_score": 0,
+      "note": "EPA-administered (no primacy)"
+    },
+    "MD": {
+      "state": "Maryland",
+      "primacy_status": "federal",
+      "primacy_score": 0,
+      "note": "EPA-administered (no primacy)"
+    },
+    "MA": {
+      "state": "Massachusetts",
+      "primacy_status": "federal",
+      "primacy_score": 0,
+      "note": "EPA-administered (no primacy)"
+    },
+    "MI": {
+      "state": "Michigan",
+      "primacy_status": "federal",
+      "primacy_score": 0,
+      "note": "EPA-administered (no primacy)"
+    },
+    "MN": {
+      "state": "Minnesota",
+      "primacy_status": "federal",
+      "primacy_score": 0,
+      "note": "EPA-administered (no primacy)"
+    },
+    "MO": {
+      "state": "Missouri",
+      "primacy_status": "federal",
+      "primacy_score": 0,
+      "note": "EPA-administered (no primacy)"
+    },
+    "MT": {
+      "state": "Montana",
+      "primacy_status": "federal",
+      "primacy_score": 0,
+      "note": "EPA-administered (no primacy)"
+    },
+    "NV": {
+      "state": "Nevada",
+      "primacy_status": "federal",
+      "primacy_score": 0,
+      "note": "EPA-administered (no primacy)"
+    },
+    "NH": {
+      "state": "New Hampshire",
+      "primacy_status": "federal",
+      "primacy_score": 0,
+      "note": "EPA-administered (no primacy)"
+    },
+    "NJ": {
+      "state": "New Jersey",
+      "primacy_status": "federal",
+      "primacy_score": 0,
+      "note": "EPA-administered (no primacy)"
+    },
+    "NM": {
+      "state": "New Mexico",
+      "primacy_status": "federal",
+      "primacy_score": 0,
+      "note": "EPA-administered (no primacy)"
+    },
+    "NY": {
+      "state": "New York",
+      "primacy_status": "federal",
+      "primacy_score": 0,
+      "note": "EPA-administered (no primacy)"
+    },
+    "NC": {
+      "state": "North Carolina",
+      "primacy_status": "federal",
+      "primacy_score": 0,
+      "note": "EPA-administered (no primacy)"
+    },
+    "OH": {
+      "state": "Ohio",
+      "primacy_status": "federal",
+      "primacy_score": 0,
+      "note": "EPA-administered (no primacy)"
+    },
+    "OR": {
+      "state": "Oregon",
+      "primacy_status": "federal",
+      "primacy_score": 0,
+      "note": "EPA-administered (no primacy)"
+    },
+    "PA": {
+      "state": "Pennsylvania",
+      "primacy_status": "federal",
+      "primacy_score": 0,
+      "note": "EPA-administered (no primacy)"
+    },
+    "RI": {
+      "state": "Rhode Island",
+      "primacy_status": "federal",
+      "primacy_score": 0,
+      "note": "EPA-administered (no primacy)"
+    },
+    "SC": {
+      "state": "South Carolina",
+      "primacy_status": "federal",
+      "primacy_score": 0,
+      "note": "EPA-administered (no primacy)"
+    },
+    "SD": {
+      "state": "South Dakota",
+      "primacy_status": "federal",
+      "primacy_score": 0,
+      "note": "EPA-administered (no primacy)"
+    },
+    "TN": {
+      "state": "Tennessee",
+      "primacy_status": "federal",
+      "primacy_score": 0,
+      "note": "EPA-administered (no primacy)"
+    },
+    "VT": {
+      "state": "Vermont",
+      "primacy_status": "federal",
+      "primacy_score": 0,
+      "note": "EPA-administered (no primacy)"
+    },
+    "VA": {
+      "state": "Virginia",
+      "primacy_status": "federal",
+      "primacy_score": 0,
+      "note": "EPA-administered (no primacy)"
+    },
+    "WA": {
+      "state": "Washington",
+      "primacy_status": "federal",
+      "primacy_score": 0,
+      "note": "EPA-administered (no primacy)"
+    },
+    "WI": {
+      "state": "Wisconsin",
+      "primacy_status": "federal",
+      "primacy_score": 0,
+      "note": "EPA-administered (no primacy)"
+    }
+  }
+}

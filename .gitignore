@@ -31,3 +31,17 @@ water_budget_sui_ensemble.parquet
 
 # Large source datasets
 DataCenterMap-Scraper/more.data/
+
+# Node dependencies
+node_modules/
+
+# Excel lock/temp files
+~$*
+
+# Large geospatial data (transfer to teammates out-of-band)
+map/web/public/cache/geothermal/*.json
+map/web/public/data/bedrock_lithology.geojson
+map/web/public/data/quaternary_faults.geojson
+map/web/public/data/geology_simplified.geojson
+map/web/public/data/transmission_lines.geojson
+map/ingest/downloads/

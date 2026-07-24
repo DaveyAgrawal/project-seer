@@ -1,0 +1,18 @@
+Purity,Sector,0-5km,5-15km,15-25km,25-50km,Total
+High,Natural Gas Processing,326,595,80,151,2179
+High,Ammonia/Fertilizer,10,16,2,2,50
+High,Industrial Gas,30,29,2,1,83
+High,Ethanol,6,23,2,26,397
+High,SUBTOTAL,372,663,86,180,2709
+Medium,Petroleum Refining,41,66,5,9,182
+Medium,Petrochemicals,49,98,19,8,243
+Medium,Cement,19,32,1,3,99
+Medium,Lime,5,13,3,2,52
+Medium,Iron & Steel,9,28,6,11,159
+Medium,Minerals,13,14,4,3,65
+Medium,SUBTOTAL,136,251,38,36,800
+Low,Fossil Power,225,432,94,128,1635
+Low,Landfills,171,336,76,109,1325
+Low,Waste-to-Energy,6,15,7,15,73
+Low,Pulp & Paper,26,48,14,25,216
+Low,SUBTOTAL,428,831,191,277,3249

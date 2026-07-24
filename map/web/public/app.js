@@ -39,6 +39,9 @@ class GeospatialApp {
             naturalCO2: false,
             co2Pipelines: false,
             bedrock: false,
+            quaternaryFaults: false,
+            classVIPrimacy: false,
+            waterStress: false,
             bedrockFilters: {
                 shale: true,
                 sandstone: true,
@@ -77,7 +80,10 @@ class GeospatialApp {
             ethanol: null,
             co2Pipelines: null,
             geology: null,
-            bedrock: null
+            bedrock: null,
+            quaternaryFaults: null,
+            classVIPrimacy: null,
+            waterSUI: null
         };
 
         // Saved locations storage
@@ -472,6 +478,18 @@ class GeospatialApp {
         console.log('🪨 Adding Geology layer...');
         this.addGeologyLayer();
 
+        // Add Quaternary Faults layer
+        console.log('🔴 Adding Quaternary Faults layer...');
+        this.addQuaternaryFaultsLayer();
+
+        // Add Class VI Primacy layer
+        console.log('📋 Adding Class VI Primacy layer...');
+        this.addClassVIPrimacyLayer();
+
+        // Add Water Stress layer
+        console.log('💧 Adding Water Stress layer...');
+        this.addWaterStressLayer();
+
         // Add Optimal Sites layer
         console.log('🎯 Adding Optimal Sites layer...');
         this.addOptimalSitesLayer();
@@ -622,7 +640,10 @@ class GeospatialApp {
         
         // Mesh layers should be at the bottom (rendered first)
         const meshLayers = [
-            'geology-fill',             // Geology at very bottom
+            'class-vi-primacy-fill',    // Primacy at very bottom
+            'class-vi-primacy-outline',
+            'water-stress-fill',        // Water stress above primacy
+            'geology-fill',             // Geology above water
             'hexagon-mesh-fill',
             'hexagon-mesh-outline',
             'compare-co2egs-fill',      // CO₂-EGS comparison (5km) - bottom
@@ -631,6 +652,10 @@ class GeospatialApp {
             'compare-conventional-outline',
             'co2egs-fill',
             'co2egs-outline'
+        ];
+        
+        const lineLayers = [
+            'quaternary-faults-lines'   // Faults as line layer
         ];
         
         const pointLayers = [
@@ -645,6 +670,17 @@ class GeospatialApp {
             'optimal-sites-points',
             'optimal-sites-labels'
         ];
+        
+        // Move line layers above mesh layers
+        for (const layerId of lineLayers) {
+            try {
+                if (this.map.getLayer(layerId)) {
+                    this.map.moveLayer(layerId);
+                }
+            } catch (e) {
+                // Layer might not exist yet
+            }
+        }
         
         // Move each point layer to the top in order
         for (const layerId of pointLayers) {
@@ -3210,6 +3246,22 @@ class GeospatialApp {
             this.updateCCUSFilter();
         });
 
+        // Quaternary Faults controls
+        document.getElementById('faults-toggle').addEventListener('change', (e) => {
+            this.toggleQuaternaryFaults(e.target.checked);
+        });
+
+        // Class VI Primacy controls
+        document.getElementById('primacy-toggle').addEventListener('change', (e) => {
+            this.toggleClassVIPrimacy(e.target.checked);
+        });
+
+        // Water Stress controls (toggles water stress choropleth on hex mesh)
+        document.getElementById('water-stress-toggle').addEventListener('change', (e) => {
+            this.layerState.waterStress = e.target.checked;
+            this.updateHexWaterStressDisplay(e.target.checked);
+        });
+
         // Mesh controls
         document.getElementById('mesh-toggle').addEventListener('change', (e) => {
             this.toggleMesh(e.target.checked);
@@ -5461,16 +5513,18 @@ class GeospatialApp {
                         // Gray for no emissions data
                         ['==', ['get', 'total_emissions_2023'], null], '#888888',
                         ['==', ['get', 'total_emissions_2023'], 0], '#888888',
-                        // Colors by industry type
-                        ['==', ['get', 'industry_type_sectors'], 'Power Plants'], '#F44336',
-                        ['all', ['has', 'industry_type_sectors'], ['in', 'Petroleum', ['get', 'industry_type_sectors']]], '#FF9800',
-                        ['all', ['has', 'industry_type_sectors'], ['in', 'Natural Gas', ['get', 'industry_type_sectors']]], '#FF9800',
-                        ['==', ['get', 'industry_type_sectors'], 'Waste'], '#795548',
-                        ['all', ['has', 'industry_type_sectors'], ['in', 'Waste', ['get', 'industry_type_sectors']]], '#795548',
-                        ['==', ['get', 'industry_type_sectors'], 'Chemicals'], '#9C27B0',
-                        ['all', ['has', 'industry_type_sectors'], ['in', 'Chemicals', ['get', 'industry_type_sectors']]], '#9C27B0',
-                        ['==', ['get', 'industry_type_sectors'], 'Minerals'], '#607D8B',
-                        ['==', ['get', 'industry_type_sectors'], 'Metals'], '#455A64',
+                        // High purity = green (Natural Gas Processing + Refining)
+                        ['in', ['to-string', ['get', 'primary_naics_code']], ['literal', ['486210', '211130', '211111', '211112', '211120', '213112', '324110', '324199']]], '#4CAF50',
+                        // High purity = light green (Ammonia / Chemicals + Ethanol + Petrochemicals)
+                        ['in', ['to-string', ['get', 'primary_naics_code']], ['literal', ['325311', '325312', '325120', '325193', '311221', '325110', '325199', '325211']]], '#8BC34A',
+                        // Medium purity = orange (Cement / Lime / Minerals)
+                        ['in', ['to-string', ['get', 'primary_naics_code']], ['literal', ['327310', '327410', '327420', '327211', '327213']]], '#FF9800',
+                        // Medium purity = yellow (Iron & Steel / Metals)
+                        ['in', ['to-string', ['get', 'primary_naics_code']], ['literal', ['331110', '331511', '331313', '331314', '331315']]], '#FFC107',
+                        // Low purity = red (Power Plants)
+                        ['in', ['to-string', ['get', 'primary_naics_code']], ['literal', ['221112', '221118']]], '#F44336',
+                        // Low purity = brown (Landfills / Waste / Pulp)
+                        ['in', ['to-string', ['get', 'primary_naics_code']], ['literal', ['562212', '562213', '322110', '322120', '322130']]], '#795548',
                         '#9E9E9E'  // Default gray for Other
                     ],
                     'circle-radius': [
@@ -5610,35 +5664,43 @@ class GeospatialApp {
         if (!this.map.getLayer('emitter-points')) return;
         if (!this.dataCache.emitters) return;
 
-        // Filter the cached data and update the source directly (faster than complex map filters)
+        // NAICS code sets for each UI category
+        const NAICS_NAT_GAS = ['486210', '211130', '211111', '211112', '211120', '213112', '324110', '324199']; // Includes refining
+        const NAICS_AMMONIA_CHEM = ['325311', '325312', '325120', '325193', '311221', '325110', '325199', '325211']; // High-purity + petrochemicals
+        const NAICS_MINERALS = ['327310', '327410', '327420', '327211', '327213']; // Cement, lime, glass
+        const NAICS_METALS = ['331110', '331511', '331313', '331314', '331315'];
+        const NAICS_POWER = ['221112', '221118'];
+        const NAICS_WASTE = ['562212', '562213', '322110', '322120', '322130']; // Landfills, waste, pulp
+
+        // Filter the cached data and update the source directly
         const allFeatures = this.dataCache.emitters.features || [];
         
         const filteredFeatures = allFeatures.filter(f => {
             const props = f.properties;
             const emissions = props.total_emissions_2023 || 0;
-            const sector = props.industry_type_sectors || '';
+            const naics = String(props.primary_naics_code || '');
             
             // Check emissions threshold
             if (emissions < this.layerState.emitterMinEmissions) return false;
             
-            // Check category
-            if (sector === 'Power Plants' || sector.includes('Power Plants')) {
-                return this.layerState.emitterPowerPlants;
+            // Check category by NAICS code
+            if (NAICS_NAT_GAS.includes(naics)) {
+                return this.layerState.emitterPetroleum; // "Natural Gas Processing" checkbox
             }
-            if (sector === 'Petroleum and Natural Gas Systems' || sector.includes('Petroleum') || sector.includes('Natural Gas')) {
-                return this.layerState.emitterPetroleum;
+            if (NAICS_AMMONIA_CHEM.includes(naics)) {
+                return this.layerState.emitterChemicals; // "Ammonia / Chemicals" checkbox
             }
-            if (sector === 'Waste' || sector.includes('Waste')) {
-                return this.layerState.emitterWaste;
+            if (NAICS_MINERALS.includes(naics)) {
+                return this.layerState.emitterMinerals; // "Cement / Lime / Minerals" checkbox
             }
-            if (sector === 'Chemicals' || sector.includes('Chemicals')) {
-                return this.layerState.emitterChemicals;
+            if (NAICS_METALS.includes(naics)) {
+                return this.layerState.emitterMetals; // "Iron & Steel / Metals" checkbox
             }
-            if (sector === 'Minerals' || sector.includes('Minerals')) {
-                return this.layerState.emitterMinerals;
+            if (NAICS_POWER.includes(naics)) {
+                return this.layerState.emitterPowerPlants; // "Fossil Power Generation" checkbox
             }
-            if (sector === 'Metals' || sector.includes('Metals')) {
-                return this.layerState.emitterMetals;
+            if (NAICS_WASTE.includes(naics)) {
+                return this.layerState.emitterWaste; // "Landfills / Waste" checkbox
             }
             // Other category
             return this.layerState.emitterOther;
@@ -5662,6 +5724,54 @@ class GeospatialApp {
         console.log(`🏭 Emitters filter updated: showing ${filteredFeatures.length} of ${allFeatures.length}`);
     }
 
+    // Classify NAICS code to CO2 stream category
+    classifyNAICS(naicsCode) {
+        const code = String(naicsCode || '');
+        
+        // High purity - Natural Gas Processing & Refining (green)
+        if (['486210', '211130', '211111', '211112', '211120', '213112'].includes(code)) 
+            return { category: 'Natural Gas Processing', purity: 'High (>90%)', color: '#4CAF50' };
+        if (['324110', '324199'].includes(code)) 
+            return { category: 'Petroleum Refining', purity: 'Medium-High', color: '#4CAF50' };
+        
+        // High purity - Ammonia / Chemicals (light green)
+        if (['325193', '311221'].includes(code)) 
+            return { category: 'Ethanol Fermentation', purity: 'High (>90%)', color: '#8BC34A' };
+        if (['325311', '325312'].includes(code)) 
+            return { category: 'Ammonia / Fertilizer', purity: 'High (>90%)', color: '#8BC34A' };
+        if (code === '325120') 
+            return { category: 'Industrial Gas Production', purity: 'High (>90%)', color: '#8BC34A' };
+        if (['325110', '325199', '325211'].includes(code)) 
+            return { category: 'Petrochemicals', purity: 'Medium', color: '#8BC34A' };
+        
+        // Medium purity - Cement / Lime / Minerals (orange)
+        if (code === '327310') 
+            return { category: 'Cement Manufacturing', purity: 'Medium', color: '#FF9800' };
+        if (code === '327410') 
+            return { category: 'Lime Manufacturing', purity: 'Medium-High', color: '#FF9800' };
+        if (['327420', '327211', '327213'].includes(code)) 
+            return { category: 'Minerals / Glass', purity: 'Medium', color: '#FF9800' };
+        
+        // Medium purity - Iron & Steel / Metals (yellow)
+        if (['331110', '331511', '331313', '331314', '331315'].includes(code)) 
+            return { category: 'Iron & Steel / Metals', purity: 'Medium', color: '#FFC107' };
+        
+        // Low purity - Power Plants (red)
+        if (['221112', '221118'].includes(code)) 
+            return { category: 'Fossil Power Generation', purity: 'Low (<15%)', color: '#F44336' };
+        
+        // Low purity - Landfills / Waste (brown)
+        if (code === '562212') 
+            return { category: 'Landfills', purity: 'Low (biogenic)', color: '#795548' };
+        if (code === '562213') 
+            return { category: 'Waste-to-Energy', purity: 'Low (<15%)', color: '#795548' };
+        if (['322110', '322120', '322130'].includes(code)) 
+            return { category: 'Pulp & Paper', purity: 'Low (biogenic)', color: '#795548' };
+        
+        // Default
+        return { category: 'Other Industrial', purity: 'Variable', color: '#9E9E9E' };
+    }
+
     showEmitterPopup(e) {
         const feature = e.features[0];
         const props = feature.properties;
@@ -5672,10 +5782,14 @@ class GeospatialApp {
             return Number(val).toLocaleString() + ' metric tons CO₂e';
         };
 
+        // Get CO2 stream classification
+        const co2Class = this.classifyNAICS(props.primary_naics_code);
+
         const popupHTML = `
             <div class="popup-content" style="max-width: 350px;">
-                <div class="popup-header" style="background: #F44336; color: white; padding: 10px; margin: -10px -10px 10px -10px; border-radius: 4px 4px 0 0;">
+                <div class="popup-header" style="background: ${co2Class.color}; color: white; padding: 10px; margin: -10px -10px 10px -10px; border-radius: 4px 4px 0 0;">
                     <h3 style="margin: 0; font-size: 14px;">${props.facility_name || 'Unknown Facility'}</h3>
+                    <div style="font-size: 11px; opacity: 0.9; margin-top: 4px;">${co2Class.category}</div>
                 </div>
                 <div class="popup-row" style="margin-bottom: 6px;">
                     <span style="font-weight: bold; color: #666;">Address:</span>
@@ -5690,12 +5804,12 @@ class GeospatialApp {
                     <span style="color: #333;">${props.county || 'N/A'}</span>
                 </div>
                 <div class="popup-row" style="margin-bottom: 6px;">
-                    <span style="font-weight: bold; color: #666;">Industry Type:</span>
-                    <span style="color: #333;">${props.industry_type_sectors || 'N/A'}</span>
+                    <span style="font-weight: bold; color: #666;">CO₂ Stream:</span>
+                    <span style="color: ${co2Class.color}; font-weight: bold;">${co2Class.category}</span>
                 </div>
                 <div class="popup-row" style="margin-bottom: 6px;">
-                    <span style="font-weight: bold; color: #666;">Subparts:</span>
-                    <span style="color: #333;">${props.industry_type_subparts || 'N/A'}</span>
+                    <span style="font-weight: bold; color: #666;">CO₂ Purity:</span>
+                    <span style="color: #333;">${co2Class.purity}</span>
                 </div>
                 <div class="popup-row" style="margin-bottom: 6px;">
                     <span style="font-weight: bold; color: #666;">NAICS Code:</span>
@@ -6194,6 +6308,77 @@ class GeospatialApp {
                     <span class="popup-value">65 square miles</span>
                 </div>
             `;
+        }
+        
+        // Add siting feasibility info (primacy status + water stress)
+        const primacyInfo = this.layerState.classVIPrimacy ? this.getPrimacyAtLocation(e.lngLat.lng, e.lngLat.lat) : null;
+        
+        // Get water stress from hex properties (baked in during offline processing) or lookup
+        let waterInfo = null;
+        if (this.layerState.waterStress) {
+            // First check if SUI is baked into hex properties
+            if (props.sui !== undefined && props.sui !== null) {
+                waterInfo = {
+                    sui: props.sui,
+                    sui_class: props.sui_class
+                };
+            } else {
+                // Fall back to lookup by hex ID
+                const hexId = feature.id || props.id;
+                if (hexId) {
+                    waterInfo = this.getWaterSUIForHex(hexId);
+                }
+            }
+        }
+        
+        if (primacyInfo || waterInfo) {
+            const statusColors = {
+                'primacy': '#4CAF50',
+                'application': '#FFC107',
+                'federal': '#F44336'
+            };
+            const statusLabels = {
+                'primacy': 'State Primacy',
+                'application': 'Application Pending',
+                'federal': 'Federal Regulation'
+            };
+            const suiColors = {
+                'Very low/none': '#2196F3',
+                'Low': '#4CAF50',
+                'Moderate': '#FFC107',
+                'High': '#FF5722',
+                'Severe': '#D32F2F'
+            };
+            
+            content += `<div style="border-top: 1px solid #ddd; margin-top: 8px; padding-top: 8px;">`;
+            
+            if (primacyInfo) {
+                content += `
+                    <div class="popup-row">
+                        <span class="popup-label">State:</span>
+                        <span class="popup-value">${primacyInfo.state}</span>
+                    </div>
+                    <div class="popup-row">
+                        <span class="popup-label">Class VI Status:</span>
+                        <span class="popup-value" style="color: ${statusColors[primacyInfo.primacy_status] || '#666'};">
+                            ${statusLabels[primacyInfo.primacy_status] || 'Unknown'}
+                        </span>
+                    </div>
+                `;
+            }
+            
+            if (waterInfo) {
+                content += `
+                    <div class="popup-row">
+                        <span class="popup-label">Water Stress:</span>
+                        <span class="popup-value" style="color: ${suiColors[waterInfo.sui_class] || '#666'};">
+                            ${waterInfo.sui_class} (SUI: ${waterInfo.sui.toFixed(2)})
+                        </span>
+                    </div>
+                `;
+            }
+            
+            content += `</div>`;
         }
         
         // Remove existing popup
@@ -7499,6 +7684,509 @@ class GeospatialApp {
         link.href = URL.createObjectURL(blob);
         link.download = `saved_locations_${new Date().toISOString().split('T')[0]}.csv`;
         link.click();
+    }
+
+    // ==== QUATERNARY FAULTS METHODS ====
+
+    async addQuaternaryFaultsLayer() {
+        console.log('🔴 Adding Quaternary Faults layer...');
+
+        try {
+            // Add empty GeoJSON source
+            this.map.addSource('quaternary-faults', {
+                type: 'geojson',
+                data: {
+                    type: 'FeatureCollection',
+                    features: []
+                }
+            });
+
+            // Add fault lines layer with color by slip rate class
+            this.map.addLayer({
+                id: 'quaternary-faults-lines',
+                type: 'line',
+                source: 'quaternary-faults',
+                paint: {
+                    'line-color': [
+                        'match',
+                        ['get', 'slip_rate_class'],
+                        4, '#D32F2F',  // >5 mm/yr - dark red
+                        3, '#FF5722',  // 1-5 mm/yr - orange-red
+                        2, '#FF9800',  // 0.2-1 mm/yr - orange
+                        1, '#FFC107',  // <0.2 mm/yr - yellow
+                        '#9E9E9E'      // unspecified - gray
+                    ],
+                    'line-width': [
+                        'match',
+                        ['get', 'slip_rate_class'],
+                        4, 3,
+                        3, 2.5,
+                        2, 2,
+                        1, 1.5,
+                        1
+                    ],
+                    'line-opacity': 0.8
+                },
+                layout: {
+                    'visibility': 'none'
+                }
+            });
+
+            console.log('✅ Quaternary faults layer added');
+
+            // Load data
+            await this.loadQuaternaryFaults();
+
+            // Add click handler
+            this.map.on('click', 'quaternary-faults-lines', (e) => {
+                this.showFaultPopup(e);
+            });
+
+            this.map.on('mouseenter', 'quaternary-faults-lines', () => {
+                this.map.getCanvas().style.cursor = 'pointer';
+            });
+            this.map.on('mouseleave', 'quaternary-faults-lines', () => {
+                this.map.getCanvas().style.cursor = '';
+            });
+
+        } catch (error) {
+            console.error('❌ Error adding quaternary faults layer:', error);
+        }
+    }
+
+    async loadQuaternaryFaults() {
+        try {
+            console.log('📡 Loading quaternary faults data...');
+            const response = await fetch('/data/quaternary_faults.geojson');
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log(`🔴 Loaded ${data.features?.length || 0} fault segments`);
+
+            const source = this.map.getSource('quaternary-faults');
+            if (source) {
+                source.setData(data);
+            }
+
+            this.dataCache.quaternaryFaults = data;
+
+            const countEl = document.getElementById('faults-count');
+            if (countEl) {
+                countEl.textContent = `${data.features?.length || 0} fault segments`;
+            }
+
+        } catch (error) {
+            console.error('❌ Error loading quaternary faults:', error);
+        }
+    }
+
+    toggleQuaternaryFaults(visible) {
+        try {
+            if (this.map.getLayer('quaternary-faults-lines')) {
+                this.map.setLayoutProperty('quaternary-faults-lines', 'visibility', visible ? 'visible' : 'none');
+            }
+        } catch (error) {
+            console.error('Error toggling faults:', error);
+        }
+        this.layerState.quaternaryFaults = visible;
+    }
+
+    showFaultPopup(e) {
+        const props = e.features[0].properties;
+        
+        const slipRateColors = {
+            4: '#D32F2F',
+            3: '#FF5722',
+            2: '#FF9800',
+            1: '#FFC107',
+            0: '#9E9E9E'
+        };
+
+        const popupContent = `
+            <div class="popup-header" style="border-left: 4px solid ${slipRateColors[props.slip_rate_class] || '#9E9E9E'};">
+                <i class="fas fa-slash"></i> Quaternary Fault
+            </div>
+            <div class="popup-row">
+                <span class="popup-label">Name:</span>
+                <span class="popup-value">${props.fault_name || 'Unnamed'}</span>
+            </div>
+            <div class="popup-row">
+                <span class="popup-label">Slip Rate:</span>
+                <span class="popup-value">${props.slip_rate || 'Unknown'}</span>
+            </div>
+            <div class="popup-row">
+                <span class="popup-label">Age:</span>
+                <span class="popup-value">${props.age || 'Unknown'}</span>
+            </div>
+            <div class="popup-row">
+                <span class="popup-label">Slip Sense:</span>
+                <span class="popup-value">${props.slip_sense || 'Unknown'}</span>
+            </div>
+        `;
+
+        if (this.activePopup) {
+            this.activePopup.remove();
+        }
+
+        this.activePopup = new maplibregl.Popup()
+            .setLngLat(e.lngLat)
+            .setHTML(popupContent)
+            .addTo(this.map);
+    }
+
+    // ==== CLASS VI PRIMACY METHODS ====
+
+    async addClassVIPrimacyLayer() {
+        console.log('📋 Adding Class VI Primacy layer...');
+
+        try {
+            // Load primacy data first
+            await this.loadClassVIPrimacy();
+
+            // We'll use a US states GeoJSON and join with primacy data
+            // For now, load US states boundaries
+            const statesResponse = await fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json');
+            const statesData = await statesResponse.json();
+
+            // Join primacy data to states
+            if (this.dataCache.classVIPrimacy) {
+                statesData.features.forEach(feature => {
+                    const stateAbbr = this.getStateAbbr(feature.properties.name);
+                    const primacyInfo = this.dataCache.classVIPrimacy.data[stateAbbr];
+                    if (primacyInfo) {
+                        feature.properties.primacy_status = primacyInfo.primacy_status;
+                        feature.properties.primacy_score = primacyInfo.primacy_score;
+                        feature.properties.primacy_note = primacyInfo.note;
+                    } else {
+                        feature.properties.primacy_status = 'unknown';
+                        feature.properties.primacy_score = -1;
+                    }
+                });
+            }
+
+            this.map.addSource('class-vi-primacy', {
+                type: 'geojson',
+                data: statesData
+            });
+
+            this.map.addLayer({
+                id: 'class-vi-primacy-fill',
+                type: 'fill',
+                source: 'class-vi-primacy',
+                paint: {
+                    'fill-color': [
+                        'match',
+                        ['get', 'primacy_score'],
+                        2, '#4CAF50',  // Full primacy - green
+                        1, '#FFC107',  // Application pending - yellow
+                        0, '#F44336',  // Federal - red
+                        '#9E9E9E'      // Unknown - gray
+                    ],
+                    'fill-opacity': 0.4
+                },
+                layout: {
+                    'visibility': 'none'
+                }
+            });
+
+            this.map.addLayer({
+                id: 'class-vi-primacy-outline',
+                type: 'line',
+                source: 'class-vi-primacy',
+                paint: {
+                    'line-color': '#333',
+                    'line-width': 1,
+                    'line-opacity': 0.5
+                },
+                layout: {
+                    'visibility': 'none'
+                }
+            });
+
+            console.log('✅ Class VI Primacy layer added');
+
+            // Add click handler
+            this.map.on('click', 'class-vi-primacy-fill', (e) => {
+                this.showPrimacyPopup(e);
+            });
+
+            this.map.on('mouseenter', 'class-vi-primacy-fill', () => {
+                this.map.getCanvas().style.cursor = 'pointer';
+            });
+            this.map.on('mouseleave', 'class-vi-primacy-fill', () => {
+                this.map.getCanvas().style.cursor = '';
+            });
+
+        } catch (error) {
+            console.error('❌ Error adding Class VI Primacy layer:', error);
+        }
+    }
+
+    async loadClassVIPrimacy() {
+        try {
+            console.log('📡 Loading Class VI primacy data...');
+            const response = await fetch('/data/class_vi_primacy.json');
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log(`📋 Loaded primacy data for ${data.metadata?.total_states || 0} states`);
+
+            this.dataCache.classVIPrimacy = data;
+
+        } catch (error) {
+            console.error('❌ Error loading Class VI primacy:', error);
+        }
+    }
+
+    getStateAbbr(stateName) {
+        const stateAbbrs = {
+            'Alabama': 'AL', 'Alaska': 'AK', 'Arizona': 'AZ', 'Arkansas': 'AR', 'California': 'CA',
+            'Colorado': 'CO', 'Connecticut': 'CT', 'Delaware': 'DE', 'Florida': 'FL', 'Georgia': 'GA',
+            'Hawaii': 'HI', 'Idaho': 'ID', 'Illinois': 'IL', 'Indiana': 'IN', 'Iowa': 'IA',
+            'Kansas': 'KS', 'Kentucky': 'KY', 'Louisiana': 'LA', 'Maine': 'ME', 'Maryland': 'MD',
+            'Massachusetts': 'MA', 'Michigan': 'MI', 'Minnesota': 'MN', 'Mississippi': 'MS', 'Missouri': 'MO',
+            'Montana': 'MT', 'Nebraska': 'NE', 'Nevada': 'NV', 'New Hampshire': 'NH', 'New Jersey': 'NJ',
+            'New Mexico': 'NM', 'New York': 'NY', 'North Carolina': 'NC', 'North Dakota': 'ND', 'Ohio': 'OH',
+            'Oklahoma': 'OK', 'Oregon': 'OR', 'Pennsylvania': 'PA', 'Rhode Island': 'RI', 'South Carolina': 'SC',
+            'South Dakota': 'SD', 'Tennessee': 'TN', 'Texas': 'TX', 'Utah': 'UT', 'Vermont': 'VT',
+            'Virginia': 'VA', 'Washington': 'WA', 'West Virginia': 'WV', 'Wisconsin': 'WI', 'Wyoming': 'WY',
+            'District of Columbia': 'DC'
+        };
+        return stateAbbrs[stateName] || null;
+    }
+
+    toggleClassVIPrimacy(visible) {
+        const layers = ['class-vi-primacy-fill', 'class-vi-primacy-outline'];
+        layers.forEach(layerId => {
+            try {
+                if (this.map.getLayer(layerId)) {
+                    this.map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
+                }
+            } catch (error) {
+                // Layer might not exist
+            }
+        });
+        this.layerState.classVIPrimacy = visible;
+        this.reorderLayers();
+    }
+
+    showPrimacyPopup(e) {
+        const props = e.features[0].properties;
+        
+        const statusColors = {
+            'primacy': '#4CAF50',
+            'application': '#FFC107',
+            'federal': '#F44336'
+        };
+
+        const statusLabels = {
+            'primacy': 'State Primacy',
+            'application': 'Application Pending',
+            'federal': 'Federal Regulation'
+        };
+
+        const popupContent = `
+            <div class="popup-header" style="border-left: 4px solid ${statusColors[props.primacy_status] || '#9E9E9E'};">
+                <i class="fas fa-gavel"></i> Class VI Primacy Status
+            </div>
+            <div class="popup-row">
+                <span class="popup-label">State:</span>
+                <span class="popup-value">${props.name}</span>
+            </div>
+            <div class="popup-row">
+                <span class="popup-label">Status:</span>
+                <span class="popup-value">${statusLabels[props.primacy_status] || 'Unknown'}</span>
+            </div>
+            ${props.primacy_note ? `
+            <div class="popup-row">
+                <span class="popup-label">Note:</span>
+                <span class="popup-value" style="font-size: 11px;">${props.primacy_note}</span>
+            </div>
+            ` : ''}
+        `;
+
+        if (this.activePopup) {
+            this.activePopup.remove();
+        }
+
+        this.activePopup = new maplibregl.Popup()
+            .setLngLat(e.lngLat)
+            .setHTML(popupContent)
+            .addTo(this.map);
+    }
+
+    getPrimacyAtLocation(lng, lat) {
+        if (!this.dataCache.classVIPrimacy) return null;
+        
+        // Use Turf to find which state contains the point
+        try {
+            const source = this.map.getSource('class-vi-primacy');
+            if (!source || !source._data) return null;
+            
+            const point = turf.point([lng, lat]);
+            
+            for (const feature of source._data.features) {
+                if (turf.booleanPointInPolygon(point, feature)) {
+                    return {
+                        state: feature.properties.name,
+                        primacy_status: feature.properties.primacy_status,
+                        primacy_score: feature.properties.primacy_score,
+                        primacy_note: feature.properties.primacy_note
+                    };
+                }
+            }
+        } catch (error) {
+            console.warn('Error getting primacy at location:', error);
+        }
+        return null;
+    }
+
+    // ==== WATER STRESS METHODS ====
+
+    async addWaterStressLayer() {
+        console.log('💧 Adding Water Stress layer...');
+
+        try {
+            // Load water SUI data
+            await this.loadWaterSUI();
+
+            // For water stress, we need HUC12 boundaries
+            // Since HUC12 boundaries are large, we'll display as a simple choropleth
+            // For now, create a placeholder - full implementation would need HUC12 GeoJSON
+            
+            this.map.addSource('water-stress', {
+                type: 'geojson',
+                data: {
+                    type: 'FeatureCollection',
+                    features: []
+                }
+            });
+
+            this.map.addLayer({
+                id: 'water-stress-fill',
+                type: 'fill',
+                source: 'water-stress',
+                paint: {
+                    'fill-color': [
+                        'interpolate',
+                        ['linear'],
+                        ['get', 'sui'],
+                        0, '#2196F3',    // Low stress - blue
+                        0.2, '#4CAF50',  // Moderate - green
+                        0.4, '#FFC107',  // High - yellow
+                        0.7, '#FF5722',  // Severe - orange
+                        1.0, '#D32F2F'   // Critical - red
+                    ],
+                    'fill-opacity': 0.5
+                },
+                layout: {
+                    'visibility': 'none'
+                }
+            });
+
+            console.log('✅ Water Stress layer added (data lookup ready)');
+
+        } catch (error) {
+            console.error('❌ Error adding Water Stress layer:', error);
+        }
+    }
+
+    async loadWaterSUI() {
+        try {
+            console.log('📡 Loading water SUI hex data...');
+            const response = await fetch('/data/sui_by_hex.json');
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log(`💧 Loaded SUI data for ${Object.keys(data.data || {}).length} hexes`);
+            console.log('💧 SUI direction: Higher = more water stress (worse for site)');
+
+            this.dataCache.waterSUI = data;
+
+        } catch (error) {
+            console.error('❌ Error loading water SUI:', error);
+        }
+    }
+
+    getWaterSUIForHex(hexId) {
+        // Get SUI data for a specific hex ID
+        if (!this.dataCache.waterSUI || !this.dataCache.waterSUI.data) {
+            return null;
+        }
+        
+        const hexData = this.dataCache.waterSUI.data[String(hexId)];
+        if (hexData) {
+            return {
+                sui: hexData.sui,
+                sui_class: hexData.sui_class,
+                huc12: hexData.huc12
+            };
+        }
+        return null;
+    }
+
+    updateHexWaterStressDisplay(enabled) {
+        // Update hex mesh fill color to show water stress when enabled
+        if (!this.map.getLayer('hexagon-mesh-fill')) {
+            console.log('💧 Hex mesh layer not ready');
+            return;
+        }
+
+        if (enabled) {
+            console.log('💧 Enabling water stress choropleth on hex mesh');
+            // Color hexes by SUI value (water stress)
+            this.map.setPaintProperty('hexagon-mesh-fill', 'fill-color', [
+                'case',
+                ['==', ['get', 'sui'], null], 'rgba(128, 128, 128, 0.3)',  // Gray for no data
+                ['<', ['get', 'sui'], 0.1], '#2196F3',   // Very low - blue
+                ['<', ['get', 'sui'], 0.2], '#4CAF50',   // Low - green
+                ['<', ['get', 'sui'], 0.4], '#FFC107',   // Moderate - yellow
+                ['<', ['get', 'sui'], 0.7], '#FF5722',   // High - orange
+                '#D32F2F'                                 // Severe - red
+            ]);
+            // Make mesh visible for water stress display
+            this.map.setLayoutProperty('hexagon-mesh-fill', 'visibility', 'visible');
+            this.map.setLayoutProperty('hexagon-mesh-outline', 'visibility', 'visible');
+        } else {
+            console.log('💧 Disabling water stress choropleth');
+            // Restore original temperature-based coloring
+            this.map.setPaintProperty('hexagon-mesh-fill', 'fill-color', [
+                'case',
+                ['boolean', ['feature-state', 'selected'], false],
+                '#00FF00',  // Selected hex color
+                ['==', ['get', 'avg_temperature_f'], null],
+                'rgba(128, 128, 128, 0.3)',  // No data
+                [
+                    'interpolate',
+                    ['linear'],
+                    ['get', 'avg_temperature_f'],
+                    100, '#313695',   // Cold - dark blue
+                    150, '#4575b4',
+                    200, '#74add1',
+                    250, '#abd9e9',
+                    300, '#e0f3f8',
+                    350, '#fee090',
+                    400, '#fdae61',
+                    450, '#f46d43',
+                    500, '#d73027',
+                    550, '#a50026'    // Hot - dark red
+                ]
+            ]);
+            // Hide mesh if geothermal toggle is off
+            if (!this.layerState.hexagonMesh) {
+                this.map.setLayoutProperty('hexagon-mesh-fill', 'visibility', 'none');
+                this.map.setLayoutProperty('hexagon-mesh-outline', 'visibility', 'none');
+            }
+        }
     }
 }
 

@@ -459,19 +459,6 @@
         </div>
 
         <div class="layer-control">
-            <h4><i class="fas fa-seedling"></i> Ethanol Facilities</h4>
-            <div class="control-group">
-                <div class="checkbox-wrapper">
-                    <input type="checkbox" id="ethanol-toggle">
-                    <label for="ethanol-toggle">Show ethanol plants</label>
-                </div>
-                <div class="stats">
-                    <small id="ethanol-count">Loading...</small>
-                </div>
-            </div>
-        </div>
-
-        <div class="layer-control">
             <h4><i class="fas fa-gem"></i> Bedrock Lithology</h4>
             <div class="control-group">
                 <div class="checkbox-wrapper">
@@ -546,6 +533,106 @@
         </div>
 
         <div class="layer-control">
+            <h4><i class="fas fa-slash"></i> Quaternary Faults</h4>
+            <div class="control-group">
+                <div class="checkbox-wrapper">
+                    <input type="checkbox" id="faults-toggle">
+                    <label for="faults-toggle">Show quaternary faults</label>
+                </div>
+                <div class="stats">
+                    <small id="faults-count">Loading...</small>
+                </div>
+                <div class="faults-legend" style="margin-top: 10px; font-size: 11px;">
+                    <div style="font-weight: bold; margin-bottom: 6px; color: #333;">Slip Rate:</div>
+                    <div style="display: flex; align-items: center; margin-bottom: 3px;">
+                        <span style="display: inline-block; width: 20px; height: 3px; background: #D32F2F; margin-right: 6px;"></span>
+                        <span>&gt;5 mm/yr (highest risk)</span>
+                    </div>
+                    <div style="display: flex; align-items: center; margin-bottom: 3px;">
+                        <span style="display: inline-block; width: 20px; height: 2.5px; background: #FF5722; margin-right: 6px;"></span>
+                        <span>1-5 mm/yr</span>
+                    </div>
+                    <div style="display: flex; align-items: center; margin-bottom: 3px;">
+                        <span style="display: inline-block; width: 20px; height: 2px; background: #FF9800; margin-right: 6px;"></span>
+                        <span>0.2-1 mm/yr</span>
+                    </div>
+                    <div style="display: flex; align-items: center; margin-bottom: 3px;">
+                        <span style="display: inline-block; width: 20px; height: 1.5px; background: #FFC107; margin-right: 6px;"></span>
+                        <span>&lt;0.2 mm/yr</span>
+                    </div>
+                    <div style="display: flex; align-items: center;">
+                        <span style="display: inline-block; width: 20px; height: 1px; background: #9E9E9E; margin-right: 6px;"></span>
+                        <span>Unspecified</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="layer-control" style="background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%); border: 2px solid #4CAF50; border-radius: 8px; padding: 12px;">
+            <h4 style="color: #2E7D32;"><i class="fas fa-clipboard-check"></i> Siting Feasibility</h4>
+            <div class="control-group">
+                <p style="font-size: 11px; color: #555; margin: 0 0 10px 0;">Regulatory and environmental factors for CO₂ injection site selection.</p>
+                
+                <div class="checkbox-wrapper" style="margin-bottom: 8px;">
+                    <input type="checkbox" id="primacy-toggle">
+                    <label for="primacy-toggle" style="font-weight: bold;">📋 Class VI Primacy Status</label>
+                </div>
+                <div style="margin-left: 20px; margin-bottom: 10px; font-size: 11px;">
+                    <div style="display: flex; align-items: center; margin-bottom: 3px;">
+                        <span style="display: inline-block; width: 14px; height: 14px; background: #4CAF50; border-radius: 2px; margin-right: 6px;"></span>
+                        <span>State Primacy (fastest permitting)</span>
+                    </div>
+                    <div style="display: flex; align-items: center; margin-bottom: 3px;">
+                        <span style="display: inline-block; width: 14px; height: 14px; background: #FFC107; border-radius: 2px; margin-right: 6px;"></span>
+                        <span>Application Pending</span>
+                    </div>
+                    <div style="display: flex; align-items: center;">
+                        <span style="display: inline-block; width: 14px; height: 14px; background: #F44336; border-radius: 2px; margin-right: 6px;"></span>
+                        <span>Federal Regulation (EPA)</span>
+                    </div>
+                </div>
+
+                <div class="checkbox-wrapper" style="margin-bottom: 8px;">
+                    <input type="checkbox" id="water-stress-toggle">
+                    <label for="water-stress-toggle" style="font-weight: bold;">💧 Water Availability (SUI)</label>
+                </div>
+                <div style="margin-left: 0; font-size: 11px;">
+                    <div style="display: flex; align-items: center; margin-bottom: 3px;">
+                        <span style="display: inline-block; width: 14px; height: 14px; background: #2196F3; border-radius: 2px; margin-right: 6px;"></span>
+                        <span>Very Low Stress (SUI &lt; 0.1)</span>
+                    </div>
+                    <div style="display: flex; align-items: center; margin-bottom: 3px;">
+                        <span style="display: inline-block; width: 14px; height: 14px; background: #4CAF50; border-radius: 2px; margin-right: 6px;"></span>
+                        <span>Low Stress (0.1-0.2)</span>
+                    </div>
+                    <div style="display: flex; align-items: center; margin-bottom: 3px;">
+                        <span style="display: inline-block; width: 14px; height: 14px; background: #FFC107; border-radius: 2px; margin-right: 6px;"></span>
+                        <span>Moderate (0.2-0.4)</span>
+                    </div>
+                    <div style="display: flex; align-items: center; margin-bottom: 3px;">
+                        <span style="display: inline-block; width: 14px; height: 14px; background: #FF5722; border-radius: 2px; margin-right: 6px;"></span>
+                        <span>High Stress (0.4-0.7)</span>
+                    </div>
+                    <div style="display: flex; align-items: center;">
+                        <span style="display: inline-block; width: 14px; height: 14px; background: #D32F2F; border-radius: 2px; margin-right: 6px;"></span>
+                        <span>Severe (&gt; 0.7)</span>
+                    </div>
+                    <div style="margin-top: 6px; padding: 6px; background: #E3F2FD; border-radius: 4px; font-size: 10px; color: #1565C0;">
+                        ℹ️ Higher SUI = more water stress (worse for site). Data from USGS Water Budget joined to 47,701 hexes.
+                    </div>
+                </div>
+
+                <div id="siting-feasibility-info" style="margin-top: 12px; padding: 8px; background: rgba(255,255,255,0.8); border-radius: 4px; display: none;">
+                    <div style="font-weight: bold; font-size: 11px; color: #1565C0; margin-bottom: 4px;">
+                        <i class="fas fa-info-circle"></i> Location Info
+                    </div>
+                    <div id="siting-primacy-status" style="font-size: 11px; margin-bottom: 4px;"></div>
+                    <div id="siting-water-status" style="font-size: 11px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="layer-control">
             <h4><i class="fas fa-mountain"></i> Geology (Depth to HDR)</h4>
             <div class="control-group">
                 <div class="checkbox-wrapper">
@@ -577,40 +664,57 @@
         </div>
 
         <div class="layer-control">
-            <h4><i class="fas fa-smog"></i> Point Source Emitters</h4>
+            <h4><i class="fas fa-smog"></i> CO₂ Point Sources</h4>
             <div class="control-group">
                 <div class="checkbox-wrapper">
                     <input type="checkbox" id="emitters-toggle">
-                    <label for="emitters-toggle">Show point source emitters</label>
+                    <label for="emitters-toggle">Show CO₂ point sources</label>
                 </div>
-                <div class="emitters-subtoggle" style="margin-left: 20px; margin-top: 8px; font-size: 12px;">
-                    <div class="checkbox-wrapper" style="margin-bottom: 4px;">
-                        <input type="checkbox" id="emitter-power-plants">
-                        <label for="emitter-power-plants" style="color: #F44336;">● Power Plants</label>
-                    </div>
+                <div style="margin-left: 10px; margin-top: 6px; font-size: 11px; color: #666; font-style: italic;">
+                    High-purity CO₂ (>90%, low capture cost):
+                </div>
+                <div class="emitters-subtoggle" style="margin-left: 20px; margin-top: 4px; font-size: 12px;">
                     <div class="checkbox-wrapper" style="margin-bottom: 4px;">
                         <input type="checkbox" id="emitter-petroleum">
-                        <label for="emitter-petroleum" style="color: #FF9800;">● Petroleum & Natural Gas</label>
-                    </div>
-                    <div class="checkbox-wrapper" style="margin-bottom: 4px;">
-                        <input type="checkbox" id="emitter-waste">
-                        <label for="emitter-waste" style="color: #795548;">● Waste</label>
+                        <label for="emitter-petroleum" style="color: #4CAF50;">● Natural Gas Processing</label>
                     </div>
                     <div class="checkbox-wrapper" style="margin-bottom: 4px;">
                         <input type="checkbox" id="emitter-chemicals">
-                        <label for="emitter-chemicals" style="color: #9C27B0;">● Chemicals</label>
+                        <label for="emitter-chemicals" style="color: #8BC34A;">● Ammonia / Chemicals</label>
                     </div>
                     <div class="checkbox-wrapper" style="margin-bottom: 4px;">
+                        <input type="checkbox" id="ethanol-toggle">
+                        <label for="ethanol-toggle" style="color: #D4A017;">● Ethanol Fermentation</label>
+                    </div>
+                </div>
+                <div style="margin-left: 10px; margin-top: 6px; font-size: 11px; color: #666; font-style: italic;">
+                    Medium-purity CO₂ (15-50%):
+                </div>
+                <div class="emitters-subtoggle" style="margin-left: 20px; margin-top: 4px; font-size: 12px;">
+                    <div class="checkbox-wrapper" style="margin-bottom: 4px;">
                         <input type="checkbox" id="emitter-minerals">
-                        <label for="emitter-minerals" style="color: #607D8B;">● Minerals</label>
+                        <label for="emitter-minerals" style="color: #FF9800;">● Cement / Lime / Minerals</label>
                     </div>
                     <div class="checkbox-wrapper" style="margin-bottom: 4px;">
                         <input type="checkbox" id="emitter-metals">
-                        <label for="emitter-metals" style="color: #455A64;">● Metals</label>
+                        <label for="emitter-metals" style="color: #FFC107;">● Iron & Steel / Metals</label>
+                    </div>
+                </div>
+                <div style="margin-left: 10px; margin-top: 6px; font-size: 11px; color: #666; font-style: italic;">
+                    Low-purity flue gas (<15%):
+                </div>
+                <div class="emitters-subtoggle" style="margin-left: 20px; margin-top: 4px; font-size: 12px;">
+                    <div class="checkbox-wrapper" style="margin-bottom: 4px;">
+                        <input type="checkbox" id="emitter-power-plants">
+                        <label for="emitter-power-plants" style="color: #F44336;">● Fossil Power Generation</label>
+                    </div>
+                    <div class="checkbox-wrapper" style="margin-bottom: 4px;">
+                        <input type="checkbox" id="emitter-waste">
+                        <label for="emitter-waste" style="color: #795548;">● Landfills / Waste</label>
                     </div>
                     <div class="checkbox-wrapper" style="margin-bottom: 4px;">
                         <input type="checkbox" id="emitter-other">
-                        <label for="emitter-other" style="color: #9E9E9E;">● Other</label>
+                        <label for="emitter-other" style="color: #9E9E9E;">● Other Industrial</label>
                     </div>
                 </div>
                 <div class="slider-wrapper" style="margin-top: 10px;">
@@ -624,14 +728,17 @@
         </div>
 
         <div class="layer-control">
-            <h4><i class="fas fa-cloud"></i> Natural CO₂ Sources</h4>
+            <h4><i class="fas fa-mountain"></i> Natural CO₂ Domes</h4>
             <div class="control-group">
                 <div class="checkbox-wrapper">
                     <input type="checkbox" id="natural-co2-toggle">
                     <label for="natural-co2-toggle">Show natural CO₂ reservoirs</label>
                 </div>
+                <div style="margin-left: 10px; margin-top: 4px; font-size: 10px; color: #4CAF50;">
+                    ✓ ~100% CO₂, geological source, no capture needed
+                </div>
                 <div class="stats">
-                    <small id="natural-co2-count" style="color: #E91E63;">⚠️ TENTATIVE - verify coordinates</small>
+                    <small id="natural-co2-count">12 reservoirs (McElmo, Bravo, Jackson Dome, etc.)</small>
                 </div>
             </div>
         </div>

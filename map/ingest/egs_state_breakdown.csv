@@ -1,0 +1,45 @@
+State,Conv_Hexes,Conv_km2,CO2_Hexes,CO2_km2,Plants_100MW,Seq_MtCO2_yr,Primacy
+Alabama,0,0,129,8385,129,71.59,application
+Arizona,0,0,1438,93470,1438,798.09,primacy
+Arkansas,0,0,312,20280,312,173.16,federal
+California,422,27430,2006,130390,2006,1113.33,federal
+Colorado,7,455,1188,77220,1188,659.34,application
+Connecticut,0,0,10,650,10,5.55,federal
+Delaware,0,0,9,585,9,5.0,federal
+Florida,0,0,427,27755,427,236.99,federal
+Georgia,0,0,284,18460,284,157.62,federal
+Idaho,229,14885,1238,80470,1238,687.09,federal
+Illinois,0,0,41,2665,41,22.75,federal
+Iowa,0,0,3,195,3,1.67,federal
+Kentucky,0,0,22,1430,22,12.21,federal
+Louisiana,0,0,455,29575,455,252.53,primacy
+Maine,0,0,3,195,3,1.67,federal
+Maryland,0,0,36,2340,36,19.98,federal
+Massachusetts,0,0,10,650,10,5.55,federal
+Michigan,0,0,1,65,1,0.56,federal
+Minnesota,0,0,1,65,1,0.56,federal
+Mississippi,0,0,102,6630,102,56.61,application
+Missouri,0,0,84,5460,84,46.62,federal
+Montana,5,325,1916,124540,1916,1063.38,federal
+Nebraska,0,0,198,12870,198,109.89,application
+Nevada,173,11245,1451,94315,1451,805.3,federal
+New Jersey,0,0,29,1885,29,16.09,federal
+New Mexico,19,1235,1194,77610,1194,662.67,federal
+New York,0,0,1,65,1,0.56,federal
+North Carolina,0,0,127,8255,127,70.48,federal
+North Dakota,0,0,236,15340,236,130.98,primacy
+Ohio,0,0,21,1365,21,11.65,federal
+Oklahoma,0,0,30,1950,30,16.65,application
+Oregon,187,12155,1322,85930,1322,733.71,federal
+Rhode Island,0,0,2,130,2,1.11,federal
+South Carolina,0,0,151,9815,151,83.81,federal
+South Dakota,0,0,325,21125,325,180.38,federal
+Tennessee,0,0,114,7410,114,63.27,federal
+Texas,0,0,1540,100100,1540,854.7,primacy
+Utah,85,5525,1070,69550,1070,593.85,application
+Vermont,0,0,2,130,2,1.11,federal
+Virginia,0,0,95,6175,95,52.73,federal
+Washington,4,260,978,63570,978,542.79,federal
+West Virginia,0,0,1,65,1,0.56,primacy
+Wisconsin,0,0,7,455,7,3.88,federal
+Wyoming,54,3510,1120,72800,1120,621.6,primacy

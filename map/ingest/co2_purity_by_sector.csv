@@ -1,0 +1,15 @@
+Purity,Sector,Facilities,Emissions_MtCO2,Viable_Hexes_25km,MW_from_CO2,Seq_Potential_MtCO2_yr
+High,Natural Gas Processing,2179,111.47,3241,20084.0,1798.76
+High,Ammonia/Fertilizer,50,41.4,194,7459.0,107.67
+High,Ethanol,397,33.73,153,6077.0,84.92
+High,Industrial Gas,83,33.48,242,6033.0,134.31
+Low,Fossil Power,1635,1441.13,2841,259662.0,1576.76
+Low,Landfills,1325,81.41,2974,14668.0,1650.57
+Low,Pulp & Paper,216,35.51,543,6399.0,301.37
+Low,Waste-to-Energy,73,9.97,134,1796.0,74.37
+Medium,Petroleum Refining,182,188.26,453,33921.0,251.41
+Medium,Petrochemicals,243,87.99,434,15854.0,240.87
+Medium,Cement,99,64.85,394,11684.0,218.67
+Medium,Iron & Steel,159,60.51,308,10902.0,170.94
+Medium,Lime,52,21.06,144,3795.0,79.92
+Medium,Minerals,65,3.4,238,613.0,132.09
