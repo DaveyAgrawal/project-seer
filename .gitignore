@@ -42,3 +42,7 @@ node_modules/
 # transmission, quaternary faults) are intentionally committed to git so the
 # Railway deploy has them. Do NOT gitignore them.
 map/ingest/downloads/
+
+# Python cache
+__pycache__/
+*.pyc
