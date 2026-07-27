@@ -38,10 +38,7 @@ node_modules/
 # Excel lock/temp files
 ~$*
 
-# Large geospatial data (transfer to teammates out-of-band)
-map/web/public/cache/geothermal/*.json
-map/web/public/data/bedrock_lithology.geojson
-map/web/public/data/quaternary_faults.geojson
-map/web/public/data/geology_simplified.geojson
-map/web/public/data/transmission_lines.geojson
+# NOTE: Large geospatial data files (geothermal mesh, bedrock, geology,
+# transmission, quaternary faults) are intentionally committed to git so the
+# Railway deploy has them. Do NOT gitignore them.
 map/ingest/downloads/
