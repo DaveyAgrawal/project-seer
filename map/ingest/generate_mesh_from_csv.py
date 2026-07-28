@@ -36,45 +36,57 @@ def web_mercator_to_wgs84(x, y):
     return lat, lng
 
 def create_hexagon(center_lng, center_lat, size):
-    """Create a hexagon polygon around a center point"""
-    # Flat-topped hexagon vertices
-    angles = [0, 60, 120, 180, 240, 300, 0]  # Close the polygon
+    """Create a pointy-topped hexagon polygon that is regular on the ground.
+
+    Longitude offsets are divided by cos(lat) so the hexagon spans equal ground
+    distance east-west and north-south. Web Mercator is locally conformal, so an
+    on-the-ground-regular hexagon renders as a regular hexagon on the map (no
+    vertical compression / distortion).
+    """
+    coslat = np.cos(np.radians(center_lat))
+    angles = [30, 90, 150, 210, 270, 330, 30]  # pointy-topped, closed ring
     coords = []
     for angle in angles:
         rad = np.radians(angle)
-        lng = center_lng + size * np.cos(rad)
-        lat = center_lat + size * np.sin(rad) * 0.866  # Adjust for aspect ratio
+        lng = center_lng + (size * np.cos(rad)) / coslat
+        lat = center_lat + size * np.sin(rad)
         coords.append([lng, lat])
     return coords
 
 def generate_hex_grid():
-    """Generate a hexagon grid covering the US"""
+    """Generate a gap-free, non-overlapping pointy-topped hexagon grid over the US.
+
+    For pointy-topped hexagons of circumradius R: vertical row spacing is 1.5R,
+    horizontal spacing is the hex width sqrt(3)*R (converted to lng degrees via
+    cos(lat)), and alternate rows are offset by half a width so cells interlock.
+    """
     hexagons = []
     hex_id = 0
-    
-    # Calculate grid spacing
-    lng_step = HEX_SIZE * 1.5
-    lat_step = HEX_SIZE * 0.866 * 2
-    
+
+    R = HEX_SIZE                 # circumradius in latitude-degrees
+    row_step = 1.5 * R           # vertical spacing between rows (lat degrees)
+
     lat = US_BOUNDS['south']
     row = 0
     while lat < US_BOUNDS['north']:
-        lng_offset = (HEX_SIZE * 0.75) if (row % 2 == 1) else 0
+        coslat = np.cos(np.radians(lat))
+        width = (np.sqrt(3) * R) / coslat        # hex width in lng degrees at this lat
+        lng_offset = (width / 2) if (row % 2 == 1) else 0
         lng = US_BOUNDS['west'] + lng_offset
-        
+
         while lng < US_BOUNDS['east']:
             hexagons.append({
                 'id': hex_id,
                 'center_lng': lng,
                 'center_lat': lat,
-                'coords': create_hexagon(lng, lat, HEX_SIZE)
+                'coords': create_hexagon(lng, lat, R)
             })
             hex_id += 1
-            lng += lng_step
-        
-        lat += lat_step
+            lng += width
+
+        lat += row_step
         row += 1
-    
+
     print(f"Generated {len(hexagons)} hexagons")
     return hexagons
 
@@ -117,15 +129,15 @@ def load_all_depths(depths):
         result[d] = out
     return result
 
-# Latitude compression factor used when laying out hexagon vertices. The same
-# factor must be applied when measuring distances so the KD-tree "circle"
-# matches the hexagon's actual footprint.
-LAT_SCALE = 0.866
+# Longitude scaling used when measuring point->hexagon distances so the KD-tree
+# operates in an approximately isotropic (equal-ground-distance) plane.
+# cos(37deg) is a representative latitude for the continental US.
+LNG_SCALE = float(np.cos(np.radians(37.0)))
 
 
 def build_hex_tree(hexagons):
-    """Build a KD-tree over hexagon centers (in a lat-compressed plane)."""
-    centers = np.array([[h['center_lng'], h['center_lat'] * LAT_SCALE] for h in hexagons])
+    """Build a KD-tree over hexagon centers (in an lng-scaled, ~isotropic plane)."""
+    centers = np.array([[h['center_lng'] * LNG_SCALE, h['center_lat']] for h in hexagons])
     return cKDTree(centers), centers
 
 
@@ -146,14 +158,15 @@ def assign_points_to_hexagons(hexagons, points_df, tree):
     print("Assigning points to hexagons (nearest-neighbor)...")
 
     pts = np.column_stack([
-        points_df['lng'].to_numpy(),
-        points_df['lat'].to_numpy() * LAT_SCALE,
+        points_df['lng'].to_numpy() * LNG_SCALE,
+        points_df['lat'].to_numpy(),
     ])
 
     # Max distance a point can be from a hex center and still belong to it.
-    # Circumradius of a flat-topped hexagon of "size" HEX_SIZE is HEX_SIZE; add
-    # a small margin so points near vertices are still captured.
-    max_dist = HEX_SIZE * 1.05
+    # Generous relative to the circumradius (HEX_SIZE) so no interior point is
+    # dropped given the anisotropy approximation; the dense STM sampling makes
+    # over-generous radii harmless.
+    max_dist = HEX_SIZE * 1.4
 
     dist, idx = tree.query(pts, k=1, distance_upper_bound=max_dist)
     valid = np.isfinite(dist)

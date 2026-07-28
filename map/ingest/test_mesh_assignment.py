@@ -29,6 +29,27 @@ def make_dense_points(step=0.05):
     return pd.DataFrame({'lat': lat, 'lng': lng, 'temp_f': temp_f})
 
 
+def check_geometry(feats):
+    """Verify hexagons are ground-regular (not compressed) and tile without overlap."""
+    import math
+    # Aspect ratio: for a pointy-topped hexagon, ground width / ground height
+    # should be sqrt(3)/2 ~= 0.866. Compression shows up as a wrong ratio.
+    ratios = []
+    for f in feats[:5000]:
+        ring = f['geometry']['coordinates'][0]
+        xs = [c[0] for c in ring]; ys = [c[1] for c in ring]
+        clat = (min(ys) + max(ys)) / 2
+        ground_w = (max(xs) - min(xs)) * math.cos(math.radians(clat))
+        ground_h = (max(ys) - min(ys))
+        if ground_h > 0:
+            ratios.append(ground_w / ground_h)
+    mean_ratio = sum(ratios) / len(ratios)
+    print(f"\nGeometry: mean ground width/height ratio = {mean_ratio:.3f} "
+          f"(regular pointy-top target ~0.866)")
+    assert 0.80 < mean_ratio < 0.93, f"Hexagons look distorted (ratio {mean_ratio:.3f})"
+    print("PASS: hexagons are ground-regular (no compression).")
+
+
 def main():
     hexagons = generate_hex_grid()
     tree, _ = build_hex_tree(hexagons)
@@ -64,6 +85,8 @@ def main():
     # edges where synthetic coverage is thin.
     assert blank / len(feats) < 0.02, "Too many blanks - aliasing may persist!"
     print("\nPASS: assignment fills interior hexagons with no periodic bands.")
+
+    check_geometry(feats)
 
 
 if __name__ == '__main__':

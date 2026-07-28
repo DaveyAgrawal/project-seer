@@ -7,8 +7,8 @@
       "defaultDepth": 3000,
       "lastIngestion": "2026-07-27T00:00:00.000Z",
       "dataVersion": "20260727",
-      "featureCount": 49046,
-      "notes": "Regenerated directly from Stanford Thermal Model CSV with nearest-hexagon assignment; eliminates prior vertical banding artifact."
+      "featureCount": 38800,
+      "notes": "Regenerated directly from Stanford Thermal Model CSV with nearest-hexagon assignment (eliminates vertical banding). Pointy-topped, cos(lat)-corrected geometry so hexagons render regular (no compression/overlap)."
     },
     "transmission": {
       "cached": false
