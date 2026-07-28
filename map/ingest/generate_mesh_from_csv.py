@@ -16,7 +16,7 @@ import os
 # Configuration
 CSV_FILE = '/Users/devanagrawal/Desktop/project-seer/DataCenterMap-Scraper/more.data/stanford_thermal_model_inputs_outputs_COMPLETE_VERSION2.csv'
 OUTPUT_DIR = '/Users/devanagrawal/Desktop/project-seer/map/web/public/cache/geothermal'
-DEPTHS_TO_GENERATE = [2000, 3000, 4000, 4500, 5000, 6000, 7000]  # meters
+DEPTHS_TO_GENERATE = [1000, 2000, 3000, 4000, 5000, 6000, 7000]  # meters (STM native 1000m steps)
 
 # Hexagon grid configuration. HEX_SIZE tuned so the hexagon count (~50k)
 # matches the previously-deployed Turf 20-mile grid for a drop-in replacement.
