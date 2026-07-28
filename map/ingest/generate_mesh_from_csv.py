@@ -11,6 +11,7 @@ import numpy as np
 import json
 from tqdm import tqdm
 from scipy.spatial import cKDTree
+from pyproj import Transformer
 import os
 
 # Configuration
@@ -18,15 +19,33 @@ CSV_FILE = '/Users/devanagrawal/Desktop/project-seer/DataCenterMap-Scraper/more.
 OUTPUT_DIR = '/Users/devanagrawal/Desktop/project-seer/map/web/public/cache/geothermal'
 DEPTHS_TO_GENERATE = [1000, 2000, 3000, 4000, 5000, 6000, 7000]  # meters (STM native 1000m steps)
 
-# Hexagon grid configuration. HEX_SIZE tuned so the hexagon count (~50k)
-# matches the previously-deployed Turf 20-mile grid for a drop-in replacement.
-HEX_SIZE = 0.11  # degrees (~7 miles)
+# Hexagons are generated in an equal-area projection (EPSG:5070, NAD83 / Conus
+# Albers) so every cell tiles PERFECTLY (adjacent cells share exact vertices --
+# no overlaps, no gaps) and has an IDENTICAL, exact area. This is what makes
+# downstream area / GW calculations valid. Vertices are converted to WGS84 only
+# for storage/rendering; because a projection is a point map, shared vertices
+# stay shared after conversion, so the tiling remains perfect in lon/lat too.
+PROJ_CRS = "EPSG:5070"   # NAD83 / Conus Albers (meters, equal-area)
+WGS84 = "EPSG:4326"
+
+# Cell size: 5-mile circumradius -> regular-hexagon area ~= 65 sq miles, matching
+# the area constant the web app uses for potential/GW estimates.
+MILES_TO_M = 1609.344
+CIRCUMRADIUS_MI = 5.0
+CIRCUMRADIUS_M = CIRCUMRADIUS_MI * MILES_TO_M
+HEX_AREA_SQMI = (3.0 * np.sqrt(3.0) / 2.0) * (CIRCUMRADIUS_MI ** 2)   # ~64.95
+HEX_AREA_KM2 = HEX_AREA_SQMI * 2.5899881103
+
 US_BOUNDS = {
     'west': -125,
     'east': -66,
     'south': 24,
     'north': 50
 }
+
+# Reusable coordinate transformers (always_xy => lon/lat order).
+_TO_PROJ = Transformer.from_crs(WGS84, PROJ_CRS, always_xy=True)
+_TO_WGS = Transformer.from_crs(PROJ_CRS, WGS84, always_xy=True)
 
 def web_mercator_to_wgs84(x, y):
     """Convert Web Mercator (EPSG:3857) to WGS84 (EPSG:4326)"""
@@ -35,59 +54,69 @@ def web_mercator_to_wgs84(x, y):
     lat = 180 / np.pi * (2 * np.arctan(np.exp(lat * np.pi / 180)) - np.pi / 2)
     return lat, lng
 
-def create_hexagon(center_lng, center_lat, size):
-    """Create a pointy-topped hexagon polygon that is regular on the ground.
-
-    Longitude offsets are divided by cos(lat) so the hexagon spans equal ground
-    distance east-west and north-south. Web Mercator is locally conformal, so an
-    on-the-ground-regular hexagon renders as a regular hexagon on the map (no
-    vertical compression / distortion).
-    """
-    coslat = np.cos(np.radians(center_lat))
-    angles = [30, 90, 150, 210, 270, 330, 30]  # pointy-topped, closed ring
-    coords = []
-    for angle in angles:
-        rad = np.radians(angle)
-        lng = center_lng + (size * np.cos(rad)) / coslat
-        lat = center_lat + size * np.sin(rad)
-        coords.append([lng, lat])
-    return coords
-
 def generate_hex_grid():
-    """Generate a gap-free, non-overlapping pointy-topped hexagon grid over the US.
+    """Generate a perfectly-tiling pointy-topped hexagon grid.
 
-    For pointy-topped hexagons of circumradius R: vertical row spacing is 1.5R,
-    horizontal spacing is the hex width sqrt(3)*R (converted to lng degrees via
-    cos(lat)), and alternate rows are offset by half a width so cells interlock.
+    The grid is regular in EPSG:5070 meters (equal-area), so adjacent cells share
+    exact vertices -> no overlaps, no gaps, and identical area everywhere. Cell
+    corners/centers are then transformed to WGS84 lon/lat for storage.
     """
-    hexagons = []
-    hex_id = 0
+    R = CIRCUMRADIUS_M
+    col_step = np.sqrt(3.0) * R      # horizontal spacing (pointy-topped)
+    row_step = 1.5 * R               # vertical spacing
 
-    R = HEX_SIZE                 # circumradius in latitude-degrees
-    row_step = 1.5 * R           # vertical spacing between rows (lat degrees)
+    # Projected bounding box covering the US_BOUNDS lon/lat rectangle. Albers is
+    # curved, so sample the rectangle edges and pad by one cell.
+    edge_lng = np.linspace(US_BOUNDS['west'], US_BOUNDS['east'], 50)
+    edge_lat = np.linspace(US_BOUNDS['south'], US_BOUNDS['north'], 50)
+    bl = np.concatenate([edge_lng, edge_lng,
+                         np.full(50, US_BOUNDS['west']), np.full(50, US_BOUNDS['east'])])
+    ba = np.concatenate([np.full(50, US_BOUNDS['south']), np.full(50, US_BOUNDS['north']),
+                         edge_lat, edge_lat])
+    bx, by = _TO_PROJ.transform(bl, ba)
+    minx, maxx = bx.min() - R, bx.max() + R
+    miny, maxy = by.min() - R, by.max() + R
 
-    lat = US_BOUNDS['south']
+    # Build the array of hexagon centers (projected meters).
+    cxs, cys = [], []
     row = 0
-    while lat < US_BOUNDS['north']:
-        coslat = np.cos(np.radians(lat))
-        width = (np.sqrt(3) * R) / coslat        # hex width in lng degrees at this lat
-        lng_offset = (width / 2) if (row % 2 == 1) else 0
-        lng = US_BOUNDS['west'] + lng_offset
-
-        while lng < US_BOUNDS['east']:
-            hexagons.append({
-                'id': hex_id,
-                'center_lng': lng,
-                'center_lat': lat,
-                'coords': create_hexagon(lng, lat, R)
-            })
-            hex_id += 1
-            lng += width
-
-        lat += row_step
+    y = miny
+    while y <= maxy:
+        x_offset = (col_step / 2.0) if (row % 2 == 1) else 0.0
+        x = minx + x_offset
+        while x <= maxx:
+            cxs.append(x)
+            cys.append(y)
+            x += col_step
+        y += row_step
         row += 1
+    cx = np.array(cxs)
+    cy = np.array(cys)
 
-    print(f"Generated {len(hexagons)} hexagons")
+    # Vertices for every hexagon, transformed to lon/lat in a single batch call.
+    angles = np.radians([30, 90, 150, 210, 270, 330])
+    vx = (cx[:, None] + R * np.cos(angles)[None, :]).ravel()
+    vy = (cy[:, None] + R * np.sin(angles)[None, :]).ravel()
+    vlng, vlat = _TO_WGS.transform(vx, vy)
+    vlng = vlng.reshape(-1, 6)
+    vlat = vlat.reshape(-1, 6)
+    clng, clat = _TO_WGS.transform(cx, cy)
+
+    hexagons = []
+    for i in range(len(cx)):
+        coords = [[float(vlng[i, k]), float(vlat[i, k])] for k in range(6)]
+        coords.append(coords[0])   # close ring
+        hexagons.append({
+            'id': i,
+            'cx': float(cx[i]),
+            'cy': float(cy[i]),
+            'center_lng': float(clng[i]),
+            'center_lat': float(clat[i]),
+            'coords': coords,
+        })
+
+    print(f"Generated {len(hexagons)} hexagons "
+          f"({CIRCUMRADIUS_MI}-mile circumradius, {HEX_AREA_SQMI:.1f} sq mi each)")
     return hexagons
 
 def load_all_depths(depths):
@@ -129,15 +158,9 @@ def load_all_depths(depths):
         result[d] = out
     return result
 
-# Longitude scaling used when measuring point->hexagon distances so the KD-tree
-# operates in an approximately isotropic (equal-ground-distance) plane.
-# cos(37deg) is a representative latitude for the continental US.
-LNG_SCALE = float(np.cos(np.radians(37.0)))
-
-
 def build_hex_tree(hexagons):
-    """Build a KD-tree over hexagon centers (in an lng-scaled, ~isotropic plane)."""
-    centers = np.array([[h['center_lng'] * LNG_SCALE, h['center_lat']] for h in hexagons])
+    """Build a KD-tree over hexagon centers in projected meters (isotropic)."""
+    centers = np.array([[h['cx'], h['cy']] for h in hexagons])
     return cKDTree(centers), centers
 
 
@@ -157,16 +180,13 @@ def assign_points_to_hexagons(hexagons, points_df, tree):
     """
     print("Assigning points to hexagons (nearest-neighbor)...")
 
-    pts = np.column_stack([
-        points_df['lng'].to_numpy() * LNG_SCALE,
-        points_df['lat'].to_numpy(),
-    ])
+    px, py = _TO_PROJ.transform(points_df['lng'].to_numpy(), points_df['lat'].to_numpy())
+    pts = np.column_stack([px, py])
 
-    # Max distance a point can be from a hex center and still belong to it.
-    # Generous relative to the circumradius (HEX_SIZE) so no interior point is
-    # dropped given the anisotropy approximation; the dense STM sampling makes
-    # over-generous radii harmless.
-    max_dist = HEX_SIZE * 1.4
+    # Max distance a point can be from a hex center and still belong to it. In a
+    # regular hex tiling every point is within one circumradius of the nearest
+    # center, so a tiny margin over CIRCUMRADIUS_M captures everything exactly.
+    max_dist = CIRCUMRADIUS_M * 1.05
 
     dist, idx = tree.query(pts, k=1, distance_upper_bound=max_dist)
     valid = np.isfinite(dist)
@@ -183,28 +203,24 @@ def assign_points_to_hexagons(hexagons, points_df, tree):
     np.minimum.at(mins, vidx, vtemp)
     np.maximum.at(maxs, vidx, vtemp)
 
+    # Only hexagons that actually received STM points are emitted. Because every
+    # cell is identical and non-overlapping, dropping empty (ocean / off-domain)
+    # cells keeps files small without affecting area math or rendering.
+    area_sqmi = round(HEX_AREA_SQMI, 3)
+    area_km2 = round(HEX_AREA_KM2, 3)
     features = []
-    assigned_count = 0
     for i, hex_data in enumerate(hexagons):
-        if counts[i] > 0:
-            avg_temp = round(float(sums[i] / counts[i]), 1)
-            min_temp = round(float(mins[i]), 1)
-            max_temp = round(float(maxs[i]), 1)
-            point_count = int(counts[i])
-            assigned_count += 1
-        else:
-            avg_temp = None
-            min_temp = None
-            max_temp = None
-            point_count = 0
-
+        if counts[i] == 0:
+            continue
         features.append({
             "type": "Feature",
             "properties": {
-                "avg_temperature_f": avg_temp,
-                "min_temperature_f": min_temp,
-                "max_temperature_f": max_temp,
-                "point_count": point_count,
+                "avg_temperature_f": round(float(sums[i] / counts[i]), 1),
+                "min_temperature_f": round(float(mins[i]), 1),
+                "max_temperature_f": round(float(maxs[i]), 1),
+                "point_count": int(counts[i]),
+                "area_sq_miles": area_sqmi,
+                "area_km2": area_km2,
                 "hex_id": f"hex_{hex_data['id']}"
             },
             "geometry": {
@@ -214,7 +230,7 @@ def assign_points_to_hexagons(hexagons, points_df, tree):
             "id": hex_data['id']
         })
 
-    print(f"Assigned temperature data to {assigned_count}/{len(hexagons)} hexagons")
+    print(f"Assigned temperature data to {len(features)}/{len(hexagons)} hexagons")
     return features
 
 def generate_mesh_for_depth(depth, hexagons, tree, points_df):

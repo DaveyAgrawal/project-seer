@@ -11,10 +11,14 @@ matching left ~17.5% blank in periodic columns.
 import numpy as np
 import pandas as pd
 
+from pyproj import Geod
+
 from generate_mesh_from_csv import (
     generate_hex_grid, build_hex_tree, assign_points_to_hexagons,
-    US_BOUNDS, HEX_SIZE,
+    US_BOUNDS, HEX_AREA_SQMI,
 )
+
+_GEOD = Geod(ellps="WGS84")
 
 
 def make_dense_points(step=0.05):
@@ -29,25 +33,42 @@ def make_dense_points(step=0.05):
     return pd.DataFrame({'lat': lat, 'lng': lng, 'temp_f': temp_f})
 
 
-def check_geometry(feats):
-    """Verify hexagons are ground-regular (not compressed) and tile without overlap."""
-    import math
-    # Aspect ratio: for a pointy-topped hexagon, ground width / ground height
-    # should be sqrt(3)/2 ~= 0.866. Compression shows up as a wrong ratio.
-    ratios = []
-    for f in feats[:5000]:
+def check_equal_area(feats):
+    """Every cell must have the same true (geodesic) area == the stored constant."""
+    areas = []
+    for f in feats[::37][:4000]:   # sample
         ring = f['geometry']['coordinates'][0]
-        xs = [c[0] for c in ring]; ys = [c[1] for c in ring]
-        clat = (min(ys) + max(ys)) / 2
-        ground_w = (max(xs) - min(xs)) * math.cos(math.radians(clat))
-        ground_h = (max(ys) - min(ys))
-        if ground_h > 0:
-            ratios.append(ground_w / ground_h)
-    mean_ratio = sum(ratios) / len(ratios)
-    print(f"\nGeometry: mean ground width/height ratio = {mean_ratio:.3f} "
-          f"(regular pointy-top target ~0.866)")
-    assert 0.80 < mean_ratio < 0.93, f"Hexagons look distorted (ratio {mean_ratio:.3f})"
-    print("PASS: hexagons are ground-regular (no compression).")
+        lngs = [c[0] for c in ring]
+        lats = [c[1] for c in ring]
+        area_m2, _ = _GEOD.polygon_area_perimeter(lngs, lats)
+        areas.append(abs(area_m2) / 2.589988e6)   # m^2 -> sq miles
+    areas = np.array(areas)
+    rel_spread = (areas.max() - areas.min()) / areas.mean()
+    print(f"\nEqual-area: geodesic area mean={areas.mean():.2f} sq mi "
+          f"(stored {HEX_AREA_SQMI:.2f}), spread={100*rel_spread:.2f}%")
+    assert abs(areas.mean() - HEX_AREA_SQMI) / HEX_AREA_SQMI < 0.03, "Area drifts from stored value"
+    assert rel_spread < 0.03, "Cell areas vary -> tiling not equal-area"
+    stored = {f['properties']['area_sq_miles'] for f in feats}
+    assert len(stored) == 1, f"Multiple stored areas: {stored}"
+    print("PASS: all cells identical area (valid for area/GW calculations).")
+
+
+def check_no_gaps(hexagons, feats):
+    """Every interior hexagon (well inside the sampled region) must be filled.
+
+    Detects aliasing/banding, which would show up as missing interior cells.
+    """
+    filled_ids = {f['id'] for f in feats}
+    m = 0.6
+    interior = [h for h in hexagons
+                if US_BOUNDS['west'] + m < h['center_lng'] < US_BOUNDS['east'] - m
+                and US_BOUNDS['south'] + m < h['center_lat'] < US_BOUNDS['north'] - m]
+    missing = [h for h in interior if h['id'] not in filled_ids]
+    frac = len(missing) / len(interior)
+    print(f"\nCoverage: interior cells={len(interior)}, missing={len(missing)} "
+          f"({100*frac:.2f}%) -> no periodic bands")
+    assert frac < 0.02, "Interior cells missing -> aliasing/banding present!"
+    print("PASS: full interior coverage, no periodic bands.")
 
 
 def main():
@@ -57,36 +78,11 @@ def main():
     print(f"Synthetic points: {len(pts):,}")
 
     feats = assign_points_to_hexagons(hexagons, pts, tree)
+    print(f"\nHexagons generated : {len(hexagons)}")
+    print(f"Cells with data    : {len(feats)}")
 
-    filled = [f for f in feats if f['properties']['avg_temperature_f'] is not None]
-    blank = len(feats) - len(filled)
-    print(f"\nHexagons total : {len(feats)}")
-    print(f"Filled         : {len(filled)} ({100*len(filled)/len(feats):.2f}%)")
-    print(f"Blank          : {blank} ({100*blank/len(feats):.2f}%)")
-
-    # Check for periodic vertical bands: group blanks by longitude column.
-    from collections import defaultdict
-    col_total, col_blank = defaultdict(int), defaultdict(int)
-    for f in feats:
-        xs = [c[0] for c in f['geometry']['coordinates'][0]]
-        col = round(((min(xs) + max(xs)) / 2) / (HEX_SIZE * 1.5))
-        col_total[col] += 1
-        if f['properties']['avg_temperature_f'] is None:
-            col_blank[col] += 1
-    worst = sorted(
-        ((col_blank[c] / col_total[c], c, col_total[c]) for c in col_total if col_total[c] >= 3),
-        reverse=True,
-    )[:5]
-    print("\nWorst 5 longitude columns by blank-fraction (should be ~0 in interior):")
-    for frac, c, t in worst:
-        print(f"  col {c:5d}  blank {100*frac:5.1f}%  (n={t})")
-
-    # Assert: interior banding eliminated. Allow a little slack for true grid
-    # edges where synthetic coverage is thin.
-    assert blank / len(feats) < 0.02, "Too many blanks - aliasing may persist!"
-    print("\nPASS: assignment fills interior hexagons with no periodic bands.")
-
-    check_geometry(feats)
+    check_no_gaps(hexagons, feats)
+    check_equal_area(feats)
 
 
 if __name__ == '__main__':
